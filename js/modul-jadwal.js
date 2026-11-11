@@ -1,7 +1,7 @@
 /**
  * MODUL PENJADWALAN - UPA BAHASA POLNES (FULL VERSION UTUH)
- * Menangani Upload Excel, Manajemen Antrean, Filter Kelas Spesifik, Validasi Anti-Bentrok Lab, 
- * Kunci Sesi, Histori, Dinamis Jam Sesi, dan Cetak Berita Acara PDF (Format Paten 1 Halaman).
+ * Menangani Upload Excel, Antrean, Filter Kelas, Validasi Kapasitas Lab (Maks 30), 
+ * Validasi Pasangan Lab A & Lab B (Tidak Boleh Sama-Sama 30), Kunci Sesi, Histori, & PDF Paten.
  */
 
 let uploadedMahasiswaList = [];
@@ -240,7 +240,7 @@ function toggleSelectAllMhs(masterCheckbox) {
   checkboxes.forEach(cb => cb.checked = masterCheckbox.checked);
 }
 
-// --- KUNCI SESI UJIAN DENGAN VALIDASI ANTI-BENTROK LAB ---
+// --- KUNCI SESI DENGAN ATURAN KAPASITAS & PASANGAN LAB (LAB A & LAB B) ---
 async function kunciSesiUjianKeSupabase() {
   const checkboxes = document.querySelectorAll('.mhs-checkbox:checked');
   if (checkboxes.length === 0) {
@@ -251,47 +251,67 @@ async function kunciSesiUjianKeSupabase() {
   const jenisTes = document.getElementById('selectJenisTes').value;
   const tanggal = document.getElementById('inputTanggalUjian').value;
   const sesi = document.getElementById('selectSesi').value;
-  const ruangLab = document.getElementById('selectLab').value;
+  const ruangLabDipilih = document.getElementById('selectLab').value; // 'Lab A' atau 'Lab B'
 
   if (!tanggal) {
     alert("Harap tentukan tanggal ujian terlebih dahulu!");
     return;
   }
 
+  const selectedIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+  const mahasiswaTerpilih = uploadedMahasiswaList.filter(m => selectedIds.includes(m.id));
+  const jumlahDipilih = mahasiswaTerpilih.length;
+
+  // 1. Validasi Kapasitas Maksimal Per Lab (Maks 30)
+  if (jumlahDipilih > 30) {
+    alert(`[DITOLAK] Kapasitas ${ruangLabDipilih} maksimal adalah 30 mahasiswa! Anda memilih ${jumlahDipilih} mahasiswa.`);
+    return;
+  }
+
   try {
-    // 1. CEK BENTROK DI DATABASE (Apakah Tanggal, Sesi, dan Ruang Lab yang sama sudah digunakan?)
-    const { data: existingSesi, error: checkErr } = await window.supabaseClient
+    // 2. Ambil data sesi yang sudah terkunci pada Tanggal & Sesi tersebut di database
+    const { data: sesiAktifList, error: checkErr } = await window.supabaseClient
       .from('jadwal_log')
       .select('*')
       .eq('tanggal', tanggal)
-      .eq('sesi', sesi)
-      .eq('ruang_lab', ruangLab);
+      .eq('sesi', sesi);
 
     if (checkErr) throw checkErr;
 
-    if (existingSesi && existingSesi.length > 0) {
-      alert(`GAGAL BENTROK JADWAL!\n\n${ruangLab} pada tanggal ${tanggal} (${sesi}) sudah digunakan oleh kelas "${existingSesi[0].nama_kelas}" (${existingSesi[0].jenis_tes}).\n\nSilakan pilih waktu sesi atau ruang lab lain!`);
-      return; // Batalkan proses penguncian
-    }
-
-    const selectedIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
-    const mahasiswaTerpilih = uploadedMahasiswaList.filter(m => selectedIds.includes(m.id));
-    const kelasUnik = [...new Set(mahasiswaTerpilih.map(m => m.nama_kelas))].join(', ');
-
-    if (!confirm(`Yakin ingin mengunci ${mahasiswaTerpilih.length} mahasiswa ke sesi ${sesi} (${ruangLab}) untuk kelas ${kelasUnik}?`)) {
+    // Cek apakah Lab yang dipilih sudah persis digunakan
+    const labSudahDipakai = sesiAktifList.find(s => s.ruang_lab === ruangLabDipilih);
+    if (labSudahDipakai) {
+      alert(`[DITOLAK] ${ruangLabDipilih} pada tanggal ${tanggal} (${sesi}) sudah digunakan oleh kelas "${labSudahDipakai.nama_kelas}"!`);
       return;
     }
 
-    // 2. Simpan header sesi ke tabel `jadwal_log`
+    // Cek kondisi pasangan lab (Lab A & Lab B)
+    // Aturan: Boleh di sesi yang sama asal tidak sama-sama 30 orang (pasangan lab harus dibawah 30 jika salah satunya 30)
+    const labLain = sesiAktifList.find(s => s.ruang_lab !== ruangLabDipilih);
+    if (labLain) {
+      // Jika lab pasangan sudah terisi 30, dan lab yang mau dimasuki ini juga 30 -> Ditolak!
+      if (labLain.jumlah_mhs === 30 && jumlahDipilih === 30) {
+        alert(`[DITOLAK] Aturan UPA Bahasa: Lab pasangan (${labLain.ruang_lab}) sudah berisi 30 mahasiswa penuh. Lab ${ruangLabDipilih} tidak boleh sama-sama 30 orang penuh di sesi yang sama! Silakan kurangi jumlah mahasiswa di bawah 30.`);
+        return;
+      }
+    }
+
+    const kelasUnik = [...new Set(mahasiswaTerpilih.map(m => m.nama_kelas))].join(', ');
+
+    if (!confirm(`Yakin ingin mengunci ${jumlahDipilih} mahasiswa ke sesi ${sesi} (${ruangLabDipilih}) untuk kelas ${kelasUnik}?`)) {
+      return;
+    }
+
+    // 3. Simpan ke database jadwal_log
     const { data: jadwalData, error: jadwalErr } = await window.supabaseClient
       .from('jadwal_log')
       .insert([{
         jenis_tes: jenisTes,
         tanggal: tanggal,
         sesi: sesi,
-        ruang_lab: ruangLab,
+        ruang_lab: ruangLabDipilih,
         nama_kelas: kelasUnik,
-        jumlah_mhs: mahasiswaTerpilih.length,
+        jumlah_mhs: jumlahDipilih,
         status: 'TERKUNCI'
       }])
       .select();
@@ -299,7 +319,7 @@ async function kunciSesiUjianKeSupabase() {
     if (jadwalErr) throw jadwalErr;
     const jadwalId = jadwalData[0].id;
 
-    // 3. Simpan detail peserta ke tabel `peserta_ujian`
+    // 4. Simpan ke peserta_ujian
     const pesertaPayload = mahasiswaTerpilih.map((m, idx) => ({
       jadwal_id: jadwalId,
       nim: m.nim,
@@ -314,7 +334,7 @@ async function kunciSesiUjianKeSupabase() {
 
     if (pesertaErr) throw pesertaErr;
 
-    // 4. Hapus dari antrean
+    // 5. Hapus dari antrean
     const { error: deleteErr } = await window.supabaseClient
       .from('antrean_mahasiswa')
       .delete()
@@ -322,7 +342,7 @@ async function kunciSesiUjianKeSupabase() {
 
     if (deleteErr) throw deleteErr;
 
-    alert("Sesi ujian berhasil dikunci dan disimpan ke database! Tidak ada bentrok lab.");
+    alert("Sesi ujian berhasil dikunci dan disimpan ke database!");
     
     await loadAntreanDariSupabase();
     await loadHistoriJadwalDariSupabase();
