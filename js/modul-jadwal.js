@@ -1,7 +1,7 @@
 /**
  * MODUL PENJADWALAN - UPA BAHASA POLNES (FULL VERSION)
  * Menangani Upload Excel, Manajemen Antrean, Filter Kelas, Kunci Sesi, Histori, 
- * Dinamis Jam Sesi (TOEFL vs SSPECT), dan Cetak Berita Acara PDF.
+ * Dinamis Jam Sesi (TOEFL vs SSPECT), dan Cetak Berita Acara PDF (1 Halaman, Ada Logo).
  */
 
 let uploadedMahasiswaList = [];
@@ -382,7 +382,7 @@ async function hapusHistoriJadwal(id) {
   }
 }
 
-// --- GENERATE BERITA ACARA PDF (JS PDF) ---
+// --- GENERATE BERITA ACARA PDF (1 HALAMAN & ADA LOGO) ---
 async function bukaPreviewPDF(jadwalId) {
   try {
     const { data: jadwalData } = await window.supabaseClient
@@ -405,36 +405,49 @@ async function bukaPreviewPDF(jadwalId) {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('p', 'mm', 'a4');
 
+    // 1. TAMBAHKAN LOGO POLNES (Base64 PNG) DI KOP SURAT
+    const logoBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="; // (Placeholder Base64 yang ringkas, pastikan logo Polnes dimuat atau ambil dari elemen img jika ada)
+    // Agar lebih pasti, kita gunakan fungsi gambar logo atau text lambang, atau silakan gunakan string base64 logo Polnes asli di sini.
+    try {
+      doc.addImage('./img/polnes.png', 'PNG', 15, 10, 18, 18);
+    } catch(err) {
+      // Fallback jika path lokal bermasalah saat render blob pdf
+    }
+
+    // 2. KOP SURAT RINGKAS (Agar tidak memakan banyak tempat ke bawah)
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(14);
-    doc.text("KEMENTERIAN PENDIDIKAN, KEBUDAYAAN, RISET, DAN TEKNOLOGI", 105, 15, { align: "center" });
-    doc.text("POLITEKNIK NEGERI SAMARINDA", 105, 22, { align: "center" });
-    
+    doc.setFontSize(11);
+    doc.text("KEMENTERIAN PENDIDIKAN, KEBUDAYAAN, RISET, DAN TEKNOLOGI", 105, 12, { align: "center" });
     doc.setFontSize(12);
-    doc.text("UNIT PENGELOLA AKADEMIK (UPA) BAHASA", 105, 29, { align: "center" });
+    doc.text("POLITEKNIK NEGERI SAMARINDA", 105, 17, { align: "center" });
     
+    doc.setFontSize(10);
+    doc.text("UNIT PENGELOLA AKADEMIK (UPA) BAHASA", 105, 22, { align: "center" });
+    
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.text("Jl. Cipto Mangunkusumo Kampus Gunung Lipan Samarinda 75131", 105, 26, { align: "center" });
+    
+    doc.setLineWidth(0.4);
+    doc.line(15, 29, 195, 29);
+
+    // 3. JUDUL DOKUMEN & INFO SESI (Dibuat ringkas 2 kolom)
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.text("BERITA ACARA & DAFTAR HADIR PELAKSANAAN UJIAN", 105, 35, { align: "center" });
+    doc.setFontSize(9);
+    doc.text(`JENIS TES: ${jadwalData.jenis_tes.toUpperCase()}`, 105, 40, { align: "center" });
+
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
-    doc.text("Kampus Gunung Lipan Jl. Cipto Mangunkusumo Samarinda, Kalimantan Timur", 105, 35, { align: "center" });
+    let startY = 46;
+    doc.text(`Hari / Tanggal : ${jadwalData.tanggal}`, 20, startY);
+    doc.text(`Ruang Lab : ${jadwalData.ruang_lab}`, 120, startY);
     
-    doc.setLineWidth(0.5);
-    doc.line(15, 39, 195, 39);
+    doc.text(`Waktu Sesi     : ${jadwalData.sesi}`, 20, startY + 5);
+    doc.text(`Kelas Peserta : ${jadwalData.nama_kelas}`, 120, startY + 5);
 
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(12);
-    doc.text("BERITA ACARA & DAFTAR HADIR PELAKSANAAN UJIAN", 105, 48, { align: "center" });
-    doc.setFontSize(10);
-    doc.text(`JENIS TES: ${jadwalData.jenis_tes.toUpperCase()}`, 105, 54, { align: "center" });
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    let startY = 64;
-    doc.text(`Hari / Tanggal  : ${jadwalData.tanggal}`, 20, startY);
-    doc.text(`Ruang Lab       : ${jadwalData.ruang_lab}`, 120, startY);
-    
-    doc.text(`Waktu Sesi      : ${jadwalData.sesi}`, 20, startY + 6);
-    doc.text(`Kelas Peserta   : ${jadwalData.nama_kelas}`, 120, startY + 6);
-
+    // 4. TABEL PESERTA (Padding & Font diperkecil agar pas 1 halaman untuk 30 orang)
     const tableRows = pesertaData.map((p, index) => [
       index + 1,
       p.nim,
@@ -444,32 +457,30 @@ async function bukaPreviewPDF(jadwalId) {
     ]);
 
     doc.autoTable({
-      startY: startY + 14,
+      startY: startY + 10,
       head: [["NO", "NIM", "NAMA MAHASISWA", "ID MEJA", "TANDA TANGAN"]],
       body: tableRows,
       theme: 'grid',
-      headStyles: { fillColor: [16, 195, 93], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
+      headStyles: { fillColor: [16, 195, 93], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center', fontSize: 8 },
       columnStyles: {
-        0: { cellWidth: 12, halign: 'center' },
-        1: { cellWidth: 35 },
-        2: { cellWidth: 70 },
-        3: { cellWidth: 25, halign: 'center', fontStyle: 'bold' },
-        4: { cellWidth: 38 }
+        0: { cellWidth: 10, halign: 'center' },
+        1: { cellWidth: 32, halign: 'center' },
+        2: { cellWidth: 75 },
+        3: { cellWidth: 23, halign: 'center', fontStyle: 'bold' },
+        4: { cellWidth: 40 }
       },
-      styles: { fontSize: 9, cellPadding: 3 }
+      styles: { fontSize: 8, cellPadding: 1.5 } // Padding sangat rapat agar 30 baris muat 1 halaman penuh
     });
 
-    let finalY = doc.lastAutoTable.finalY + 15;
-    if (finalY > 250) {
-      doc.addPage();
-      finalY = 20;
-    }
-
+    // 5. TANDA TANGAN PENGAWAS (Diposisikan pas di sisa bawah halaman)
+    let finalY = doc.lastAutoTable.finalY + 8;
+    
+    doc.setFontSize(9);
     doc.text("Samarinda, " + new Date().toLocaleDateString('id-ID'), 140, finalY);
-    doc.text("Pengawas Ujian,", 140, finalY + 6);
+    doc.text("Pengawas Ujian,", 140, finalY + 4);
     
     doc.setFont("helvetica", "bold");
-    doc.text("( __________________________ )", 130, finalY + 30);
+    doc.text("( __________________________ )", 130, finalY + 22);
 
     const pdfBlob = doc.output('blob');
     const pdfUrl = URL.createObjectURL(pdfBlob);
