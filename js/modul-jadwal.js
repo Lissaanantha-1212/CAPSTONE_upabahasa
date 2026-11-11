@@ -1,6 +1,6 @@
 /**
  * MODUL PENJADWALAN - UPA BAHASA POLNES
- * Smart Deep-Scan Excel Parser + Supabase Sync + PDF Preview 1 Halaman Rapi
+ * Deep-Scan Excel Parser + Supabase Sync + PDF Preview Modal & Kop Resmi 1 Halaman
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -15,13 +15,6 @@ function handleSelectFileClick() {
     return;
   }
   document.getElementById('excelFileInput').click();
-}
-
-function handleFileSelected(inputElement) {
-  const file = inputElement.files[0];
-  if (file) {
-    bacaDanUploadExcelOtomatis(file);
-  }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -356,16 +349,16 @@ async function loadHistoriJadwalDariSupabase() {
       <td class="px-4 py-3 text-xs font-bold">${item.jumlah_mhs} Mhs</td>
       <td class="px-4 py-3 text-xs"><span class="bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full font-bold">Dikunci</span></td>
       <td class="px-4 py-3 text-xs">
-        <button onclick="cetakBeritaAcaraPDF('${item.id}', '${item.jenis_tes}', '${item.nama_kelas}', '${item.tanggal}', '${item.sesi}', '${item.ruang_lab}')" class="px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-lg font-bold transition-all flex items-center gap-1 shadow-sm">
-          <i class="ri-file-pdf-line"></i> Preview / Cetak PDF
+        <button onclick="bukaPreviewPDF('${item.id}', '${item.jenis_tes}', '${item.nama_kelas}', '${item.tanggal}', '${item.sesi}', '${item.ruang_lab}')" class="px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-lg font-bold transition-all flex items-center gap-1 shadow-sm">
+          <i class="ri-file-pdf-line"></i> Cetak / PDF
         </button>
       </td>
     </tr>
   `).join('');
 }
 
-// 7. Cetak Berita Acara PDF (Direvisi: Rata Tengah, Kompak 1 Halaman, dan Munculkan Preview)
-async function cetakBeritaAcaraPDF(jadwalId, jenisTes, namaKelas, tanggal, sesi, ruangLab) {
+// FUNGSI MEMBUAT PDF (Kop Resmi Sesuai Contoh & 1 Halaman Pas)
+async function generatePDFDoc(jenisTes, namaKelas, tanggal, sesi, ruangLab, peserta) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({
     orientation: 'portrait',
@@ -373,30 +366,25 @@ async function cetakBeritaAcaraPDF(jadwalId, jenisTes, namaKelas, tanggal, sesi,
     format: 'a4'
   });
 
-  const { data: peserta } = await window.supabaseClient
-    .from('peserta_ujian')
-    .select('*')
-    .eq('jadwal_id', jadwalId);
-
-  // KOP SURAT (DI-CENTERS / DITENGAHKAN)
-  doc.setFontSize(11);
+  // KOP SURAT RESMI (RATA TENGAH SESUAI CONTOH)
+  doc.setFontSize(9.5);
   doc.setFont("helvetica", "bold");
   doc.text("KEMENTERIAN PENDIDIKAN, KEBUDAYAAN, RISET, DAN TEKNOLOGI", 105, 12, null, null, "center");
+  doc.text("POLITEKNIK NEGERI SAMARINDA", 105, 17, null, null, "center");
   
-  doc.setFontSize(13);
-  doc.text("POLITEKNIK NEGERI SAMARINDA", 105, 18, null, null, "center");
-  
-  doc.setFontSize(12);
-  doc.text("UPT. BAHASA", 105, 24, null, null, "center");
+  doc.setFontSize(11);
+  doc.text("UPT. BAHASA", 105, 23, null, null, "center");
   
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
-  doc.text("Jalan Dr. Ciptomangunkusumo Kampus Gunung Panjang Samarinda", 105, 29, null, null, "center");
-  doc.text("Telepon : PABX(0541)260588 - 260553 - 262018 FAX (0541) 260355", 105, 33, null, null, "center");
-  doc.text("Website: www.polnes.ac.id Email : polnes@polnes.ac.id", 105, 37, null, null, "center");
+  doc.text("Jalan Dr. Ciptomangunkusumo Kampus Gunung Panjang Samarinda", 105, 28, null, null, "center");
+  doc.text("Telepon : PABX(0541)260588 - 260553 - 262018 FAX (0541) 260355", 105, 32, null, null, "center");
+  doc.text("Website: www.polnes.ac.id Email : polnes@polnes.ac.id", 105, 36, null, null, "center");
   
-  // Garis Bawah Kop
-  doc.setLineWidth(0.5);
+  // Garis Bawah Kop Ganda / Tebal
+  doc.setLineWidth(0.8);
+  doc.line(14, 39, 196, 39);
+  doc.setLineWidth(0.2);
   doc.line(14, 40, 196, 40);
 
   // JUDUL DOKUMEN (RATA TENGAH)
@@ -404,7 +392,7 @@ async function cetakBeritaAcaraPDF(jadwalId, jenisTes, namaKelas, tanggal, sesi,
   doc.setFont("helvetica", "bold");
   doc.text(`JADWAL & BERITA ACARA UJIAN ${jenisTes}`, 105, 47, null, null, "center");
 
-  // INFORMASI DETAIL (2 Kolom Rapi)
+  // INFORMASI DETAIL (2 Kolom)
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
   doc.text(`Nama Kelas / Prodi : ${namaKelas}`, 14, 54);
@@ -423,7 +411,7 @@ async function cetakBeritaAcaraPDF(jadwalId, jenisTes, namaKelas, tanggal, sesi,
     "........................"
   ]);
 
-  // AUTO TABLE (Diatur agar muat 1 halaman penuh & padding kecil)
+  // AUTO TABLE (Diatur agar muat pas 1 halaman penuh)
   doc.autoTable({
     startY: 63,
     head: [['No', 'NIM', 'Nama Mahasiswa', 'Kelas / Prodi', 'ID Meja', 'Tanda Tangan']],
@@ -436,8 +424,8 @@ async function cetakBeritaAcaraPDF(jadwalId, jenisTes, namaKelas, tanggal, sesi,
       halign: 'center' 
     },
     styles: { 
-      fontSize: 8.5,          // Ukuran font dikecilkan sedikit agar pas 1 halaman
-      cellPadding: 2,         // Padding diperkecil agar ringkas
+      fontSize: 8,          // Ukuran font ringkas agar muat 1 halaman
+      cellPadding: 1.8,     // Padding rapat
       valign: 'middle'
     },
     columnStyles: {
@@ -448,11 +436,43 @@ async function cetakBeritaAcaraPDF(jadwalId, jenisTes, namaKelas, tanggal, sesi,
       4: { halign: 'center', cellWidth: 25 },
       5: { halign: 'center', cellWidth: 22 }
     },
-    // Pastikan seluruh tabel dipaksa muat dalam 1 halaman
     pageBreak: 'avoid'
   });
 
-  // PREVIEW PDF PADA TAB BARU (Sebelum Diunduh)
+  return doc;
+}
+
+// BUKA MODAL PREVIEW PDF
+async function bukaPreviewPDF(jadwalId, jenisTes, namaKelas, tanggal, sesi, ruangLab) {
+  const { data: peserta } = await window.supabaseClient
+    .from('peserta_ujian')
+    .select('*')
+    .eq('jadwal_id', jadwalId);
+
+  const doc = await generatePDFDoc(jenisTes, namaKelas, tanggal, sesi, ruangLab, peserta);
   const pdfBlobUrl = doc.output('bloburl');
-  window.open(pdfBlobUrl, '_blank');
+
+  // Set URL ke iframe modal
+  const iframe = document.getElementById('pdfPreviewIframe');
+  const modal = document.getElementById('pdfPreviewModal');
+  if (iframe && modal) {
+    iframe.src = pdfBlobUrl;
+    modal.classList.remove('hidden');
+
+    // Hubungkan tombol Download & Print di Modal
+    document.getElementById('btnActionDownload').onclick = () => {
+      doc.save(`Jadwal_${jenisTes}_${namaKelas}_${tanggal}.pdf`);
+    };
+
+    document.getElementById('btnActionPrint').onclick = () => {
+      iframe.contentWindow.print();
+    };
+  }
+}
+
+function tutupPreviewPDF() {
+  const modal = document.getElementById('pdfPreviewModal');
+  const iframe = document.getElementById('pdfPreviewIframe');
+  if (modal) modal.classList.add('hidden');
+  if (iframe) iframe.src = '';
 }
