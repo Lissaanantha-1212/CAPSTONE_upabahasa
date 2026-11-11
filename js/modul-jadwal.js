@@ -1,6 +1,6 @@
 /**
  * MODUL PENJADWALAN - UPA BAHASA POLNES (FULL VERSION UTUH)
- * Menangani Upload Excel, Manajemen Antrean, Filter Kelas (Tanpa "Semua Kelas"), Kunci Sesi, Histori, 
+ * Menangani Upload Excel, Manajemen Antrean, Filter Kelas Spesifik, Kunci Sesi, Histori, 
  * Dinamis Jam Sesi (TOEFL vs SSPECT), dan Cetak Berita Acara PDF (Format Paten 1 Halaman).
  */
 
@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (dateInput) dateInput.value = today;
 
   initDynamicSesiListener();
+  bersihkanTombolSemuaKelasStatik(); // Eksekusi pembersih tombol statis HTML
 
   await loadAntreanDariSupabase();
   await loadHistoriJadwalDariSupabase();
@@ -22,6 +23,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     fileInput.addEventListener('change', handleExcelUpload);
   }
 });
+
+// --- PENGAMAN: HAPUS PAKSA TOMBOL "SEMUA KELAS" JIKA ADA DI HTML STATIS ---
+function bersihkanTombolSemuaKelasStatik() {
+  const buttons = document.querySelectorAll('button, span, div');
+  buttons.forEach(el => {
+    if (el.innerText && el.innerText.includes('Semua Kelas')) {
+      el.remove();
+    }
+  });
+}
 
 function initDynamicSesiListener() {
   const selectJenisTes = document.getElementById('selectJenisTes');
@@ -142,7 +153,6 @@ async function loadAntreanDariSupabase() {
 
     uploadedMahasiswaList = data || [];
     
-    // Otomatis pilih kelas pertama jika belum ada filter yang aktif
     const kelasSet = [...new Set(uploadedMahasiswaList.map(m => m.nama_kelas))];
     if (!kelasSet.includes(selectedKelasFilter) && kelasSet.length > 0) {
       selectedKelasFilter = kelasSet[0];
@@ -150,13 +160,14 @@ async function loadAntreanDariSupabase() {
 
     renderFilterKelasButtons();
     renderTabelAntrean();
+    bersihkanTombolSemuaKelasStatik(); // Pastikan dibersihkan ulang setelah render
 
   } catch (err) {
     console.error("Gagal memuat antrean:", err);
   }
 }
 
-// --- RENDER TOMBOL FILTER KELAS (TANPA "SEMUA KELAS") ---
+// --- RENDER TOMBOL FILTER KELAS (HANYA KELAS SPESIFIK) ---
 function renderFilterKelasButtons() {
   const container = document.getElementById('filterKelasContainer');
   if (!container) return;
@@ -184,7 +195,6 @@ function filterKelas(namaKelas) {
   renderTabelAntrean();
 }
 
-// --- RENDER TABEL ANTREAN (HANYA MENAMPILKAN KELAS YANG DIPILIH) ---
 function renderTabelAntrean() {
   const tbody = document.getElementById('tabelAntreanMhsBody');
   const statusText = document.getElementById('antreanStatusText');
