@@ -37,7 +37,7 @@
 </head>
 <body class="bg-slate-50 font-sans text-slate-800 antialiased flex h-screen overflow-hidden">
 
-  <!-- ================= SIDEBAR (MENU KIRI - IDENTIK INDEX) ================= -->
+  <!-- ================= SIDEBAR (MENU KIRI) ================= -->
   <aside class="w-64 bg-white border-r border-slate-200 flex flex-col hidden md:flex z-20 shadow-sm relative">
     
     <!-- Logo Area -->
@@ -158,7 +158,7 @@
         <p class="text-sm text-slate-500 mt-1">Upload master data kelas baru (Excel), tentukan jenis tes, sesi, lab, dan kunci jadwal ke Supabase.</p>
       </div>
 
-      <!-- FORM UPLOAD MASTER DATA KELAS (2 KOLOM SIMPEL) -->
+      <!-- FORM UPLOAD MASTER DATA KELAS -->
       <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
         <h3 class="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
           <i class="ri-file-excel-2-line text-emerald-600 text-xl"></i> Upload Master Data Kelas Baru (Excel)
@@ -171,11 +171,11 @@
             <input type="text" id="namaKelasInput" placeholder="Contoh: 4 AKS A" class="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-polnes-main font-medium">
           </div>
           
-          <!-- Input Pilih File Excel (Otomatis Upload Saat Dipilih) -->
+          <!-- Input Pilih File Excel (Langsung Memanggil Handler onchange) -->
           <div>
             <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">File Excel Mahasiswa</label>
-            <input type="file" id="excelFileInput" accept=".xlsx, .xls" class="hidden">
-            <button onclick="handleSelectFileClick()" class="w-full px-4 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center justify-between border border-slate-200">
+            <input type="file" id="excelFileInput" accept=".xlsx, .xls" onchange="handleFileSelected(this)" class="hidden">
+            <button type="button" onclick="handleSelectFileClick()" class="w-full px-4 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center justify-between border border-slate-200">
               <span id="fileNameText" class="truncate text-slate-400">Klik untuk Pilih File Excel...</span>
               <i class="ri-upload-2-line text-emerald-600 text-base ml-2"></i>
             </button>
