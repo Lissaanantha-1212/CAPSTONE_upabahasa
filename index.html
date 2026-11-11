@@ -56,13 +56,35 @@
       </a>
 
       <!-- Kategori 1: Layanan -->
-      <div>
+            <div>
         <h4 class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Layanan Test</h4>
-        <div class="space-y-1.5">
-          <a href="#" class="flex items-center justify-between px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-polnes-main rounded-lg text-sm font-medium transition-all group">
-            <div class="flex items-center gap-3"><i class="ri-calendar-event-line text-lg group-hover:scale-110 transition-transform"></i><span>Penjadwalan</span></div>
-            <i class="ri-arrow-right-s-line opacity-50 group-hover:opacity-100"></i>
-          </a>
+        <div class="space-y-1">
+          
+          <!-- Menu Penjadwalan dengan 3 Sub-Menu -->
+          <div class="space-y-1">
+            <button onclick="togglePenjadwalanMenu()" class="w-full flex items-center justify-between px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-polnes-main rounded-lg text-sm font-medium transition-all group">
+              <div class="flex items-center gap-3">
+                <i class="ri-calendar-event-line text-lg group-hover:scale-110 transition-transform"></i>
+                <span>Penjadwalan</span>
+              </div>
+              <i id="arrowPenjadwalan" class="ri-arrow-down-s-line text-slate-400 transition-transform duration-200"></i>
+            </button>
+
+            <!-- Sub-Menu Container -->
+            <div id="subPenjadwalan" class="pl-7 space-y-1">
+              <a href="jadwal-test.html" class="flex items-center gap-2 py-1.5 px-3 text-xs font-semibold text-slate-600 hover:text-polnes-main hover:bg-polnes-light rounded-lg transition-all border-l-2 border-slate-200 hover:border-polnes-main">
+                <span>•</span> Jadwal Test
+              </a>
+              <a href="jadwal-remedial.html" class="flex items-center gap-2 py-1.5 px-3 text-xs font-semibold text-slate-600 hover:text-polnes-main hover:bg-polnes-light rounded-lg transition-all border-l-2 border-slate-200 hover:border-polnes-main">
+                <span>•</span> Jadwal Remedial
+              </a>
+              <a href="jadwal-kursus.html" class="flex items-center gap-2 py-1.5 px-3 text-xs font-semibold text-slate-600 hover:text-polnes-main hover:bg-polnes-light rounded-lg transition-all border-l-2 border-slate-200 hover:border-polnes-main">
+                <span>•</span> Jadwal Kursus
+              </a>
+            </div>
+          </div>
+
+          <!-- Menu Lainnya -->
           <a href="#" class="flex items-center justify-between px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-polnes-main rounded-lg text-sm font-medium transition-all group">
             <div class="flex items-center gap-3"><i class="ri-file-upload-line text-lg group-hover:scale-110 transition-transform"></i><span>Hasil Test</span></div>
             <i class="ri-arrow-right-s-line opacity-50 group-hover:opacity-100"></i>
