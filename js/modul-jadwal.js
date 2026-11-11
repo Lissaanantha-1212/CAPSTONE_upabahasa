@@ -1,7 +1,7 @@
 /**
  * MODUL PENJADWALAN - UPA BAHASA POLNES (FULL VERSION UTUH)
- * Menangani Upload Excel, Manajemen Antrean, Filter Kelas Spesifik, Kunci Sesi, Histori, 
- * Dinamis Jam Sesi (TOEFL vs SSPECT), dan Cetak Berita Acara PDF (Format Paten 1 Halaman).
+ * Menangani Upload Excel, Manajemen Antrean, Filter Kelas Spesifik, Validasi Anti-Bentrok Lab, 
+ * Kunci Sesi, Histori, Dinamis Jam Sesi, dan Cetak Berita Acara PDF (Format Paten 1 Halaman).
  */
 
 let uploadedMahasiswaList = [];
@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (dateInput) dateInput.value = today;
 
   initDynamicSesiListener();
-  bersihkanTombolSemuaKelasStatik(); // Eksekusi pembersih tombol statis HTML
+  bersihkanTombolSemuaKelasStatik();
 
   await loadAntreanDariSupabase();
   await loadHistoriJadwalDariSupabase();
@@ -24,7 +24,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
-// --- PENGAMAN: HAPUS PAKSA TOMBOL "SEMUA KELAS" JIKA ADA DI HTML STATIS ---
 function bersihkanTombolSemuaKelasStatik() {
   const buttons = document.querySelectorAll('button, span, div');
   buttons.forEach(el => {
@@ -160,14 +159,13 @@ async function loadAntreanDariSupabase() {
 
     renderFilterKelasButtons();
     renderTabelAntrean();
-    bersihkanTombolSemuaKelasStatik(); // Pastikan dibersihkan ulang setelah render
+    bersihkanTombolSemuaKelasStatik();
 
   } catch (err) {
     console.error("Gagal memuat antrean:", err);
   }
 }
 
-// --- RENDER TOMBOL FILTER KELAS (HANYA KELAS SPESIFIK) ---
 function renderFilterKelasButtons() {
   const container = document.getElementById('filterKelasContainer');
   if (!container) return;
@@ -242,6 +240,7 @@ function toggleSelectAllMhs(masterCheckbox) {
   checkboxes.forEach(cb => cb.checked = masterCheckbox.checked);
 }
 
+// --- KUNCI SESI UJIAN DENGAN VALIDASI ANTI-BENTROK LAB ---
 async function kunciSesiUjianKeSupabase() {
   const checkboxes = document.querySelectorAll('.mhs-checkbox:checked');
   if (checkboxes.length === 0) {
@@ -259,15 +258,31 @@ async function kunciSesiUjianKeSupabase() {
     return;
   }
 
-  const selectedIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
-  const mahasiswaTerpilih = uploadedMahasiswaList.filter(m => selectedIds.includes(m.id));
-  const kelasUnik = [...new Set(mahasiswaTerpilih.map(m => m.nama_kelas))].join(', ');
-
-  if (!confirm(`Yakin ingin mengunci ${mahasiswaTerpilih.length} mahasiswa ke sesi ${sesi} (${ruangLab}) untuk kelas ${kelasUnik}?`)) {
-    return;
-  }
-
   try {
+    // 1. CEK BENTROK DI DATABASE (Apakah Tanggal, Sesi, dan Ruang Lab yang sama sudah digunakan?)
+    const { data: existingSesi, error: checkErr } = await window.supabaseClient
+      .from('jadwal_log')
+      .select('*')
+      .eq('tanggal', tanggal)
+      .eq('sesi', sesi)
+      .eq('ruang_lab', ruangLab);
+
+    if (checkErr) throw checkErr;
+
+    if (existingSesi && existingSesi.length > 0) {
+      alert(`GAGAL BENTROK JADWAL!\n\n${ruangLab} pada tanggal ${tanggal} (${sesi}) sudah digunakan oleh kelas "${existingSesi[0].nama_kelas}" (${existingSesi[0].jenis_tes}).\n\nSilakan pilih waktu sesi atau ruang lab lain!`);
+      return; // Batalkan proses penguncian
+    }
+
+    const selectedIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+    const mahasiswaTerpilih = uploadedMahasiswaList.filter(m => selectedIds.includes(m.id));
+    const kelasUnik = [...new Set(mahasiswaTerpilih.map(m => m.nama_kelas))].join(', ');
+
+    if (!confirm(`Yakin ingin mengunci ${mahasiswaTerpilih.length} mahasiswa ke sesi ${sesi} (${ruangLab}) untuk kelas ${kelasUnik}?`)) {
+      return;
+    }
+
+    // 2. Simpan header sesi ke tabel `jadwal_log`
     const { data: jadwalData, error: jadwalErr } = await window.supabaseClient
       .from('jadwal_log')
       .insert([{
@@ -284,6 +299,7 @@ async function kunciSesiUjianKeSupabase() {
     if (jadwalErr) throw jadwalErr;
     const jadwalId = jadwalData[0].id;
 
+    // 3. Simpan detail peserta ke tabel `peserta_ujian`
     const pesertaPayload = mahasiswaTerpilih.map((m, idx) => ({
       jadwal_id: jadwalId,
       nim: m.nim,
@@ -298,6 +314,7 @@ async function kunciSesiUjianKeSupabase() {
 
     if (pesertaErr) throw pesertaErr;
 
+    // 4. Hapus dari antrean
     const { error: deleteErr } = await window.supabaseClient
       .from('antrean_mahasiswa')
       .delete()
@@ -305,7 +322,7 @@ async function kunciSesiUjianKeSupabase() {
 
     if (deleteErr) throw deleteErr;
 
-    alert("Sesi ujian berhasil dikunci dan disimpan ke database! Statistik Dashboard telah diperbarui.");
+    alert("Sesi ujian berhasil dikunci dan disimpan ke database! Tidak ada bentrok lab.");
     
     await loadAntreanDariSupabase();
     await loadHistoriJadwalDariSupabase();
@@ -394,6 +411,7 @@ async function hapusHistoriJadwal(id) {
   }
 }
 
+// --- GENERATE BERITA ACARA PDF (FORMAT PATEN: 1 HALAMAN, ADA LOGO) ---
 async function bukaPreviewPDF(jadwalId) {
   try {
     const { data: jadwalData } = await window.supabaseClient
