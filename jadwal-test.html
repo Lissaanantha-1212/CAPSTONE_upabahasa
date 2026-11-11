@@ -171,10 +171,10 @@
             <input type="text" id="namaKelasInput" placeholder="Contoh: 4 AKS A" class="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-polnes-main font-medium">
           </div>
           
-          <!-- Input Pilih File Excel (Langsung Memanggil Handler onchange) -->
+          <!-- Input Pilih File Excel -->
           <div>
             <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">File Excel Mahasiswa</label>
-            <input type="file" id="excelFileInput" accept=".xlsx, .xls" onchange="handleFileSelected(this)" class="hidden">
+            <input type="file" id="excelFileInput" accept=".xlsx, .xls" class="hidden">
             <button type="button" onclick="handleSelectFileClick()" class="w-full px-4 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center justify-between border border-slate-200">
               <span id="fileNameText" class="truncate text-slate-400">Klik untuk Pilih File Excel...</span>
               <i class="ri-upload-2-line text-emerald-600 text-base ml-2"></i>
@@ -191,7 +191,7 @@
             <p id="antreanStatusText" class="text-xs text-slate-500 mt-0.5">0 Kelas Menunggu Plotting dalam antrean.</p>
           </div>
           
-          <!-- Control Panel: Form Jenis Test, Tanggal, Jam Sesi, Lab -->
+          <!-- Control Panel -->
           <div class="flex flex-wrap items-center gap-3">
             <select id="selectJenisTes" class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 outline-none focus:border-polnes-main cursor-pointer">
               <option value="TOEFL">TOEFL</option>
@@ -234,7 +234,7 @@
             </thead>
             <tbody id="tabelAntreanMhsBody" class="text-sm text-slate-700 divide-y divide-slate-100">
               <tr>
-                <td colspan="6" class="px-4 py-6 text-center text-slate-400 text-xs italic">Semua kelas sudah dijadwalkan atau belum ada antrean file.</td>
+                <td colspan="6" class="px-4 py-6 text-center text-slate-400 text-xs italic">Belum ada kelas di dalam antrean jadwal.</td>
               </tr>
             </tbody>
           </table>
@@ -289,7 +289,7 @@
     }
   </script>
 
-  <!-- Supabase & Modul Scripts -->
+  <!-- Supabase & Modul Scripts (Pastikan urutan ini benar) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./js/supabase-config.js"></script>
   <script src="./js/modul-jadwal.js"></script>
