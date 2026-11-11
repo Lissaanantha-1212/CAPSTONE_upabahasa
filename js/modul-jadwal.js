@@ -1,33 +1,28 @@
 /**
- * MODUL PENJADWALAN - UPA BAHASA POLNES (FULL VERSION)
+ * MODUL PENJADWALAN - UPA BAHASA POLNES (FULL VERSION UTUH)
  * Menangani Upload Excel, Manajemen Antrean, Filter Kelas, Kunci Sesi, Histori, 
- * Dinamis Jam Sesi (TOEFL vs SSPECT), dan Cetak Berita Acara PDF (1 Halaman, Ada Logo).
+ * Dinamis Jam Sesi (TOEFL vs SSPECT), dan Cetak Berita Acara PDF (Format Paten 1 Halaman).
  */
 
 let uploadedMahasiswaList = [];
 let selectedKelasFilter = 'ALL';
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // Set default tanggal hari ini
   const today = new Date().toISOString().split('T')[0];
   const dateInput = document.getElementById('inputTanggalUjian');
   if (dateInput) dateInput.value = today;
 
-  // Inisialisasi Event Listener Dynamic Sesi (TOEFL vs SSPECT)
   initDynamicSesiListener();
 
-  // Load data awal dari Supabase
   await loadAntreanDariSupabase();
   await loadHistoriJadwalDariSupabase();
 
-  // Event Listener Tombol Pilih File Excel
   const fileInput = document.getElementById('excelFileInput');
   if (fileInput) {
     fileInput.addEventListener('change', handleExcelUpload);
   }
 });
 
-// --- DINAMIS SESI JAM BERDASARKAN JENIS TES ---
 function initDynamicSesiListener() {
   const selectJenisTes = document.getElementById('selectJenisTes');
   const selectSesi = document.getElementById('selectSesi');
@@ -35,7 +30,7 @@ function initDynamicSesiListener() {
   if (selectJenisTes && selectSesi) {
     selectJenisTes.addEventListener('change', (e) => {
       const jenis = e.target.value;
-      selectSesi.innerHTML = ''; // Bersihkan opsi lama
+      selectSesi.innerHTML = '';
 
       if (jenis === 'TOEFL') {
         selectSesi.innerHTML = `
@@ -59,7 +54,6 @@ function handleSelectFileClick() {
   if (fileInput) fileInput.click();
 }
 
-// --- PROSES UPLOAD EXCEL & SIMPAN KE ANTREAN SUPABASE ---
 async function handleExcelUpload(e) {
   const file = e.target.files[0];
   if (!file) return;
@@ -111,8 +105,7 @@ async function handleExcelUpload(e) {
       const payload = parsedMhs.map(m => ({
         nim: m.nim,
         nama: m.nama,
-        nama_kelas: m.nama_kelas,
-        status: 'ANTREAN'
+        nama_kelas: m.nama_kelas
       }));
 
       const { error } = await window.supabaseClient
@@ -138,7 +131,6 @@ async function handleExcelUpload(e) {
   reader.readAsArrayBuffer(file);
 }
 
-// --- LOAD DATA ANTREAN DARI SUPABASE ---
 async function loadAntreanDariSupabase() {
   try {
     const { data, error } = await window.supabaseClient
@@ -157,7 +149,6 @@ async function loadAntreanDariSupabase() {
   }
 }
 
-// --- RENDER TOMBOL FILTER KELAS ---
 function renderFilterKelasButtons() {
   const container = document.getElementById('filterKelasContainer');
   if (!container) return;
@@ -181,7 +172,6 @@ function filterKelas(namaKelas) {
   renderTabelAntrean();
 }
 
-// --- RENDER TABEL ANTREAN ---
 function renderTabelAntrean() {
   const tbody = document.getElementById('tabelAntreanMhsBody');
   const statusText = document.getElementById('antreanStatusText');
@@ -227,7 +217,6 @@ function toggleSelectAllMhs(masterCheckbox) {
   checkboxes.forEach(cb => cb.checked = masterCheckbox.checked);
 }
 
-// --- KUNCI SESI UJIAN (SIMPAN KE JADWAL LOG & PESERTA UJIAN) ---
 async function kunciSesiUjianKeSupabase() {
   const checkboxes = document.querySelectorAll('.mhs-checkbox:checked');
   if (checkboxes.length === 0) {
@@ -301,7 +290,6 @@ async function kunciSesiUjianKeSupabase() {
   }
 }
 
-// --- HAPUS ANTREAN ---
 async function hapusAntreanSupabase() {
   if (!confirm("Yakin ingin menghapus seluruh data yang ada di antrean saat ini?")) return;
 
@@ -320,7 +308,6 @@ async function hapusAntreanSupabase() {
   }
 }
 
-// --- LOAD HISTORI JADWAL ---
 async function loadHistoriJadwalDariSupabase() {
   const tbody = document.getElementById('tabelHistoriJadwalBody');
   if (!tbody) return;
@@ -382,7 +369,6 @@ async function hapusHistoriJadwal(id) {
   }
 }
 
-// --- GENERATE BERITA ACARA PDF (1 HALAMAN & ADA LOGO) ---
 async function bukaPreviewPDF(jadwalId) {
   try {
     const { data: jadwalData } = await window.supabaseClient
@@ -405,16 +391,10 @@ async function bukaPreviewPDF(jadwalId) {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('p', 'mm', 'a4');
 
-    // 1. TAMBAHKAN LOGO POLNES (Base64 PNG) DI KOP SURAT
-    const logoBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="; // (Placeholder Base64 yang ringkas, pastikan logo Polnes dimuat atau ambil dari elemen img jika ada)
-    // Agar lebih pasti, kita gunakan fungsi gambar logo atau text lambang, atau silakan gunakan string base64 logo Polnes asli di sini.
     try {
       doc.addImage('./img/polnes.png', 'PNG', 15, 10, 18, 18);
-    } catch(err) {
-      // Fallback jika path lokal bermasalah saat render blob pdf
-    }
+    } catch(err) {}
 
-    // 2. KOP SURAT RINGKAS (Agar tidak memakan banyak tempat ke bawah)
     doc.setFont("helvetica", "bold");
     doc.setFontSize(11);
     doc.text("KEMENTERIAN PENDIDIKAN, KEBUDAYAAN, RISET, DAN TEKNOLOGI", 105, 12, { align: "center" });
@@ -431,7 +411,6 @@ async function bukaPreviewPDF(jadwalId) {
     doc.setLineWidth(0.4);
     doc.line(15, 29, 195, 29);
 
-    // 3. JUDUL DOKUMEN & INFO SESI (Dibuat ringkas 2 kolom)
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
     doc.text("BERITA ACARA & DAFTAR HADIR PELAKSANAAN UJIAN", 105, 35, { align: "center" });
@@ -447,7 +426,6 @@ async function bukaPreviewPDF(jadwalId) {
     doc.text(`Waktu Sesi     : ${jadwalData.sesi}`, 20, startY + 5);
     doc.text(`Kelas Peserta : ${jadwalData.nama_kelas}`, 120, startY + 5);
 
-    // 4. TABEL PESERTA (Padding & Font diperkecil agar pas 1 halaman untuk 30 orang)
     const tableRows = pesertaData.map((p, index) => [
       index + 1,
       p.nim,
@@ -469,10 +447,9 @@ async function bukaPreviewPDF(jadwalId) {
         3: { cellWidth: 23, halign: 'center', fontStyle: 'bold' },
         4: { cellWidth: 40 }
       },
-      styles: { fontSize: 8, cellPadding: 1.5 } // Padding sangat rapat agar 30 baris muat 1 halaman penuh
+      styles: { fontSize: 8, cellPadding: 1.5 }
     });
 
-    // 5. TANDA TANGAN PENGAWAS (Diposisikan pas di sisa bawah halaman)
     let finalY = doc.lastAutoTable.finalY + 8;
     
     doc.setFontSize(9);
