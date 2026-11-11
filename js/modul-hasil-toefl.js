@@ -1,6 +1,6 @@
 /**
  * MODUL HASIL TEST TOEFL - UPA BAHASA POLNES
- * Validasi Ketat, Mapping Berdasarkan Jadwal, dan Auto-Bind Hanya untuk Siswa Susulan Ber-nilai
+ * Menggunakan Backend Tabel Konversi Resmi TOEFL ITP PBT
  */
 
 let parsedSec1Data = null;
@@ -13,6 +13,59 @@ const SESI_RANGES = {
   "SESI 2 (10.00 - 12.00 WITA)": { startHour: 10, endHour: 12 },
   "SESI 3 (14.00 - 16.00 WITA)": { startHour: 14, endHour: 16 }
 };
+
+// TABEL KONVERSI RESMI TOEFL ITP PBT (Sebagai acuan Backend)
+const TABEL_KONVERSI_TOEFL = {
+  50: { l: 68, s: 68, r: 67 },
+  49: { l: 67, s: 67, r: 66 },
+  48: { l: 66, s: 65, r: 65 },
+  47: { l: 65, s: 63, r: 63 },
+  46: { l: 63, s: 61, r: 61 },
+  45: { l: 62, s: 60, r: 60 },
+  44: { l: 61, s: 59, r: 59 },
+  43: { l: 60, s: 58, r: 58 },
+  42: { l: 59, s: 57, r: 57 },
+  41: { l: 58, s: 56, r: 56 },
+  40: { l: 57, s: 68, r: 55 },
+  39: { l: 57, s: 67, r: 54 },
+  38: { l: 56, s: 65, r: 54 },
+  37: { l: 55, s: 63, r: 53 },
+  36: { l: 54, s: 61, r: 52 },
+  35: { l: 54, s: 60, r: 52 },
+  34: { l: 53, s: 58, r: 51 },
+  33: { l: 52, s: 57, r: 50 },
+  32: { l: 52, s: 56, r: 49 },
+  31: { l: 51, s: 55, r: 48 },
+  30: { l: 51, s: 54, r: 48 },
+  29: { l: 50, s: 53, r: 47 },
+  28: { l: 49, s: 52, r: 46 },
+  27: { l: 49, s: 51, r: 46 },
+  26: { l: 48, s: 50, r: 45 },
+  25: { l: 48, s: 49, r: 44 },
+  24: { l: 47, s: 48, r: 43 },
+  23: { l: 47, s: 47, r: 43 },
+  22: { l: 46, s: 46, r: 42 },
+  21: { l: 45, s: 45, r: 41 },
+  20: { l: 45, s: 44, r: 40 },
+  19: { l: 44, s: 43, r: 39 },
+  18: { l: 43, s: 42, r: 38 }
+};
+
+// Fungsi Helper untuk Mendapatkan Angka Konversi Berdasarkan Tabel B
+function konversiSkor(jumlahBenar, sectionType) {
+  let scoreNum = parseInt(jumlahBenar) || 0;
+  if (scoreNum > 50) scoreNum = 50;
+  
+  // Jika ada di tabel
+  if (TABEL_KONVERSI_TOEFL[scoreNum]) {
+    if (sectionType === 1) return TABEL_KONVERSI_TOEFL[scoreNum].l; // Listening
+    if (sectionType === 2) return TABEL_KONVERSI_TOEFL[scoreNum].s; // Structure
+    if (sectionType === 3) return TABEL_KONVERSI_TOEFL[scoreNum].r; // Reading
+  }
+  
+  // Fallback jika di bawah 18 (estimasi dasar)
+  return Math.max(30, scoreNum + 20);
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('fileSec1').addEventListener('change', (e) => handleFileSection(e, 1));
@@ -39,9 +92,7 @@ function parseFileInfo(filename) {
   let secNum = sectionMatch ? parseInt(sectionMatch[1]) : null;
   
   let hour = null;
-  if (timeStr) {
-    hour = parseInt(timeStr.split('-')[0]);
-  }
+  if (timeStr) hour = parseInt(timeStr.split('-')[0]);
 
   let dbDate = null;
   if (dateStr) {
@@ -126,7 +177,6 @@ function parseExcelNilai(rows) {
     const idMejaVal = String(row[0] || '').trim().toUpperCase(); 
     const scoreValRaw = String(row[3] || '').trim(); 
 
-    // Filter ketat: Hanya ambil baris yang benar-benar berformat STUDENTxx (abaikan header/footer/sampah)
     if (idMejaVal.startsWith('STUDENT') && idMejaVal !== 'STUDENT_NAME' && idMejaVal !== 'STUDENT NAME') {
       let skorAngka = 0;
       if (scoreValRaw.includes('/')) {
@@ -171,7 +221,6 @@ async function jalankanAutoMappingEngine(lab, sesi) {
     return;
   }
 
-  // Ambil peserta resmi dari database penjadwalan
   const { data: pesertaUjian } = await window.supabaseClient
     .from('peserta_ujian')
     .select('*')
@@ -179,59 +228,63 @@ async function jalankanAutoMappingEngine(lab, sesi) {
     .order('id_meja', { ascending: true });
 
   const dbPesertaList = pesertaUjian || [];
-  
-  // Ambil ID Meja unik yang ada di Excel Section 1
   const excelRows = parsedSec1Data.rows;
 
   let idx = 1;
   globalSyncedResults = [];
 
-  // 1. Mapping berdasarkan data peserta resmi di database jadwal terlebih dahulu
+  // 1. Mapping Peserta Terjadwal dengan Kalkulasi Tabel Konversi Resmi
   dbPesertaList.forEach(p => {
-    const s1Obj = excelRows.find(x => x.id_meja === p.id_meja) || { skor: 0 };
-    const s2Obj = parsedSec2Data.rows.find(x => x.id_meja === p.id_meja) || { skor: 0 };
-    const s3Obj = parsedSec3Data.rows.find(x => x.id_meja === p.id_meja) || { skor: 0 };
+    const s1Raw = (excelRows.find(x => x.id_meja === p.id_meja) || { skor: 0 }).skor;
+    const s2Raw = (parsedSec2Data.rows.find(x => x.id_meja === p.id_meja) || { skor: 0 }).skor;
+    const s3Raw = (parsedSec3Data.rows.find(x => x.id_meja === p.id_meja) || { skor: 0 }).skor;
 
-    const rawTotal = s1Obj.skor + s2Obj.skor + s3Obj.skor;
-    const toeflConverted = Math.round((rawTotal * 10) / 3); 
+    // Ubah jumlah benar mentah menjadi Skor Konversi Tabel TOEFL
+    const konvS1 = konversiSkor(s1Raw, 1);
+    const konvS2 = konversiSkor(s2Raw, 2);
+    const konvS3 = konversiSkor(s3Raw, 3);
+
+    // Rumus Total Skor Akhir TOEFL: ((L + S + R) * 10) / 3
+    const totalSkorAkhir = Math.round(((konvS1 + konvS2 + konvS3) * 10) / 3);
 
     globalSyncedResults.push({
       no: idx++,
       nim: p.nim,
       nama: p.nama,
       id_meja: p.id_meja,
-      sec_1: s1Obj.skor,
-      sec_2: s2Obj.skor,
-      sec_3: s3Obj.skor,
-      total_skor: toeflConverted,
+      sec_1: s1Raw, // Menampilkan angka benar asli di tabel UI
+      sec_2: s2Raw,
+      sec_3: s3Raw,
+      total_skor: totalSkorAkhir, // Total hasil konversi resmi
       status: 'MAPPED',
       tanggal_ujian: activeJadwal.tanggal,
       nama_kelas: p.nama_kelas
     });
   });
 
-  // 2. Cek apakah ada ID Meja di Excel yang LEBIH/TIDAK ADA di database (Mahasiswa Susulan / Pindahan Lab)
+  // 2. Deteksi Siswa Susulan / Pindahan Lab
   const dbIdMejas = new Set(dbPesertaList.map(p => p.id_meja));
   const susulanRows = excelRows.filter(x => !dbIdMejas.has(x.id_meja));
 
   susulanRows.forEach(sus => {
-    const s1Obj = sus;
-    const s2Obj = parsedSec2Data.rows.find(x => x.id_meja === sus.id_meja) || { skor: 0 };
-    const s3Obj = parsedSec3Data.rows.find(x => x.id_meja === sus.id_meja) || { skor: 0 };
+    const s1Raw = sus.skor;
+    const s2Raw = (parsedSec2Data.rows.find(x => x.id_meja === sus.id_meja) || { skor: 0 }).skor;
+    const s3Raw = (parsedSec3Data.rows.find(x => x.id_meja === sus.id_meja) || { skor: 0 }).skor;
 
-    const rawTotal = s1Obj.skor + s2Obj.skor + s3Obj.skor;
-    const toeflConverted = Math.round((rawTotal * 10) / 3);
+    const konvS1 = konversiSkor(s1Raw, 1);
+    const konvS2 = konversiSkor(s2Raw, 2);
+    const konvS3 = konversiSkor(s3Raw, 3);
+    const totalSkorAkhir = Math.round(((konvS1 + konvS2 + konvS3) * 10) / 3);
 
-    // Masuk sebagai baris Unmapped (Butuh Bind NIM)
     globalSyncedResults.push({
       no: idx++,
       nim: '',
       nama: '',
       id_meja: sus.id_meja,
-      sec_1: s1Obj.skor,
-      sec_2: s2Obj.skor,
-      sec_3: s3Obj.skor,
-      total_skor: toeflConverted,
+      sec_1: s1Raw,
+      sec_2: s2Raw,
+      sec_3: s3Raw,
+      total_skor: totalSkorAkhir,
       status: 'UNMAPPED',
       tanggal_ujian: activeJadwal.tanggal,
       nama_kelas: 'Susulan / Pindahan'
@@ -241,7 +294,7 @@ async function jalankanAutoMappingEngine(lab, sesi) {
   renderTabelPratinjau();
   
   const totalSusulan = susulanRows.length;
-  document.getElementById('infoStatusSync').innerHTML = `<span class="text-polnes-main font-bold">Sinkronisasi Berhasil!</span> ${dbPesertaList.length} peserta sesuai jadwal. <b class="text-rose-500">${totalSusulan > 0 ? totalSusulan + ' Siswa Susulan/Pindahan terdeteksi.' : 'Semua data pas dan valid.'}</b>`;
+  document.getElementById('infoStatusSync').innerHTML = `<span class="text-polnes-main font-bold">Sinkronisasi Berhasil!</span> ${dbPesertaList.length} peserta sesuai jadwal. <b class="text-rose-500">${totalSusulan > 0 ? totalSusulan + ' Siswa Susulan terdeteksi.' : 'Semua data pas dan valid.'}</b>`;
 }
 
 async function prosesBindNim(idMeja) {
@@ -356,7 +409,7 @@ async function simpanPermanenKeDatabase() {
 
   const unmappedCount = globalSyncedResults.filter(x => x.status === 'UNMAPPED').length;
   if (unmappedCount > 0) {
-    alert(`[GAGAL] Masih ada ${unmappedCount} siswa susulan yang belum di-Bind NIM-nya. Selesaikan binding terlebih dahulu.`);
+    alert(`[GAGAL] Masih ada ${unmappedCount} siswa susulan yang belum di-Bind NIM-nya.`);
     return;
   }
 
