@@ -1,6 +1,6 @@
 /**
  * MODUL PENJADWALAN - UPA BAHASA POLNES
- * Fixed Excel Row Parsing & Supabase Integration
+ * Fixed Header Range (Baris 4 Excel) & Supabase Direct Sync
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -24,7 +24,6 @@ function handleFileSelected(inputElement) {
   }
 }
 
-// Tambahkan event listener manual untuk jaga-jaga jika onchange di HTML terlewat
 document.addEventListener('DOMContentLoaded', () => {
   const fileInput = document.getElementById('excelFileInput');
   if (fileInput) {
@@ -59,14 +58,13 @@ async function bacaDanUploadExcelOtomatis(file) {
         const firstSheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[firstSheetName];
         
-        // Ambil data dalam bentuk array of arrays atau JSON standar
-        const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+        // Mengatur agar pembacaan header dimulai dari baris ke-4 (index 3) sesuai file Excel kamu
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { range: 3, defval: "" });
 
         if (!jsonData || jsonData.length === 0) {
-          throw new Error("File Excel kosong atau tidak terbaca.");
+          throw new Error("File Excel kosong atau format baris tidak sesuai.");
         }
 
-        // Mapping fleksibel berdasarkan struktur kolom Excel kamu (Nim, Nama)
         let parsedMhs = [];
         jsonData.forEach(row => {
           let nimVal = '';
@@ -74,7 +72,7 @@ async function bacaDanUploadExcelOtomatis(file) {
 
           for (let key in row) {
             let cleanKey = key.trim().toLowerCase();
-            if (cleanKey === 'nim' || cleanKey === 'no mhs' || cleanKey === 'nomor induk') {
+            if (cleanKey === 'nim' || cleanKey === 'no mhs' || cleanKey === 'nomor') {
               nimVal = String(row[key]).trim();
             }
             if (cleanKey === 'nama' || cleanKey === 'nama mahasiswa' || cleanKey === 'name') {
@@ -82,7 +80,7 @@ async function bacaDanUploadExcelOtomatis(file) {
             }
           }
 
-          if (nimVal !== '' && namaVal !== '') {
+          if (nimVal !== '' && namaVal !== '' && nimVal.toLowerCase() !== 'nim') {
             parsedMhs.push({
               nim: nimVal,
               nama: namaVal,
@@ -92,10 +90,10 @@ async function bacaDanUploadExcelOtomatis(file) {
         });
 
         if (parsedMhs.length === 0) {
-          throw new Error("Kolom 'Nim' atau 'Nama' tidak ditemukan di baris header Excel. Periksa kembali file Excel anda.");
+          throw new Error("Kolom 'Nim' atau 'Nama' tidak ditemukan. Pastikan header berada di baris ke-4.");
         }
 
-        // Cek duplikasi kelas di DB
+        // Cek duplikasi kelas di DB Supabase
         const { data: existingClass, error: errCek } = await window.supabaseClient
           .from('jadwal_log')
           .select('nama_kelas')
@@ -109,7 +107,7 @@ async function bacaDanUploadExcelOtomatis(file) {
           return;
         }
 
-        // Cek duplikasi NIM
+        // Cek duplikasi NIM mahasiswa
         const { data: dbAntrean } = await window.supabaseClient.from('antrean_mahasiswa').select('nim');
         const { data: dbPeserta } = await window.supabaseClient.from('peserta_ujian').select('nim');
 
@@ -235,7 +233,6 @@ async function kunciSesiUjianKeSupabase() {
   }
 
   try {
-    // Validasi Bentrok
     const { data: jadwalBentrok } = await window.supabaseClient
       .from('jadwal_log')
       .select('id')
@@ -248,7 +245,6 @@ async function kunciSesiUjianKeSupabase() {
       return;
     }
 
-    // Validasi Lab Cadangan (< 30)
     const labPasangan = (lab === 'Lab A') ? 'Lab B' : 'Lab A';
     const { data: jadwalPasangan } = await window.supabaseClient
       .from('jadwal_log')
