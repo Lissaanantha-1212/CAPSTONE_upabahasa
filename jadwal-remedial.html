@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jadwal Remedial - UPA Bahasa POLNES</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { colors: { polnes: { main: '#10C35D', dark: '#0a8a40', light: '#eafbf0' } } } }
+    }
+  </script>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 flex h-screen overflow-hidden">
+  <main class="flex-1 overflow-y-auto p-8">
+    <div class="mb-6">
+      <h1 class="text-2xl font-extrabold text-slate-800">Modul 1.2: Penjadwalan Remedial TOEFL</h1>
+      <p class="text-sm text-slate-500 mt-1">Khusus Mahasiswa D3 Semester 6 & D4 Semester 8 yang mendaftar ulang remedial via Web Utama.</p>
+    </div>
+
+    <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-base font-bold text-slate-800">Daftar Antrean Pendaftar Remedial (Otomatis dari Web Utama)</h3>
+        <span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-bold">Skip Upload Excel</span>
+      </div>
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-slate-50 text-slate-500 text-xs uppercase font-bold">
+            <th class="px-4 py-3">NIM</th>
+            <th class="px-4 py-3">Nama Mahasiswa</th>
+            <th class="px-4 py-3">Prodi & Semester</th>
+            <th class="px-4 py-3">Skor Sebelumnya</th>
+            <th class="px-4 py-3">Status Syarat</th>
+          </tr>
+        </thead>
+        <tbody class="text-sm divide-y divide-slate-100">
+          <tr>
+            <td class="px-4 py-3 font-bold">21611012</td>
+            <td class="px-4 py-3">Budi Santoso</td>
+            <td class="px-4 py-3">D3 Akuntansi (Sem 6)</td>
+            <td class="px-4 py-3 font-bold text-rose-500">380 (Gagal)</td>
+            <td class="px-4 py-3"><span class="bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full text-xs font-bold">Memenuhi Syarat Remedial</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</body>
+</html>
