@@ -1,6 +1,6 @@
 /**
  * MODUL HASIL TEST TOEFL - UPA BAHASA POLNES
- * Menggunakan Backend Tabel Konversi Resmi TOEFL ITP PBT
+ * Sinkronisasi, Validasi Ketat, Bind Susulan, dan Sinkronisasi Kolom Supabase (Tabel HasilTes)
  */
 
 let parsedSec1Data = null;
@@ -14,7 +14,6 @@ const SESI_RANGES = {
   "SESI 3 (14.00 - 16.00 WITA)": { startHour: 14, endHour: 16 }
 };
 
-// TABEL KONVERSI RESMI TOEFL ITP PBT (Sebagai acuan Backend)
 const TABEL_KONVERSI_TOEFL = {
   50: { l: 68, s: 68, r: 67 },
   49: { l: 67, s: 67, r: 66 },
@@ -51,32 +50,34 @@ const TABEL_KONVERSI_TOEFL = {
   18: { l: 43, s: 42, r: 38 }
 };
 
-// Fungsi Helper untuk Mendapatkan Angka Konversi Berdasarkan Tabel B
 function konversiSkor(jumlahBenar, sectionType) {
   let scoreNum = parseInt(jumlahBenar) || 0;
   if (scoreNum > 50) scoreNum = 50;
-  
-  // Jika ada di tabel
   if (TABEL_KONVERSI_TOEFL[scoreNum]) {
-    if (sectionType === 1) return TABEL_KONVERSI_TOEFL[scoreNum].l; // Listening
-    if (sectionType === 2) return TABEL_KONVERSI_TOEFL[scoreNum].s; // Structure
-    if (sectionType === 3) return TABEL_KONVERSI_TOEFL[scoreNum].r; // Reading
+    if (sectionType === 1) return TABEL_KONVERSI_TOEFL[scoreNum].l;
+    if (sectionType === 2) return TABEL_KONVERSI_TOEFL[scoreNum].s;
+    if (sectionType === 3) return TABEL_KONVERSI_TOEFL[scoreNum].r;
   }
-  
-  // Fallback jika di bawah 18 (estimasi dasar)
   return Math.max(30, scoreNum + 20);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('fileSec1').addEventListener('change', (e) => handleFileSection(e, 1));
-  document.getElementById('fileSec2').addEventListener('change', (e) => handleFileSection(e, 2));
-  document.getElementById('fileSec3').addEventListener('change', (e) => handleFileSection(e, 3));
+  const f1 = document.getElementById('fileSec1');
+  const f2 = document.getElementById('fileSec2');
+  const f3 = document.getElementById('fileSec3');
+  if (f1) f1.addEventListener('change', (e) => handleFileSection(e, 1));
+  if (f2) f2.addEventListener('change', (e) => handleFileSection(e, 2));
+  if (f3) f3.addEventListener('change', (e) => handleFileSection(e, 3));
 });
 
 function resetFileInput(sectionNum) {
-  document.getElementById(`fileSec${sectionNum}`).value = '';
-  document.getElementById(`labelSec${sectionNum}`).innerText = 'Belum ada file';
-  document.getElementById(`labelSec${sectionNum}`).classList.remove('text-polnes-main', 'font-bold');
+  const el = document.getElementById(`fileSec${sectionNum}`);
+  const lbl = document.getElementById(`labelSec${sectionNum}`);
+  if (el) el.value = '';
+  if (lbl) {
+    lbl.innerText = 'Belum ada file';
+    lbl.classList.remove('text-polnes-main', 'font-bold');
+  }
   if (sectionNum === 1) parsedSec1Data = null;
   if (sectionNum === 2) parsedSec2Data = null;
   if (sectionNum === 3) parsedSec3Data = null;
@@ -107,8 +108,10 @@ async function handleFileSection(event, sectionNum) {
   const file = event.target.files[0];
   if (!file) return;
 
-  const sesiTerpilih = document.getElementById('selectSesiToefl').value;
-  const labTerpilih = document.getElementById('selectLabToefl').value;
+  const sesiSelect = document.getElementById('selectSesiToefl');
+  const labSelect = document.getElementById('selectLabToefl');
+  const sesiTerpilih = sesiSelect ? sesiSelect.value : '';
+  const labTerpilih = labSelect ? labSelect.value : '';
   const fileInfo = parseFileInfo(file.name);
 
   if (fileInfo.secNum !== sectionNum) {
@@ -138,8 +141,10 @@ async function handleFileSection(event, sectionNum) {
   }
 
   const label = document.getElementById(`labelSec${sectionNum}`);
-  label.innerText = file.name;
-  label.classList.add('text-polnes-main', 'font-bold');
+  if (label) {
+    label.innerText = file.name;
+    label.classList.add('text-polnes-main', 'font-bold');
+  }
 
   const reader = new FileReader();
   reader.onload = async (e) => {
@@ -209,15 +214,14 @@ async function jalankanAutoMappingEngine(lab, sesi) {
 
   const activeJadwal = jadwalList[0];
 
+  // Cek apakah data di tabel HasilTes sudah ada untuk jadwal ini
   const { data: existingLog } = await window.supabaseClient
-    .from('hasil_test_log')
+    .from('HasilTes')
     .select('id')
-    .eq('ruang_lab', lab)
-    .eq('sesi', sesi)
-    .eq('tanggal_ujian', activeJadwal.tanggal);
+    .eq('idJadwal', activeJadwal.id);
 
   if (existingLog && existingLog.length > 0) {
-    alert(`[DITOLAK] Hasil test untuk sesi ini sudah pernah disimpan secara permanen.`);
+    alert(`[DITOLAK] Hasil test untuk sesi ini sudah pernah disimpan secara permanen ke database.`);
     return;
   }
 
@@ -233,36 +237,33 @@ async function jalankanAutoMappingEngine(lab, sesi) {
   let idx = 1;
   globalSyncedResults = [];
 
-  // 1. Mapping Peserta Terjadwal dengan Kalkulasi Tabel Konversi Resmi
   dbPesertaList.forEach(p => {
     const s1Raw = (excelRows.find(x => x.id_meja === p.id_meja) || { skor: 0 }).skor;
     const s2Raw = (parsedSec2Data.rows.find(x => x.id_meja === p.id_meja) || { skor: 0 }).skor;
     const s3Raw = (parsedSec3Data.rows.find(x => x.id_meja === p.id_meja) || { skor: 0 }).skor;
 
-    // Ubah jumlah benar mentah menjadi Skor Konversi Tabel TOEFL
     const konvS1 = konversiSkor(s1Raw, 1);
     const konvS2 = konversiSkor(s2Raw, 2);
     const konvS3 = konversiSkor(s3Raw, 3);
-
-    // Rumus Total Skor Akhir TOEFL: ((L + S + R) * 10) / 3
     const totalSkorAkhir = Math.round(((konvS1 + konvS2 + konvS3) * 10) / 3);
 
     globalSyncedResults.push({
       no: idx++,
+      idJadwal: activeJadwal.id,
       nim: p.nim,
       nama: p.nama,
       id_meja: p.id_meja,
-      sec_1: s1Raw, // Menampilkan angka benar asli di tabel UI
-      sec_2: s2Raw,
-      sec_3: s3Raw,
-      total_skor: totalSkorAkhir, // Total hasil konversi resmi
+      jenisTes: 'TOEFL',
+      sec1Listening: s1Raw,
+      sec2Structure: s2Raw,
+      sec3Reading: s3Raw,
+      totalSkor: totalSkorAkhir,
       status: 'MAPPED',
-      tanggal_ujian: activeJadwal.tanggal,
+      tanggalUjian: activeJadwal.tanggal,
       nama_kelas: p.nama_kelas
     });
   });
 
-  // 2. Deteksi Siswa Susulan / Pindahan Lab
   const dbIdMejas = new Set(dbPesertaList.map(p => p.id_meja));
   const susulanRows = excelRows.filter(x => !dbIdMejas.has(x.id_meja));
 
@@ -278,23 +279,27 @@ async function jalankanAutoMappingEngine(lab, sesi) {
 
     globalSyncedResults.push({
       no: idx++,
+      idJadwal: activeJadwal.id,
       nim: '',
       nama: '',
       id_meja: sus.id_meja,
-      sec_1: s1Raw,
-      sec_2: s2Raw,
-      sec_3: s3Raw,
-      total_skor: totalSkorAkhir,
+      jenisTes: 'TOEFL',
+      sec1Listening: s1Raw,
+      sec2Structure: s2Raw,
+      sec3Reading: s3Raw,
+      totalSkor: totalSkorAkhir,
       status: 'UNMAPPED',
-      tanggal_ujian: activeJadwal.tanggal,
+      tanggalUjian: activeJadwal.tanggal,
       nama_kelas: 'Susulan / Pindahan'
     });
   });
 
   renderTabelPratinjau();
   
-  const totalSusulan = susulanRows.length;
-  document.getElementById('infoStatusSync').innerHTML = `<span class="text-polnes-main font-bold">Sinkronisasi Berhasil!</span> ${dbPesertaList.length} peserta sesuai jadwal. <b class="text-rose-500">${totalSusulan > 0 ? totalSusulan + ' Siswa Susulan terdeteksi.' : 'Semua data pas dan valid.'}</b>`;
+  const statusSync = document.getElementById('infoStatusSync');
+  if (statusSync) {
+    statusSync.innerHTML = `<span class="text-polnes-main font-bold">Sinkronisasi Berhasil!</span> ${dbPesertaList.length} peserta sesuai jadwal. <b class="text-rose-500">${susulanRows.length > 0 ? susulanRows.length + ' Siswa Susulan terdeteksi.' : 'Semua data pas dan valid.'}</b>`;
+  }
 }
 
 async function prosesBindNim(idMeja) {
@@ -302,6 +307,7 @@ async function prosesBindNim(idMeja) {
   if (!rowTarget) return;
 
   const inputEl = document.getElementById(`input_nim_${idMeja}`);
+  if (!inputEl) return;
   const inputNIM = inputEl.value.trim();
 
   if (!inputNIM) {
@@ -391,10 +397,10 @@ function renderTabelPratinjau() {
         ${nimHtml}
         ${namaHtml}
         <td class="px-4 py-3 text-xs font-mono font-bold text-emerald-600">${item.id_meja}</td>
-        <td class="px-4 py-3 text-xs text-center font-semibold text-sky-600">${item.sec_1}</td>
-        <td class="px-4 py-3 text-xs text-center font-semibold text-purple-600">${item.sec_2}</td>
-        <td class="px-4 py-3 text-xs text-center font-semibold text-amber-600">${item.sec_3}</td>
-        <td class="px-4 py-3 text-sm text-center font-extrabold text-polnes-dark bg-emerald-50/50">${item.total_skor}</td>
+        <td class="px-4 py-3 text-xs text-center font-semibold text-sky-600">${item.sec1Listening}</td>
+        <td class="px-4 py-3 text-xs text-center font-semibold text-purple-600">${item.sec2Structure}</td>
+        <td class="px-4 py-3 text-xs text-center font-semibold text-amber-600">${item.sec3Reading}</td>
+        <td class="px-4 py-3 text-sm text-center font-extrabold text-polnes-dark bg-emerald-50/50">${item.totalSkor}</td>
         <td class="px-4 py-3 text-xs">${actionHtml}</td>
       </tr>
     `;
@@ -413,46 +419,27 @@ async function simpanPermanenKeDatabase() {
     return;
   }
 
-  const lab = document.getElementById('selectLabToefl').value;
-  const sesi = document.getElementById('selectSesiToefl').value;
-  
-  if (!confirm(`Yakin ingin menyimpan data hasil test ini secara permanen ke database?`)) return;
+  if (!confirm(`Yakin ingin menyimpan data hasil test ini secara permanen ke database tabel HasilTes?`)) return;
 
   try {
-    const { data: logData, error: logErr } = await window.supabaseClient
-      .from('hasil_test_log')
-      .insert([{
-        jenis_tes: 'TOEFL',
-        ruang_lab: lab,
-        sesi: sesi,
-        tanggal_ujian: globalSyncedResults[0].tanggal_ujian,
-        nama_kelas: globalSyncedResults[0].nama_kelas,
-        jumlah_peserta: globalSyncedResults.length
-      }])
-      .select();
-
-    if (logErr) throw logErr;
-    const hasilTestId = logData[0].id;
-
-    const detailPayload = globalSyncedResults.map(item => ({
-      hasil_test_id: hasilTestId,
+    // Mapping payload agar langsung tersimpan pas ke tabel "HasilTes" di Supabase
+    const payload = globalSyncedResults.map(item => ({
+      idJadwal: item.idJadwal,
       nim: item.nim,
-      nama: item.nama,
-      id_meja: item.id_meja,
-      sec_1: item.sec_1,
-      sec_2: item.sec_2,
-      sec_3: item.sec_3,
-      total_skor: item.total_skor,
-      status_mapping: item.status
+      jenisTes: item.jenisTes,
+      sec1Listening: item.sec1Listening,
+      sec2Structure: item.sec2Structure,
+      sec3Reading: item.sec3Reading,
+      totalSkor: item.totalSkor
     }));
 
-    const { error: detailErr } = await window.supabaseClient
-      .from('detail_nilai_peserta')
-      .insert(detailPayload);
+    const { error: insertErr } = await window.supabaseClient
+      .from('HasilTes')
+      .insert(payload);
 
-    if (detailErr) throw detailErr;
+    if (insertErr) throw insertErr;
 
-    alert("Berhasil! Data nilai TOEFL tersimpan permanen ke database.");
+    alert("Berhasil! Data nilai TOEFL tersimpan permanen ke tabel HasilTes di database Supabase.");
     window.location.reload();
 
   } catch (err) {
