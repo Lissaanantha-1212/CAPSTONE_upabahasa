@@ -1,553 +1,500 @@
 /**
- * MODUL PENJADWALAN - UPA BAHASA POLNES
- * Deep-Scan Excel Parser + Supabase Sync + Filter Per Kelas (Tanpa "Semua Kelas") + PDF Preview Modal
+ * MODUL PENJADWALAN - UPA BAHASA POLNES (FULL VERSION)
+ * Menangani Upload Excel, Manajemen Antrean, Filter Kelas, Kunci Sesi, Histori, 
+ * Dinamis Jam Sesi (TOEFL vs SSPECT), dan Cetak Berita Acara PDF.
  */
 
-document.addEventListener('DOMContentLoaded', () => {
-  renderTabelAntreanDariSupabase();
-  loadHistoriJadwalDariSupabase();
-});
+let uploadedMahasiswaList = [];
+let selectedKelasFilter = 'ALL';
 
-function handleSelectFileClick() {
-  const namaKelas = document.getElementById('namaKelasInput').value.trim();
-  if (!namaKelas) {
-    alert("Harap ketik 'Nama Kelas Baru' terlebih dahulu!");
-    return;
-  }
-  document.getElementById('excelFileInput').click();
-}
+document.addEventListener('DOMContentLoaded', async () => {
+  // Set default tanggal hari ini
+  const today = new Date().toISOString().split('T')[0];
+  const dateInput = document.getElementById('inputTanggalUjian');
+  if (dateInput) dateInput.value = today;
 
-document.addEventListener('DOMContentLoaded', () => {
+  // Inisialisasi Event Listener Dynamic Sesi (TOEFL vs SSPECT)
+  initDynamicSesiListener();
+
+  // Load data awal dari Supabase
+  await loadAntreanDariSupabase();
+  await loadHistoriJadwalDariSupabase();
+
+  // Event Listener Tombol Pilih File Excel
   const fileInput = document.getElementById('excelFileInput');
   if (fileInput) {
-    fileInput.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (file) bacaDanUploadExcelOtomatis(file);
-    });
+    fileInput.addEventListener('change', handleExcelUpload);
   }
 });
 
-async function bacaDanUploadExcelOtomatis(file) {
-  try {
-    const namaKelas = document.getElementById('namaKelasInput').value.trim();
-    const fileNameText = document.getElementById('fileNameText');
+// --- DINAMIS SESI JAM BERDASARKAN JENIS TES ---
+function initDynamicSesiListener() {
+  const selectJenisTes = document.getElementById('selectJenisTes');
+  const selectSesi = document.getElementById('selectSesi');
 
-    if (!namaKelas) {
-      alert("Harap masukkan Nama Kelas Baru terlebih dahulu!");
-      resetFileInputUI();
-      return;
-    }
+  if (selectJenisTes && selectSesi) {
+    selectJenisTes.addEventListener('change', (e) => {
+      const jenis = e.target.value;
+      selectSesi.innerHTML = ''; // Bersihkan opsi lama
 
-    if (fileNameText) {
-      fileNameText.innerText = `Membaca ${file.name}...`;
-      fileNameText.className = "truncate text-polnes-main font-bold";
-    }
-
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      try {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const firstSheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[firstSheetName];
-        
-        const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
-
-        if (!rows || rows.length === 0) {
-          throw new Error("File Excel kosong.");
-        }
-
-        let nimColIndex = -1;
-        let namaColIndex = -1;
-        let startRowIndex = 0;
-
-        for (let r = 0; r < rows.length; r++) {
-          const row = rows[r];
-          for (let c = 0; c < row.length; c++) {
-            const val = String(row[c]).trim().toLowerCase();
-            if (val === 'nim' || val === 'no mhs' || val === 'nomor induk') {
-              nimColIndex = c;
-              startRowIndex = r + 1;
-            }
-            if (val === 'nama' || val === 'nama mahasiswa' || val === 'name') {
-              namaColIndex = c;
-            }
-          }
-          if (nimColIndex !== -1 && namaColIndex !== -1) break;
-        }
-
-        let parsedMhs = [];
-
-        if (nimColIndex !== -1 && namaColIndex !== -1) {
-          for (let r = startRowIndex; r < rows.length; r++) {
-            const row = rows[r];
-            if (!row) continue;
-            let nimVal = String(row[nimColIndex] || '').trim();
-            let namaVal = String(row[namaColIndex] || '').trim();
-
-            if (nimVal && namaVal && nimVal.toLowerCase() !== 'nim' && nimVal.toLowerCase() !== 'no') {
-              parsedMhs.push({ nim: nimVal, nama: namaVal, nama_kelas: namaKelas });
-            }
-          }
-        }
-
-        if (parsedMhs.length === 0) {
-          for (let r = 0; r < rows.length; r++) {
-            const row = rows[r];
-            if (!row) continue;
-            
-            let foundNim = '';
-            let foundNama = '';
-
-            for (let c = 0; c < row.length; c++) {
-              const cellStr = String(row[c]).trim();
-              if (/^\d{8,15}$/.test(cellStr)) {
-                foundNim = cellStr;
-              } else if (cellStr.length > 3 && isNaN(cellStr) && cellStr.toLowerCase() !== 'nama' && cellStr.toLowerCase() !== 'nim') {
-                if (!foundNama) foundNama = cellStr;
-              }
-            }
-
-            if (foundNim && foundNama) {
-              parsedMhs.push({ nim: foundNim, nama: foundNama, nama_kelas: namaKelas });
-            }
-          }
-        }
-
-        if (parsedMhs.length === 0) {
-          throw new Error("Sistem gagal mendeteksi data mahasiswa di dalam file Excel.");
-        }
-
-        const { data: existingClass, error: errCek } = await window.supabaseClient
-          .from('jadwal_log')
-          .select('nama_kelas')
-          .ilike('nama_kelas', `%${namaKelas}%`);
-
-        if (errCek) throw errCek;
-
-        if (existingClass && existingClass.length > 0) {
-          alert(`[DITOLAK] Kelas "${namaKelas}" sudah pernah dikunci di database!`);
-          resetFileInputUI();
-          return;
-        }
-
-        const { data: dbAntrean } = await window.supabaseClient.from('antrean_mahasiswa').select('nim');
-        const { data: dbPeserta } = await window.supabaseClient.from('peserta_ujian').select('nim');
-
-        const existingNIMSet = new Set([
-          ...(dbAntrean ? dbAntrean.map(a => a.nim) : []),
-          ...(dbPeserta ? dbPeserta.map(p => p.nim) : [])
-        ]);
-
-        const payloadBatch = [];
-        parsedMhs.forEach(mhs => {
-          if (!existingNIMSet.has(mhs.nim)) {
-            payloadBatch.push(mhs);
-            existingNIMSet.add(mhs.nim);
-          }
-        });
-
-        if (payloadBatch.length > 0) {
-          const { error: insertErr } = await window.supabaseClient.from('antrean_mahasiswa').insert(payloadBatch);
-          if (insertErr) throw insertErr;
-
-          alert(`Sukses! ${payloadBatch.length} mahasiswa dari kelas "${namaKelas}" berhasil dimuat ke antrean.`);
-        } else {
-          alert("Semua mahasiswa di file ini sudah terdaftar di antrean atau database.");
-        }
-
-        resetFileInputUI();
-        document.getElementById('namaKelasInput').value = '';
-        
-        // Otomatis pilih kelas yang baru di-upload sebagai filter aktif
-        selectedFilterKelas = namaKelas;
-        await renderTabelAntreanDariSupabase();
-
-      } catch (err) {
-        alert("Gagal parsing Excel: " + err.message);
-        resetFileInputUI();
+      if (jenis === 'TOEFL') {
+        selectSesi.innerHTML = `
+          <option value="SESI 1 (08.00 - 10.00 WITA)">SESI 1 (08.00 - 10.00 WITA)</option>
+          <option value="SESI 2 (10.00 - 12.00 WITA)">SESI 2 (10.00 - 12.00 WITA)</option>
+          <option value="SESI 3 (14.00 - 16.00 WITA)">SESI 3 (14.00 - 16.00 WITA)</option>
+        `;
+      } else if (jenis === 'SSPECT') {
+        selectSesi.innerHTML = `
+          <option value="SESI 1 (08.00 - 10.30 WITA)">SESI 1 (08.00 - 10.30 WITA)</option>
+          <option value="SESI 2 (10.30 - 13.00 WITA)">SESI 2 (10.30 - 13.00 WITA)</option>
+          <option value="SESI 3 (14.00 - 16.30 WITA)">SESI 3 (14.00 - 16.30 WITA)</option>
+        `;
       }
-    };
-
-    reader.readAsArrayBuffer(file);
-  } catch (errGlobal) {
-    alert("Error sistem: " + errGlobal.message);
-    resetFileInputUI();
+    });
   }
 }
 
-function resetFileInputUI() {
+function handleSelectFileClick() {
   const fileInput = document.getElementById('excelFileInput');
-  const fileNameText = document.getElementById('fileNameText');
-  if (fileInput) fileInput.value = '';
-  if (fileNameText) {
-    fileNameText.innerText = "Klik untuk Pilih File Excel...";
-    fileNameText.className = "truncate text-slate-400";
-  }
+  if (fileInput) fileInput.click();
 }
 
-let globalAntreanData = [];
-let selectedFilterKelas = '';
+// --- PROSES UPLOAD EXCEL & SIMPAN KE ANTREAN SUPABASE ---
+async function handleExcelUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
 
-async function renderTabelAntreanDariSupabase() {
-  const tbody = document.getElementById('tabelAntreanMhsBody');
-  const statusText = document.getElementById('antreanStatusText');
-  const masterCheckbox = document.getElementById('selectAllCheckbox');
-  const filterContainer = document.getElementById('filterKelasContainer');
-  if (!tbody) return;
-
-  const { data: antreanData, error } = await window.supabaseClient
-    .from('antrean_mahasiswa')
-    .select('*')
-    .order('created_at', { ascending: true });
-
-  globalAntreanData = antreanData || [];
-
-  if (error || globalAntreanData.length === 0) {
-    if (statusText) statusText.innerText = `0 Kelas Menunggu Plotting dalam antrean.`;
-    tbody.innerHTML = `<tr><td colspan="6" class="px-4 py-6 text-center text-slate-400 text-xs italic">Belum ada kelas di dalam antrean jadwal.</td></tr>`;
-    if (masterCheckbox) masterCheckbox.checked = false;
-    if (filterContainer) filterContainer.innerHTML = '';
-    selectedFilterKelas = '';
+  const namaKelasInput = document.getElementById('namaKelasInput').value.trim();
+  if (!namaKelasInput) {
+    alert("Harap isi 'Nama Kelas Baru' terlebih dahulu sebelum memilih file Excel!");
+    e.target.value = '';
     return;
   }
 
-  const uniqueClasses = [...new Set(globalAntreanData.map(m => m.nama_kelas))];
-  if (statusText) statusText.innerText = `${uniqueClasses.length} Kelas Menunggu Plotting dalam antrean (${globalAntreanData.length} Mahasiswa total).`;
-
-  // Jika belum ada kelas yang dipilih atau kelas yang dipilih sudah tidak ada, pilih kelas pertama secara otomatis
-  if (!selectedFilterKelas || !uniqueClasses.includes(selectedFilterKelas)) {
-    selectedFilterKelas = uniqueClasses[0];
+  const fileNameText = document.getElementById('fileNameText');
+  if (fileNameText) {
+    fileNameText.innerText = file.name;
+    fileNameText.classList.add('text-polnes-main', 'font-bold');
   }
 
-  // Render Tombol Filter Per Kelas (Tanpa Tombol "Semua Kelas")
-  if (filterContainer) {
-    let filterHtml = '';
-    uniqueClasses.forEach(cls => {
-      const count = globalAntreanData.filter(m => m.nama_kelas === cls).length;
-      const isActive = selectedFilterKelas === cls;
-      filterHtml += `<button onclick="setFilterKelas('${cls}')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${isActive ? 'bg-emerald-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${cls} (${count} Mhs)</button>`;
-    });
-    filterContainer.innerHTML = filterHtml;
+  const reader = new FileReader();
+  reader.onload = async (event) => {
+    try {
+      const data = new Uint8Array(event.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const firstSheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[firstSheetName];
+      const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
+
+      let parsedMhs = [];
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        if (!row || row.length < 2) continue;
+        
+        const nim = String(row[1] || row[0] || '').trim();
+        const nama = String(row[2] || row[1] || '').trim();
+
+        if (nim && nama && nim.toLowerCase() !== 'nim' && nama.toLowerCase() !== 'nama') {
+          parsedMhs.push({
+            nim: nim,
+            nama: nama.toUpperCase(),
+            nama_kelas: namaKelasInput
+          });
+        }
+      }
+
+      if (parsedMhs.length === 0) {
+        alert("Tidak ada data mahasiswa yang valid ditemukan di file Excel ini.");
+        return;
+      }
+
+      const payload = parsedMhs.map(m => ({
+        nim: m.nim,
+        nama: m.nama,
+        nama_kelas: m.nama_kelas,
+        status: 'ANTREAN'
+      }));
+
+      const { error } = await window.supabaseClient
+        .from('antrean_mahasiswa')
+        .insert(payload);
+
+      if (error) throw error;
+
+      alert(`Berhasil! ${parsedMhs.length} mahasiswa dari kelas "${namaKelasInput}" ditambahkan ke antrean.`);
+      document.getElementById('namaKelasInput').value = '';
+      e.target.value = '';
+      if (fileNameText) {
+        fileNameText.innerText = 'Klik untuk Pilih File Excel...';
+        fileNameText.classList.remove('text-polnes-main', 'font-bold');
+      }
+
+      await loadAntreanDariSupabase();
+
+    } catch (err) {
+      alert("Gagal membaca atau mengunggah file Excel: " + err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// --- LOAD DATA ANTREAN DARI SUPABASE ---
+async function loadAntreanDariSupabase() {
+  try {
+    const { data, error } = await window.supabaseClient
+      .from('antrean_mahasiswa')
+      .select('*')
+      .order('id', { ascending: true });
+
+    if (error) throw error;
+
+    uploadedMahasiswaList = data || [];
+    renderFilterKelasButtons();
+    renderTabelAntrean();
+
+  } catch (err) {
+    console.error("Gagal memuat antrean:", err);
+  }
+}
+
+// --- RENDER TOMBOL FILTER KELAS ---
+function renderFilterKelasButtons() {
+  const container = document.getElementById('filterKelasContainer');
+  if (!container) return;
+
+  const kelasSet = [...new Set(uploadedMahasiswaList.map(m => m.nama_kelas))];
+
+  let html = `<button onclick="filterKelas('ALL')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${selectedKelasFilter === 'ALL' ? 'bg-polnes-main text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">Semua Kelas (${uploadedMahasiswaList.length})</button>`;
+
+  kelasSet.forEach(k => {
+    const count = uploadedMahasiswaList.filter(m => m.nama_kelas === k).length;
+    const isActive = selectedKelasFilter === k;
+    html += `<button onclick="filterKelas('${k}')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${isActive ? 'bg-polnes-main text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${k} (${count})</button>`;
+  });
+
+  container.innerHTML = html;
+}
+
+function filterKelas(namaKelas) {
+  selectedKelasFilter = namaKelas;
+  renderFilterKelasButtons();
+  renderTabelAntrean();
+}
+
+// --- RENDER TABEL ANTREAN ---
+function renderTabelAntrean() {
+  const tbody = document.getElementById('tabelAntreanMhsBody');
+  const statusText = document.getElementById('antreanStatusText');
+  if (!tbody) return;
+
+  let filteredList = uploadedMahasiswaList;
+  if (selectedKelasFilter !== 'ALL') {
+    filteredList = uploadedMahasiswaList.filter(m => m.nama_kelas === selectedKelasFilter);
   }
 
-  // Filter data murni berdasarkan kelas yang sedang aktif dipilih
-  const filteredData = globalAntreanData.filter(m => m.nama_kelas === selectedFilterKelas);
+  if (statusText) {
+    statusText.innerText = `Total ${uploadedMahasiswaList.length} mahasiswa dalam antrean (Menampilkan: ${filteredList.length} orang).`;
+  }
 
-  if (masterCheckbox) masterCheckbox.checked = true;
+  if (filteredList.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" class="px-4 py-8 text-center text-slate-400 text-xs italic">Belum ada data mahasiswa dalam antrean. Silakan upload file Excel di atas.</td></tr>`;
+    return;
+  }
 
-  tbody.innerHTML = filteredData.map((mhs, idx) => {
-    const idMeja = `STUDENT${String(idx + 1).padStart(2, '0')}`;
-    return `
+  let tableHtml = '';
+  filteredList.forEach((mhs, idx) => {
+    const autoMeja = `STUDENT${String(idx + 1).padStart(2, '0')}`;
+
+    tableHtml += `
       <tr class="hover:bg-slate-50 transition-colors">
-        <td class="px-4 py-3"><input type="checkbox" class="mhs-checkbox rounded text-polnes-main cursor-pointer" value="${mhs.nim}" data-nama="${mhs.nama}" data-kelas="${mhs.nama_kelas}" checked></td>
+        <td class="px-4 py-3 text-center">
+          <input type="checkbox" value="${mhs.id}" class="mhs-checkbox rounded text-polnes-main cursor-pointer" checked>
+        </td>
         <td class="px-4 py-3 text-xs font-semibold">${idx + 1}</td>
         <td class="px-4 py-3 text-xs font-bold text-slate-800">${mhs.nim}</td>
         <td class="px-4 py-3 text-xs font-medium">${mhs.nama}</td>
-        <td class="px-4 py-3 text-xs font-semibold text-emerald-700">${mhs.nama_kelas}</td>
-        <td class="px-4 py-3 text-xs font-mono font-bold text-slate-600">${idMeja}</td>
+        <td class="px-4 py-3 text-xs font-semibold text-slate-600">${mhs.nama_kelas}</td>
+        <td class="px-4 py-3 text-xs font-mono font-bold text-emerald-600">${autoMeja}</td>
       </tr>
     `;
-  }).join('');
+  });
+
+  tbody.innerHTML = tableHtml;
 }
 
-function setFilterKelas(namaKelas) {
-  selectedFilterKelas = namaKelas;
-  renderTabelAntreanDariSupabase();
+function toggleSelectAllMhs(masterCheckbox) {
+  const checkboxes = document.querySelectorAll('.mhs-checkbox');
+  checkboxes.forEach(cb => cb.checked = masterCheckbox.checked);
 }
 
-function toggleSelectAllMhs(master) {
-  document.querySelectorAll('.mhs-checkbox').forEach(cb => cb.checked = master.checked);
+// --- KUNCI SESI UJIAN (SIMPAN KE JADWAL LOG & PESERTA UJIAN) ---
+async function kunciSesiUjianKeSupabase() {
+  const checkboxes = document.querySelectorAll('.mhs-checkbox:checked');
+  if (checkboxes.length === 0) {
+    alert("Pilih minimal 1 mahasiswa yang akan dimasukkan ke sesi ujian!");
+    return;
+  }
+
+  const jenisTes = document.getElementById('selectJenisTes').value;
+  const tanggal = document.getElementById('inputTanggalUjian').value;
+  const sesi = document.getElementById('selectSesi').value;
+  const ruangLab = document.getElementById('selectLab').value;
+
+  if (!tanggal) {
+    alert("Harap tentukan tanggal ujian terlebih dahulu!");
+    return;
+  }
+
+  const selectedIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+  const mahasiswaTerpilih = uploadedMahasiswaList.filter(m => selectedIds.includes(m.id));
+  const kelasUnik = [...new Set(mahasiswaTerpilih.map(m => m.nama_kelas))].join(', ');
+
+  if (!confirm(`Yakin ingin mengunci ${mahasiswaTerpilih.length} mahasiswa ke sesi ${sesi} (${ruangLab}) untuk kelas ${kelasUnik}?`)) {
+    return;
+  }
+
+  try {
+    const { data: jadwalData, error: jadwalErr } = await window.supabaseClient
+      .from('jadwal_log')
+      .insert([{
+        jenis_tes: jenisTes,
+        tanggal: tanggal,
+        sesi: sesi,
+        ruang_lab: ruangLab,
+        nama_kelas: kelasUnik,
+        jumlah_mhs: mahasiswaTerpilih.length,
+        status: 'TERKUNCI'
+      }])
+      .select();
+
+    if (jadwalErr) throw jadwalErr;
+    const jadwalId = jadwalData[0].id;
+
+    const pesertaPayload = mahasiswaTerpilih.map((m, idx) => ({
+      jadwal_id: jadwalId,
+      nim: m.nim,
+      nama: m.nama,
+      nama_kelas: m.nama_kelas,
+      id_meja: `STUDENT${String(idx + 1).padStart(2, '0')}`
+    }));
+
+    const { error: pesertaErr } = await window.supabaseClient
+      .from('peserta_ujian')
+      .insert(pesertaPayload);
+
+    if (pesertaErr) throw pesertaErr;
+
+    const { error: deleteErr } = await window.supabaseClient
+      .from('antrean_mahasiswa')
+      .delete()
+      .in('id', selectedIds);
+
+    if (deleteErr) throw deleteErr;
+
+    alert("Sesi ujian berhasil dikunci dan disimpan ke database! Statistik Dashboard telah diperbarui.");
+    
+    await loadAntreanDariSupabase();
+    await loadHistoriJadwalDariSupabase();
+
+  } catch (err) {
+    alert("Gagal mengunci sesi ujian: " + err.message);
+  }
 }
 
-// Fungsi Hapus Antrean per Kelas Aktif atau Seluruhnya
+// --- HAPUS ANTREAN ---
 async function hapusAntreanSupabase() {
-  if (!selectedFilterKelas) return;
-
-  if (!confirm(`Apakah Anda yakin ingin menghapus kelas "${selectedFilterKelas}" dari antrean?`)) return;
+  if (!confirm("Yakin ingin menghapus seluruh data yang ada di antrean saat ini?")) return;
 
   try {
     const { error } = await window.supabaseClient
       .from('antrean_mahasiswa')
       .delete()
-      .eq('nama_kelas', selectedFilterKelas);
+      .neq('id', 0);
 
     if (error) throw error;
 
-    alert(`Kelas "${selectedFilterKelas}" berhasil dihapus dari antrean!`);
-    selectedFilterKelas = '';
-    await renderTabelAntreanDariSupabase();
-
+    alert("Antrean berhasil dibersihkan.");
+    await loadAntreanDariSupabase();
   } catch (err) {
     alert("Gagal menghapus antrean: " + err.message);
   }
 }
 
-async function kunciSesiUjianKeSupabase() {
-  const jenisTes = document.getElementById('selectJenisTes').value;
-  const tanggal = document.getElementById('inputTanggalUjian').value;
-  const sesi = document.getElementById('selectSesi').value;
-  const lab = document.getElementById('selectLab').value;
-
-  if (!tanggal) {
-    alert("Harap pilih tanggal ujian terlebih dahulu!");
-    return;
-  }
-
-  const checkedBoxes = Array.from(document.querySelectorAll('.mhs-checkbox:checked'));
-  if (checkedBoxes.length === 0) {
-    alert("Centang minimal 1 mahasiswa di tabel untuk dijadwalkan!");
-    return;
-  }
-
-  const mhsToSchedule = checkedBoxes.map(cb => ({
-    nim: cb.value,
-    nama: cb.getAttribute('data-nama'),
-    nama_kelas: cb.getAttribute('data-kelas')
-  }));
-
-  const jumlahMhsPlot = mhsToSchedule.length;
-
-  if (jumlahMhsPlot > 30) {
-    alert(`[PENOLAKAN] Jumlah mahasiswa (${jumlahMhsPlot}) melebihi batas kapasitas lab (Maksimal 30)!`);
-    return;
-  }
-
-  try {
-    const { data: jadwalBentrok } = await window.supabaseClient
-      .from('jadwal_log')
-      .select('id')
-      .eq('tanggal', tanggal)
-      .eq('sesi', sesi)
-      .eq('ruang_lab', lab);
-
-    if (jadwalBentrok && jadwalBentrok.length > 0) {
-      alert(`[BENTROK] Sesi "${sesi}" di ${lab} pada tanggal ${tanggal} sudah digunakan!`);
-      return;
-    }
-
-    const labPasangan = (lab === 'Lab A') ? 'Lab B' : 'Lab A';
-    const { data: jadwalPasangan } = await window.supabaseClient
-      .from('jadwal_log')
-      .select('jumlah_mhs')
-      .eq('tanggal', tanggal)
-      .eq('sesi', sesi)
-      .eq('ruang_lab', labPasangan);
-
-    if (jadwalPasangan && jadwalPasangan.length > 0) {
-      if (jadwalPasangan[0].jumlah_mhs >= 30 && jumlahMhsPlot >= 30) {
-        alert(`[DITOLAK] ${labPasangan} pada sesi ini sudah terisi 30 mahasiswa. ${lab} WAJIB diisi di bawah 30 mahasiswa agar ada unit komputer cadangan!`);
-        return;
-      }
-    }
-
-    const namaKelasSesi = [...new Set(mhsToSchedule.map(m => m.nama_kelas))].join(', ');
-
-    const { data: logData, error: logErr } = await window.supabaseClient
-      .from('jadwal_log')
-      .insert([{
-        jenis_tes: jenisTes,
-        nama_kelas: namaKelasSesi,
-        tanggal: tanggal,
-        sesi: sesi,
-        ruang_lab: lab,
-        jumlah_mhs: jumlahMhsPlot,
-        status: 'DIKUNCI'
-      }])
-      .select();
-
-    if (logErr) throw logErr;
-    const jadwalId = logData[0].id;
-
-    const pesertaPayload = mhsToSchedule.map((mhs, idx) => ({
-      jadwal_id: jadwalId,
-      nim: mhs.nim,
-      nama: mhs.nama,
-      nama_kelas: mhs.nama_kelas,
-      id_meja: `STUDENT${String(idx + 1).padStart(2, '0')}`
-    }));
-
-    const { error: pesertaErr } = await window.supabaseClient.from('peserta_ujian').insert(pesertaPayload);
-    if (pesertaErr) throw pesertaErr;
-
-    const selectedNIMs = mhsToSchedule.map(m => m.nim);
-    await window.supabaseClient.from('antrean_mahasiswa').delete().in('nim', selectedNIMs);
-
-    selectedFilterKelas = '';
-    renderTabelAntreanDariSupabase();
-    loadHistoriJadwalDariSupabase();
-    alert(`Sesi ${jenisTes} di ${lab} (${jumlahMhsPlot} Mahasiswa) Berhasil Dikunci ke Database!`);
-
-  } catch (err) {
-    alert("Gagal mengunci sesi: " + err.message);
-  }
-}
-
+// --- LOAD HISTORI JADWAL ---
 async function loadHistoriJadwalDariSupabase() {
   const tbody = document.getElementById('tabelHistoriJadwalBody');
   if (!tbody) return;
 
-  const { data: logs, error } = await window.supabaseClient
-    .from('jadwal_log')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  if (error || !logs || logs.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="9" class="px-4 py-6 text-center text-slate-400 text-xs italic">Belum ada riwayat sesi yang dikunci.</td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML = logs.map((item, idx) => `
-    <tr class="hover:bg-slate-50 transition-colors">
-      <td class="px-4 py-3 text-xs font-semibold">${idx + 1}</td>
-      <td class="px-4 py-3 text-xs font-bold text-slate-800">${item.jenis_tes}</td>
-      <td class="px-4 py-3 text-xs">${item.nama_kelas}</td>
-      <td class="px-4 py-3 text-xs font-medium">${item.tanggal}</td>
-      <td class="px-4 py-3 text-xs">${item.sesi}</td>
-      <td class="px-4 py-3 text-xs font-bold text-emerald-600">${item.ruang_lab}</td>
-      <td class="px-4 py-3 text-xs font-bold">${item.jumlah_mhs} Mhs</td>
-      <td class="px-4 py-3 text-xs"><span class="bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full font-bold">Dikunci</span></td>
-      <td class="px-4 py-3 text-xs">
-        <button onclick="bukaPreviewPDF('${item.id}', '${item.jenis_tes}', '${item.nama_kelas}', '${item.tanggal}', '${item.sesi}', '${item.ruang_lab}')" class="px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-lg font-bold transition-all flex items-center gap-1 shadow-sm">
-          <i class="ri-file-pdf-line"></i> Cetak / PDF
-        </button>
-      </td>
-    </tr>
-  `).join('');
-}
-
-function getBase64ImageFromURL(url) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = "Anonymous";
-    img.onload = function() {
-      const canvas = document.createElement("canvas");
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0);
-      resolve(canvas.toDataURL("image/png"));
-    };
-    img.onerror = error => reject(error);
-    img.src = url;
-  });
-}
-
-async function generatePDFDoc(jenisTes, namaKelas, tanggal, sesi, ruangLab, peserta) {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({
-    orientation: 'portrait',
-    unit: 'mm',
-    format: 'a4'
-  });
-
   try {
-    const logoBase64 = await getBase64ImageFromURL('./img/polnes.png');
-    doc.addImage(logoBase64, 'PNG', 14, 7, 18, 18);
-  } catch (e) {
-    console.log("Logo polnes.png tidak dapat dimuat:", e);
+    const { data, error } = await window.supabaseClient
+      .from('jadwal_log')
+      .select('*')
+      .order('id', { ascending: false });
+
+    if (error) throw error;
+
+    if (!data || data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="9" class="px-4 py-6 text-center text-slate-400 text-xs italic">Belum ada riwayat sesi jadwal yang dikunci.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = data.map((item, idx) => `
+      <tr class="hover:bg-slate-50 transition-colors">
+        <td class="px-4 py-3 text-xs font-semibold">${idx + 1}</td>
+        <td class="px-4 py-3 text-xs font-bold text-polnes-dark">${item.jenis_tes}</td>
+        <td class="px-4 py-3 text-xs font-semibold text-slate-700">${item.nama_kelas}</td>
+        <td class="px-4 py-3 text-xs text-slate-600">${item.tanggal}</td>
+        <td class="px-4 py-3 text-xs font-medium text-sky-700">${item.sesi}</td>
+        <td class="px-4 py-3 text-xs font-bold text-emerald-600">${item.ruang_lab}</td>
+        <td class="px-4 py-3 text-xs text-center font-bold">${item.jumlah_mhs}</td>
+        <td class="px-4 py-3 text-xs">
+          <span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase">${item.status}</span>
+        </td>
+        <td class="px-4 py-3 text-xs">
+          <div class="flex items-center gap-1.5">
+            <button onclick="bukaPreviewPDF(${item.id})" class="px-2.5 py-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-lg text-[10px] font-bold transition-all shadow-sm flex items-center gap-1">
+              <i class="ri-file-pdf-line"></i> PDF
+            </button>
+            <button onclick="hapusHistoriJadwal(${item.id})" class="px-2 py-1.5 bg-slate-200 hover:bg-rose-500 hover:text-white text-slate-600 rounded-lg text-[10px] transition-all">
+              <i class="ri-delete-bin-line"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+
+  } catch (err) {
+    console.error("Gagal memuat histori jadwal:", err);
   }
-
-  doc.setFontSize(9);
-  doc.setFont("helvetica", "bold");
-  doc.text("KEMENTERIAN PENDIDIKAN, KEBUDAYAAN, RISET, DAN TEKNOLOGI", 105, 8, null, null, "center");
-  doc.text("POLITEKNIK NEGERI SAMARINDA", 105, 12.5, null, null, "center");
-  
-  doc.setFontSize(10.5);
-  doc.text("UPT. BAHASA", 105, 17.5, null, null, "center");
-  
-  doc.setFontSize(7.5);
-  doc.setFont("helvetica", "normal");
-  doc.text("Jalan Dr. Ciptomangunkusumo Kampus Gunung Panjang Samarinda", 105, 21.5, null, null, "center");
-  doc.text("Telepon : PABX(0541)260588 - 260553 - 262018 FAX (0541) 260355", 105, 25, null, null, "center");
-  doc.text("Website: www.polnes.ac.id Email : polnes@polnes.ac.id", 105, 28.5, null, null, "center");
-  
-  doc.setLineWidth(0.6);
-  doc.line(14, 31, 196, 31);
-  doc.setLineWidth(0.15);
-  doc.line(14, 32, 196, 32);
-
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "bold");
-  doc.text(`JADWAL & BERITA ACARA UJIAN ${jenisTes}`, 105, 37.5, null, null, "center");
-
-  doc.setFontSize(8.5);
-  doc.setFont("helvetica", "normal");
-  doc.text(`Nama Kelas / Prodi : ${namaKelas}`, 14, 43);
-  doc.text(`Tanggal Ujian      : ${tanggal}`, 14, 47.5);
-  
-  doc.text(`Sesi & Waktu       : ${sesi}`, 115, 43);
-  doc.text(`Ruang Lab          : ${ruangLab}`, 115, 47.5);
-
-  const tableRows = (peserta || []).map((p, index) => [
-    index + 1,
-    p.nim,
-    p.nama,
-    p.nama_kelas,
-    p.id_meja,
-    "........................"
-  ]);
-
-  doc.autoTable({
-    startY: 51,
-    head: [['No', 'NIM', 'Nama Mahasiswa', 'Kelas / Prodi', 'ID Meja', 'Tanda Tangan']],
-    body: tableRows,
-    theme: 'grid',
-    headStyles: { 
-      fillColor: [16, 195, 93], 
-      textColor: 255, 
-      fontStyle: 'bold',
-      halign: 'center',
-      fontSize: 8.5,
-      cellPadding: 1.5
-    },
-    styles: { 
-      fontSize: 7.5,
-      cellPadding: 1.2,
-      valign: 'middle'
-    },
-    columnStyles: {
-      0: { halign: 'center', cellWidth: 10 },
-      1: { halign: 'center', cellWidth: 32 },
-      2: { cellWidth: 65 },
-      3: { halign: 'center', cellWidth: 28 },
-      4: { halign: 'center', cellWidth: 25 },
-      5: { halign: 'center', cellWidth: 22 }
-    },
-    pageBreak: 'avoid'
-  });
-
-  return doc;
 }
 
-async function bukaPreviewPDF(jadwalId, jenisTes, namaKelas, tanggal, sesi, ruangLab) {
-  const { data: peserta } = await window.supabaseClient
-    .from('peserta_ujian')
-    .select('*')
-    .eq('jadwal_id', jadwalId);
+async function hapusHistoriJadwal(id) {
+  if (!confirm("Hapus histori sesi ini? Peserta di dalam sesi ini juga akan dihapus.")) return;
+  try {
+    await window.supabaseClient.from('peserta_ujian').delete().eq('jadwal_id', id);
+    const { error } = await window.supabaseClient.from('jadwal_log').delete().eq('id', id);
+    if (error) throw error;
+    
+    await loadHistoriJadwalDariSupabase();
+    alert("Histori berhasil dihapus.");
+  } catch (err) {
+    alert("Gagal menghapus: " + err.message);
+  }
+}
 
-  const doc = await generatePDFDoc(jenisTes, namaKelas, tanggal, sesi, ruangLab, peserta);
-  const pdfBlobUrl = doc.output('bloburl');
+// --- GENERATE BERITA ACARA PDF (JS PDF) ---
+async function bukaPreviewPDF(jadwalId) {
+  try {
+    const { data: jadwalData } = await window.supabaseClient
+      .from('jadwal_log')
+      .select('*')
+      .eq('id', jadwalId)
+      .single();
 
-  const iframe = document.getElementById('pdfPreviewIframe');
-  const modal = document.getElementById('pdfPreviewModal');
-  if (iframe && modal) {
-    iframe.src = pdfBlobUrl;
-    modal.classList.remove('hidden');
+    const { data: pesertaData } = await window.supabaseClient
+      .from('peserta_ujian')
+      .select('*')
+      .eq('jadwal_id', jadwalId)
+      .order('id_meja', { ascending: true });
 
-    document.getElementById('btnActionDownload').onclick = () => {
-      doc.save(`Jadwal_${jenisTes}_${namaKelas}_${tanggal}.pdf`);
-    };
+    if (!jadwalData || !pesertaData) {
+      alert("Data sesi tidak ditemukan.");
+      return;
+    }
 
-    document.getElementById('btnActionPrint').onclick = () => {
-      iframe.contentWindow.print();
-    };
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'mm', 'a4');
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.text("KEMENTERIAN PENDIDIKAN, KEBUDAYAAN, RISET, DAN TEKNOLOGI", 105, 15, { align: "center" });
+    doc.text("POLITEKNIK NEGERI SAMARINDA", 105, 22, { align: "center" });
+    
+    doc.setFontSize(12);
+    doc.text("UNIT PENGELOLA AKADEMIK (UPA) BAHASA", 105, 29, { align: "center" });
+    
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.text("Kampus Gunung Lipan Jl. Cipto Mangunkusumo Samarinda, Kalimantan Timur", 105, 35, { align: "center" });
+    
+    doc.setLineWidth(0.5);
+    doc.line(15, 39, 195, 39);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.text("BERITA ACARA & DAFTAR HADIR PELAKSANAAN UJIAN", 105, 48, { align: "center" });
+    doc.setFontSize(10);
+    doc.text(`JENIS TES: ${jadwalData.jenis_tes.toUpperCase()}`, 105, 54, { align: "center" });
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    let startY = 64;
+    doc.text(`Hari / Tanggal  : ${jadwalData.tanggal}`, 20, startY);
+    doc.text(`Ruang Lab       : ${jadwalData.ruang_lab}`, 120, startY);
+    
+    doc.text(`Waktu Sesi      : ${jadwalData.sesi}`, 20, startY + 6);
+    doc.text(`Kelas Peserta   : ${jadwalData.nama_kelas}`, 120, startY + 6);
+
+    const tableRows = pesertaData.map((p, index) => [
+      index + 1,
+      p.nim,
+      p.nama,
+      p.id_meja,
+      ""
+    ]);
+
+    doc.autoTable({
+      startY: startY + 14,
+      head: [["NO", "NIM", "NAMA MAHASISWA", "ID MEJA", "TANDA TANGAN"]],
+      body: tableRows,
+      theme: 'grid',
+      headStyles: { fillColor: [16, 195, 93], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
+      columnStyles: {
+        0: { cellWidth: 12, halign: 'center' },
+        1: { cellWidth: 35 },
+        2: { cellWidth: 70 },
+        3: { cellWidth: 25, halign: 'center', fontStyle: 'bold' },
+        4: { cellWidth: 38 }
+      },
+      styles: { fontSize: 9, cellPadding: 3 }
+    });
+
+    let finalY = doc.lastAutoTable.finalY + 15;
+    if (finalY > 250) {
+      doc.addPage();
+      finalY = 20;
+    }
+
+    doc.text("Samarinda, " + new Date().toLocaleDateString('id-ID'), 140, finalY);
+    doc.text("Pengawas Ujian,", 140, finalY + 6);
+    
+    doc.setFont("helvetica", "bold");
+    doc.text("( __________________________ )", 130, finalY + 30);
+
+    const pdfBlob = doc.output('blob');
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+
+    const iframe = document.getElementById('pdfPreviewIframe');
+    const modal = document.getElementById('pdfPreviewModal');
+    
+    if (iframe && modal) {
+      iframe.src = pdfUrl;
+      modal.classList.remove('hidden');
+
+      document.getElementById('btnActionDownload').onclick = () => {
+        doc.save(`Berita_Acara_${jadwalData.jenis_tes}_${jadwalData.tanggal}.pdf`);
+      };
+      document.getElementById('btnActionPrint').onclick = () => {
+        iframe.contentWindow.print();
+      };
+    }
+
+  } catch (err) {
+    alert("Gagal membuat dokumen PDF: " + err.message);
   }
 }
 
 function tutupPreviewPDF() {
   const modal = document.getElementById('pdfPreviewModal');
-  const iframe = document.getElementById('pdfPreviewIframe');
   if (modal) modal.classList.add('hidden');
-  if (iframe) iframe.src = '';
 }
