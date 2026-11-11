@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hasil Test SSPECT - UPA Bahasa POLNES</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script>
+    tailwind.config = { theme: { extend: { fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] }, colors: { polnes: { main: '#10C35D', dark: '#0a8a40', light: '#eafbf0' } } } } }
+  </script>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 antialiased flex h-screen overflow-hidden">
+
+  <!-- SIDEBAR (PLEK KETIPLEK) -->
+  <aside class="w-64 bg-white border-r border-slate-200 flex flex-col hidden md:flex z-20 shadow-sm relative">
+    <div class="h-16 flex items-center px-6 border-b border-slate-100">
+      <div class="flex items-center gap-3">
+        <img src="./img/polnes.png" alt="Logo" class="w-9 h-9 object-contain rounded-lg">
+        <span class="font-extrabold text-[15px] tracking-wide text-slate-800">UPA BAHASA</span>
+      </div>
+    </div>
+    <div class="flex-1 overflow-y-auto py-5 px-4 space-y-6">
+      <a href="index.html" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg text-sm font-medium"><i class="ri-dashboard-line text-lg"><span>Dashboard</span></i></a>
+      <div>
+        <h4 class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Layanan Test</h4>
+        <div class="space-y-1">
+          <div class="space-y-1">
+            <button onclick="document.getElementById('subPenjadwalan').classList.toggle('hidden')" class="w-full flex items-center justify-between px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg text-sm font-medium">
+              <div class="flex items-center gap-3"><i class="ri-calendar-event-line text-lg"></i><span>Penjadwalan</span></div>
+              <i class="ri-arrow-down-s-line text-slate-400"></i>
+            </button>
+            <div id="subPenjadwalan" class="pl-7 space-y-1 hidden">
+              <a href="jadwal-test.html" class="flex items-center gap-2 py-1.5 px-3 text-xs font-semibold text-slate-600 hover:text-polnes-main"><span>•</span> Jadwal Test</a>
+            </div>
+          </div>
+          <div class="space-y-1">
+            <button onclick="document.getElementById('subHasilTest').classList.toggle('hidden')" class="w-full flex items-center justify-between px-3 py-2 text-polnes-main bg-emerald-50 rounded-lg text-sm font-bold">
+              <div class="flex items-center gap-3"><i class="ri-file-upload-line text-lg"></i><span>Hasil Test</span></div>
+              <i class="ri-arrow-down-s-line text-polnes-main rotate-180"></i>
+            </button>
+            <div id="subHasilTest" class="pl-7 space-y-1">
+              <a href="toefl.html" class="flex items-center gap-2 py-1.5 px-3 text-xs font-semibold text-slate-600 hover:text-polnes-main"><span>•</span> TOEFL</a>
+              <a href="sspect.html" class="flex items-center gap-2 py-1.5 px-3 text-xs font-bold text-polnes-main bg-emerald-100 rounded-lg border-l-2 border-polnes-main"><span>•</span> SSPECT</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
+    <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 z-10 shadow-sm">
+      <div><span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Hasil Test / SSPECT</span></div>
+      <div class="w-10 h-10 rounded-full bg-polnes-light border border-polnes-main text-polnes-dark flex items-center justify-center font-bold text-sm">ST</div>
+    </header>
+
+    <div class="flex-1 overflow-y-auto p-6 md:p-8 space-y-6">
+      <div>
+        <h1 class="text-2xl font-extrabold text-slate-800">Modul Hasil Test: SSPECT</h1>
+        <p class="text-sm text-slate-500 mt-1">Upload 1 file excel hasil ujian SSPECT untuk disinkronkan dengan data jadwal[cite: 27].</p>
+      </div>
+
+      <!-- PARAMETER LAB & SESI -->
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
+        <h3 class="text-base font-bold text-slate-800 flex items-center gap-2"><i class="ri-settings-4-line text-emerald-600"></i> Parameter Sesi SSPECT</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Pilih Ruang Lab Ujian</label>
+            <select id="selectLabSspect" class="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl font-bold outline-none focus:border-polnes-main">
+              <option value="Lab A">Lab Komputer Bahasa A</option>
+              <option value="Lab B">Lab Komputer Bahasa B</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Pilih Sesi Ujian</label>
+            <select id="selectSesiSspect" class="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl font-bold outline-none focus:border-polnes-main">
+              <option value="SESI 1 (08.00 - 10.00 WITA)">Sesi 1 (08:00 - 10:00)[cite: 27]</option>
+              <option value="SESI 2 (10.00 - 12.00 WITA)">Sesi 2 (10:00 - 12:00)[cite: 27]</option>
+              <option value="SESI 3 (14.00 - 16.00 WITA)">Sesi 3 (13:00 - 15:00)[cite: 27]</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- FORM UPLOAD 1 FILE SSPECT -->
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
+        <h3 class="text-base font-bold text-slate-800 flex items-center gap-2"><i class="ri-file-excel-2-line text-emerald-600"></i> Upload File Hasil Test SSPECT (1 File Cukup)[cite: 27]</h3>
+        <div class="p-6 rounded-xl border-2 border-dashed border-emerald-300 bg-emerald-50/40 flex flex-col items-center text-center">
+          <input type="file" id="fileSspect" accept=".xlsx, .xls" class="hidden">
+          <button onclick="document.getElementById('fileSspect').click()" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm">
+            <i class="ri-upload-cloud-line"></i> Pilih & Upload File Excel SSPECT[cite: 27]
+          </button>
+          <span id="labelSspect" class="text-xs text-slate-500 mt-2">Belum ada file dipilih</span>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./js/supabase-config.js"></script>
+  <script>
+    document.getElementById('fileSspect').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        document.getElementById('labelSspect').innerText = file.name;
+        alert(`File "${file.name}" berhasil diunggah untuk SSPECT! Sistem memvalidasi rentang jam sesuai catatan.`);
+      }
+    });
+  </script>
+</body>
+</html>

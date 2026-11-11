@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hasil Test TOEFL - UPA Bahasa POLNES</title>
+  
+  <!-- Font & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+  
+  <!-- Tailwind CSS & Libraries -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+          colors: {
+            polnes: {
+              main: '#10C35D',
+              dark: '#0a8a40',
+              light: '#eafbf0',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 antialiased flex h-screen overflow-hidden">
+
+  <!-- ================= SIDEBAR (PLEK KETIPLEK) ================= -->
+  <aside class="w-64 bg-white border-r border-slate-200 flex flex-col hidden md:flex z-20 shadow-sm relative">
+    <div class="h-16 flex items-center px-6 border-b border-slate-100">
+      <div class="flex items-center gap-3">
+        <img src="./img/polnes.png" alt="Logo UPA Bahasa" class="w-9 h-9 object-contain rounded-lg">
+        <span class="font-extrabold text-[15px] tracking-wide text-slate-800">UPA BAHASA</span>
+      </div>
+    </div>
+
+    <div class="flex-1 overflow-y-auto py-5 px-4 space-y-6 scrollbar-hide">
+      <a href="index.html" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-polnes-main rounded-lg text-sm font-medium transition-all group">
+        <i class="ri-dashboard-line text-lg"></i>
+        <span>Dashboard</span>
+      </a>
+
+      <div>
+        <h4 class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Layanan Test</h4>
+        <div class="space-y-1">
+          <!-- Dropdown Penjadwalan -->
+          <div class="space-y-1">
+            <button onclick="toggleMenu('subPenjadwalan', 'arrowPenjadwalan')" class="w-full flex items-center justify-between px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-polnes-main rounded-lg text-sm font-medium transition-all group">
+              <div class="flex items-center gap-3">
+                <i class="ri-calendar-event-line text-lg"></i>
+                <span>Penjadwalan</span>
+              </div>
+              <i id="arrowPenjadwalan" class="ri-arrow-down-s-line text-slate-400 transition-transform duration-200"></i>
+            </button>
+            <div id="subPenjadwalan" class="pl-7 space-y-1 hidden">
+              <a href="jadwal-test.html" class="flex items-center gap-2 py-1.5 px-3 text-xs font-semibold text-slate-600 hover:text-polnes-main rounded-lg"><span>•</span> Jadwal Test</a>
+              <a href="jadwal-remedial.html" class="flex items-center gap-2 py-1.5 px-3 text-xs font-semibold text-slate-600 hover:text-polnes-main rounded-lg"><span>•</span> Jadwal Remedial</a>
+              <a href="jadwal-kursus.html" class="flex items-center gap-2 py-1.5 px-3 text-xs font-semibold text-slate-600 hover:text-polnes-main rounded-lg"><span>•</span> Jadwal Kursus</a>
+            </div>
+          </div>
+
+          <!-- Dropdown Hasil Test (Aktif) -->
+          <div class="space-y-1">
+            <button onclick="toggleMenu('subHasilTest', 'arrowHasilTest')" class="w-full flex items-center justify-between px-3 py-2 text-polnes-main bg-emerald-50 rounded-lg text-sm font-bold transition-all">
+              <div class="flex items-center gap-3">
+                <i class="ri-file-upload-line text-lg"></i>
+                <span>Hasil Test</span>
+              </div>
+              <i id="arrowHasilTest" class="ri-arrow-down-s-line text-polnes-main transition-transform duration-200 rotate-180"></i>
+            </button>
+            <div id="subHasilTest" class="pl-7 space-y-1">
+              <a href="toefl.html" class="flex items-center gap-2 py-1.5 px-3 text-xs font-bold text-polnes-main bg-emerald-100 rounded-lg border-l-2 border-polnes-main"><span>•</span> TOEFL</a>
+              <a href="sspect.html" class="flex items-center gap-2 py-1.5 px-3 text-xs font-semibold text-slate-600 hover:text-polnes-main rounded-lg"><span>•</span> SSPECT</a>
+            </div>
+          </div>
+
+          <a href="#" class="flex items-center justify-between px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg text-sm font-medium"><div class="flex items-center gap-3"><i class="ri-calculator-line text-lg"></i><span>Kalkulasi Score</span></div></a>
+          <a href="#" class="flex items-center justify-between px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg text-sm font-medium"><div class="flex items-center gap-3"><i class="ri-folder-chart-line text-lg"></i><span>Rekapan</span></div></a>
+          <a href="#" class="flex items-center justify-between px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg text-sm font-medium"><div class="flex items-center gap-3"><i class="ri-information-line text-lg"></i><span>Pusat Informasi</span></div></a>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN CONTENT ================= -->
+  <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
+    <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 z-10 shadow-sm">
+      <div><span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Hasil Test / TOEFL</span></div>
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-polnes-light border border-polnes-main text-polnes-dark flex items-center justify-center font-bold text-sm">ST</div>
+      </div>
+    </header>
+
+    <div class="flex-1 overflow-y-auto p-6 md:p-8 space-y-6">
+      <div>
+        <h1 class="text-2xl font-extrabold text-slate-800">Modul 3: Upload Nilai TOEFL & Auto-Mapping Engine</h1>
+        <p class="text-sm text-slate-500 mt-1">Validasi ketat 3 file Section (Listening, Structure, Reading), sinkronisasi data peserta dengan nomor meja[cite: 25].</p>
+      </div>
+
+      <!-- KONTROL PEMILIHAN LAB & SESI (UAT-3.1) -->
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
+        <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+          <i class="ri-settings-4-line text-emerald-600"></i> Parameter Acuan Sesi Ujian
+        </h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Pilih Ruang Lab Ujian</label>
+            <select id="selectLabToefl" class="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl font-bold outline-none focus:border-polnes-main">
+              <option value="Lab A">Lab Komputer Bahasa A</option>
+              <option value="Lab B">Lab Komputer Bahasa B</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Pilih Sesi & Rentang Jam</label>
+            <select id="selectSesiToefl" class="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl font-bold outline-none focus:border-polnes-main">
+              <option value="SESI 1 (08.00 - 10.00 WITA)">Sesi 1 (Pagi) | 08.00 - 10.00 WITA[cite: 25, 27]</option>
+              <option value="SESI 2 (10.00 - 12.00 WITA)">Sesi 2 (Siang) | 10.00 - 12.00 WITA[cite: 27]</option>
+              <option value="SESI 3 (14.00 - 16.00 WITA)">Sesi 3 (Sore) | 14.00 - 16.00 WITA[cite: 27]</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- FORM UPLOAD 3 FILE SECTION TOEFL -->
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
+        <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+          <i class="ri-file-excel-2-line text-emerald-600"></i> Upload 3 File Section Nilai TOEFL (Wajib Lengkap)[cite: 25]
+        </h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- Section 1 -->
+          <div class="p-4 rounded-xl border-2 border-dashed border-sky-200 bg-sky-50/50 flex flex-col items-center text-center">
+            <span class="text-xs font-extrabold text-sky-700 uppercase mb-2">Section 1 (Listening)[cite: 25]</span>
+            <input type="file" id="fileSec1" accept=".xlsx, .xls" class="hidden">
+            <button onclick="document.getElementById('fileSec1').click()" class="w-full py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm">
+              <i class="ri-upload-cloud-line"></i> Unggah Excel Sec. 1[cite: 25]
+            </button>
+            <span id="labelSec1" class="text-[11px] text-slate-500 mt-2 truncate max-w-full">Belum ada file</span>
+          </div>
+
+          <!-- Section 2 -->
+          <div class="p-4 rounded-xl border-2 border-dashed border-purple-200 bg-purple-50/50 flex flex-col items-center text-center">
+            <span class="text-xs font-extrabold text-purple-700 uppercase mb-2">Section 2 (Structure)[cite: 25]</span>
+            <input type="file" id="fileSec2" accept=".xlsx, .xls" class="hidden">
+            <button onclick="document.getElementById('fileSec2').click()" class="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm">
+              <i class="ri-upload-cloud-line"></i> Unggah Excel Sec. 2[cite: 25]
+            </button>
+            <span id="labelSec2" class="text-[11px] text-slate-500 mt-2 truncate max-w-full">Belum ada file</span>
+          </div>
+
+          <!-- Section 3 -->
+          <div class="p-4 rounded-xl border-2 border-dashed border-amber-200 bg-amber-50/50 flex flex-col items-center text-center">
+            <span class="text-xs font-extrabold text-amber-700 uppercase mb-2">Section 3 (Reading)[cite: 25]</span>
+            <input type="file" id="fileSec3" accept=".xlsx, .xls" class="hidden">
+            <button onclick="document.getElementById('fileSec3').click()" class="w-full py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm">
+              <i class="ri-upload-cloud-line"></i> Unggah Excel Sec. 3[cite: 25]
+            </button>
+            <span id="labelSec3" class="text-[11px] text-slate-500 mt-2 truncate max-w-full">Belum ada file</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- TABEL PRATINJAU HASIL SINKRONISASI -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+          <div>
+            <h3 class="text-base font-bold text-slate-800">Pratinjau Hasil Sinkronisasi Nilai dengan Data Sistem Penjadwalan[cite: 25]</h3>
+            <p id="infoStatusSync" class="text-xs text-slate-500 mt-0.5">Silakan unggah ketiga file section di atas untuk melakukan auto-mapping.</p>
+          </div>
+          <button onclick="simpanPermanenKeDatabase()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5">
+            <i class="ri-save-line"></i> Simpan Permanen ke Database[cite: 28]
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider font-bold">
+                <th class="px-4 py-3 border-b border-slate-100">No[cite: 25]</th>
+                <th class="px-4 py-3 border-b border-slate-100">Nomor Induk / NIM[cite: 25]</th>
+                <th class="px-4 py-3 border-b border-slate-100">Nama Mahasiswa Sistem[cite: 25]</th>
+                <th class="px-4 py-3 border-b border-slate-100">Nomor Meja[cite: 25]</th>
+                <th class="px-4 py-3 border-b border-slate-100">Sec 1[cite: 25]</th>
+                <th class="px-4 py-3 border-b border-slate-100">Sec 2[cite: 25]</th>
+                <th class="px-4 py-3 border-b border-slate-100">Sec 3[cite: 25]</th>
+                <th class="px-4 py-3 border-b border-slate-100">Total Skor Akhir[cite: 25]</th>
+                <th class="px-4 py-3 border-b border-slate-100">Aksi Susulan (Bind)</th>
+              </tr>
+            </thead>
+            <tbody id="tabelPratinjauBody" class="text-sm text-slate-700 divide-y divide-slate-100">
+              <tr>
+                <td colspan="9" class="px-4 py-6 text-center text-slate-400 text-xs italic">Belum ada data disinkronkan.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    function toggleMenu(menuId, arrowId) {
+      document.getElementById(menuId).classList.toggle('hidden');
+      document.getElementById(arrowId).classList.toggle('rotate-180');
+    }
+  </script>
+
+  <!-- Supabase & Modul Hasil Test Script -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./js/supabase-config.js"></script>
+  <script src="./js/modul-hasil-toefl.js"></script>
+</body>
+</html>
