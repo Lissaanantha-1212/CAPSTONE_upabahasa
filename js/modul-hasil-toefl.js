@@ -1,6 +1,6 @@
 /**
  * MODUL HASIL TEST TOEFL - UPA BAHASA POLNES
- * Validasi Ketat Nama File, Rentang Jam, Tanggal, Mapping ID Meja, dan Fitur BIND Susulan
+ * Validasi Ketat, Mapping Berdasarkan Jadwal, dan Auto-Bind Hanya untuk Siswa Susulan Ber-nilai
  */
 
 let parsedSec1Data = null;
@@ -8,7 +8,6 @@ let parsedSec2Data = null;
 let parsedSec3Data = null;
 let globalSyncedResults = [];
 
-// Rentang jam tiap sesi berdasarkan aturan baku
 const SESI_RANGES = {
   "SESI 1 (08.00 - 10.00 WITA)": { startHour: 8, endHour: 10 },
   "SESI 2 (10.00 - 12.00 WITA)": { startHour: 10, endHour: 12 },
@@ -61,31 +60,28 @@ async function handleFileSection(event, sectionNum) {
   const labTerpilih = document.getElementById('selectLabToefl').value;
   const fileInfo = parseFileInfo(file.name);
 
-  // Validasi Urutan & Nama Section
   if (fileInfo.secNum !== sectionNum) {
-    alert(`[DITOLAK] Anda mengunggah file "${file.name}" ke kotak Section ${sectionNum}. Harap sesuaikan file dengan kotaknya!`);
+    alert(`[DITOLAK] File "${file.name}" tidak sesuai untuk Section ${sectionNum}.`);
     resetFileInput(sectionNum);
     return;
   }
 
-  // Validasi Rentang Jam
   const rangeSesi = SESI_RANGES[sesiTerpilih];
   if (fileInfo.hour !== null && rangeSesi) {
     if (fileInfo.hour < rangeSesi.startHour || fileInfo.hour >= rangeSesi.endHour) {
-      alert(`[DITOLAK] Rentang jam tidak sesuai! File ${file.name} menunjukkan jam ${fileInfo.hour}:xx, sedangkan ${sesiTerpilih} wajib di antara jam ${rangeSesi.startHour}:00 - ${rangeSesi.endHour}:00.`);
+      alert(`[DITOLAK] Jam file (${fileInfo.hour}:xx) di luar rentang ${sesiTerpilih}.`);
       resetFileInput(sectionNum);
       return;
     }
   }
 
-  // Validasi Kesamaan Tanggal
   let referenceDate = null;
   if (parsedSec1Data) referenceDate = parsedSec1Data.info.dateStr;
   else if (parsedSec2Data) referenceDate = parsedSec2Data.info.dateStr;
   else if (parsedSec3Data) referenceDate = parsedSec3Data.info.dateStr;
 
   if (referenceDate && fileInfo.dateStr && fileInfo.dateStr !== referenceDate) {
-    alert(`[DITOLAK] Tanggal file tidak konsisten! File ini bertanggal ${fileInfo.dateStr}, sedangkan section sebelumnya bertanggal ${referenceDate}.`);
+    alert(`[DITOLAK] Tanggal antar file section tidak konsisten.`);
     resetFileInput(sectionNum);
     return;
   }
@@ -114,7 +110,7 @@ async function handleFileSection(event, sectionNum) {
       }
 
     } catch (err) {
-      alert(`Gagal memproses data dalam Excel Section ${sectionNum}: ` + err.message);
+      alert(`Gagal memproses file Excel: ` + err.message);
       resetFileInput(sectionNum);
     }
   };
@@ -130,7 +126,8 @@ function parseExcelNilai(rows) {
     const idMejaVal = String(row[0] || '').trim().toUpperCase(); 
     const scoreValRaw = String(row[3] || '').trim(); 
 
-    if (idMejaVal.startsWith('STUDENT')) {
+    // Filter ketat: Hanya ambil baris yang benar-benar berformat STUDENTxx (abaikan header/footer/sampah)
+    if (idMejaVal.startsWith('STUDENT') && idMejaVal !== 'STUDENT_NAME' && idMejaVal !== 'STUDENT NAME') {
       let skorAngka = 0;
       if (scoreValRaw.includes('/')) {
         skorAngka = Number(scoreValRaw.split('/')[0].trim());
@@ -156,7 +153,7 @@ async function jalankanAutoMappingEngine(lab, sesi) {
     .eq('tanggal', tanggalUjianDb);
 
   if (errJadwal || !jadwalList || jadwalList.length === 0) {
-    alert(`[VALIDASI GAGAL] Tidak ditemukan jadwal Modul 1 untuk ${lab}, ${sesi} pada tanggal ${tanggalUjianDb}! Pastikan data penjadwalan sudah dikunci.`);
+    alert(`[VALIDASI GAGAL] Tidak ditemukan jadwal Modul 1 untuk ${lab}, ${sesi} pada tanggal ${tanggalUjianDb}.`);
     return;
   }
 
@@ -170,78 +167,83 @@ async function jalankanAutoMappingEngine(lab, sesi) {
     .eq('tanggal_ujian', activeJadwal.tanggal);
 
   if (existingLog && existingLog.length > 0) {
-    alert(`[DITOLAK - DOUBLE MAPPING] Hasil test untuk kelas ini pada ${lab}, ${sesi} sudah pernah disinkronkan dan disimpan di database!`);
+    alert(`[DITOLAK] Hasil test untuk sesi ini sudah pernah disimpan secara permanen.`);
     return;
   }
 
+  // Ambil peserta resmi dari database penjadwalan
   const { data: pesertaUjian } = await window.supabaseClient
     .from('peserta_ujian')
     .select('*')
-    .eq('jadwal_id', activeJadwal.id);
+    .eq('jadwal_id', activeJadwal.id)
+    .order('id_meja', { ascending: true });
 
   const dbPesertaList = pesertaUjian || [];
   
-  // Ambil semua ID Meja dari Excel Section 1
-  const excelIdMejas = parsedSec1Data.rows.map(r => r.id_meja);
-  
-  // Gabungkan ID Meja dari Jadwal DB dan Excel (Untuk menangkap anak susulan)
-  const allIdMeja = new Set([
-    ...dbPesertaList.map(p => p.id_meja),
-    ...excelIdMejas
-  ]);
+  // Ambil ID Meja unik yang ada di Excel Section 1
+  const excelRows = parsedSec1Data.rows;
 
   let idx = 1;
   globalSyncedResults = [];
 
-  for (const id_meja of Array.from(allIdMeja).sort()) {
-    const p = dbPesertaList.find(x => x.id_meja === id_meja);
-    const s1Obj = parsedSec1Data.rows.find(x => x.id_meja === id_meja) || { skor: 0 };
-    const s2Obj = parsedSec2Data.rows.find(x => x.id_meja === id_meja) || { skor: 0 };
-    const s3Obj = parsedSec3Data.rows.find(x => x.id_meja === id_meja) || { skor: 0 };
+  // 1. Mapping berdasarkan data peserta resmi di database jadwal terlebih dahulu
+  dbPesertaList.forEach(p => {
+    const s1Obj = excelRows.find(x => x.id_meja === p.id_meja) || { skor: 0 };
+    const s2Obj = parsedSec2Data.rows.find(x => x.id_meja === p.id_meja) || { skor: 0 };
+    const s3Obj = parsedSec3Data.rows.find(x => x.id_meja === p.id_meja) || { skor: 0 };
 
     const rawTotal = s1Obj.skor + s2Obj.skor + s3Obj.skor;
     const toeflConverted = Math.round((rawTotal * 10) / 3); 
 
-    if (p) {
-      // Mahasiswa Terjadwal Sesuai Database
-      globalSyncedResults.push({
-        no: idx++,
-        nim: p.nim,
-        nama: p.nama,
-        id_meja: id_meja,
-        sec_1: s1Obj.skor,
-        sec_2: s2Obj.skor,
-        sec_3: s3Obj.skor,
-        total_skor: toeflConverted,
-        status: 'MAPPED',
-        tanggal_ujian: activeJadwal.tanggal,
-        nama_kelas: p.nama_kelas
-      });
-    } else {
-      // Mahasiswa Susulan / Pindahan Lab (Ada di Excel, tidak ada di DB Sesi ini)
-      globalSyncedResults.push({
-        no: idx++,
-        nim: '',
-        nama: '',
-        id_meja: id_meja,
-        sec_1: s1Obj.skor,
-        sec_2: s2Obj.skor,
-        sec_3: s3Obj.skor,
-        total_skor: toeflConverted,
-        status: 'UNMAPPED',
-        tanggal_ujian: activeJadwal.tanggal,
-        nama_kelas: 'Susulan / Pindahan'
-      });
-    }
-  }
+    globalSyncedResults.push({
+      no: idx++,
+      nim: p.nim,
+      nama: p.nama,
+      id_meja: p.id_meja,
+      sec_1: s1Obj.skor,
+      sec_2: s2Obj.skor,
+      sec_3: s3Obj.skor,
+      total_skor: toeflConverted,
+      status: 'MAPPED',
+      tanggal_ujian: activeJadwal.tanggal,
+      nama_kelas: p.nama_kelas
+    });
+  });
+
+  // 2. Cek apakah ada ID Meja di Excel yang LEBIH/TIDAK ADA di database (Mahasiswa Susulan / Pindahan Lab)
+  const dbIdMejas = new Set(dbPesertaList.map(p => p.id_meja));
+  const susulanRows = excelRows.filter(x => !dbIdMejas.has(x.id_meja));
+
+  susulanRows.forEach(sus => {
+    const s1Obj = sus;
+    const s2Obj = parsedSec2Data.rows.find(x => x.id_meja === sus.id_meja) || { skor: 0 };
+    const s3Obj = parsedSec3Data.rows.find(x => x.id_meja === sus.id_meja) || { skor: 0 };
+
+    const rawTotal = s1Obj.skor + s2Obj.skor + s3Obj.skor;
+    const toeflConverted = Math.round((rawTotal * 10) / 3);
+
+    // Masuk sebagai baris Unmapped (Butuh Bind NIM)
+    globalSyncedResults.push({
+      no: idx++,
+      nim: '',
+      nama: '',
+      id_meja: sus.id_meja,
+      sec_1: s1Obj.skor,
+      sec_2: s2Obj.skor,
+      sec_3: s3Obj.skor,
+      total_skor: toeflConverted,
+      status: 'UNMAPPED',
+      tanggal_ujian: activeJadwal.tanggal,
+      nama_kelas: 'Susulan / Pindahan'
+    });
+  });
 
   renderTabelPratinjau();
   
-  const totalSusulan = globalSyncedResults.filter(x => x.status === 'UNMAPPED').length;
-  document.getElementById('infoStatusSync').innerHTML = `<span class="text-polnes-main font-bold">Sinkronisasi Berhasil!</span> ${globalSyncedResults.length} baris di-mapping. <b class="text-rose-500">${totalSusulan > 0 ? totalSusulan + ' Siswa Susulan terdeteksi.' : ''}</b>`;
+  const totalSusulan = susulanRows.length;
+  document.getElementById('infoStatusSync').innerHTML = `<span class="text-polnes-main font-bold">Sinkronisasi Berhasil!</span> ${dbPesertaList.length} peserta sesuai jadwal. <b class="text-rose-500">${totalSusulan > 0 ? totalSusulan + ' Siswa Susulan/Pindahan terdeteksi.' : 'Semua data pas dan valid.'}</b>`;
 }
 
-// LOGIKA BIND UNTUK MAHASISWA SUSULAN / PINDAHAN
 async function prosesBindNim(idMeja) {
   const rowTarget = globalSyncedResults.find(r => r.id_meja === idMeja);
   if (!rowTarget) return;
@@ -250,7 +252,7 @@ async function prosesBindNim(idMeja) {
   const inputNIM = inputEl.value.trim();
 
   if (!inputNIM) {
-    alert("Harap ketik NIM mahasiswa terlebih dahulu di kolom!");
+    alert("Harap ketik NIM mahasiswa terlebih dahulu!");
     inputEl.focus();
     return;
   }
@@ -258,14 +260,12 @@ async function prosesBindNim(idMeja) {
   inputEl.disabled = true;
 
   try {
-    // 1. Cari NIM di seluruh jadwal (peserta_ujian) mungkin dia nyasar dari lab sebelah
     let { data: dbMhs } = await window.supabaseClient
       .from('peserta_ujian')
       .select('nim, nama, nama_kelas')
       .eq('nim', inputNIM)
       .limit(1);
 
-    // 2. Jika tidak ada di jadwal, cari di antrean
     if (!dbMhs || dbMhs.length === 0) {
       const { data: dbAntrean } = await window.supabaseClient
         .from('antrean_mahasiswa')
@@ -276,24 +276,21 @@ async function prosesBindNim(idMeja) {
     }
 
     if (dbMhs && dbMhs.length > 0) {
-      // Data Ditemukan di Database!
       rowTarget.nim = dbMhs[0].nim;
       rowTarget.nama = dbMhs[0].nama;
       rowTarget.nama_kelas = dbMhs[0].nama_kelas;
       rowTarget.status = 'MAPPED';
-      alert(`Berhasil Bind! Data mahasiswa a.n ${rowTarget.nama} ditemukan di sistem.`);
+      alert(`Berhasil Bind! Mahasiswa a.n ${rowTarget.nama}`);
     } else {
-      // Data Tidak Ditemukan, minta input manual
-      const inputManualNama = prompt(`NIM ${inputNIM} tidak ditemukan di sistem penjadwalan. Silakan ketik Nama Lengkap Mahasiswa secara manual untuk di-bind:`);
-      
+      const inputManualNama = prompt(`NIM ${inputNIM} tidak ditemukan di database. Ketik Nama Lengkap Mahasiswa secara manual:`);
       if (inputManualNama && inputManualNama.trim() !== '') {
         rowTarget.nim = inputNIM;
         rowTarget.nama = inputManualNama.toUpperCase();
         rowTarget.nama_kelas = 'Susulan Manual';
         rowTarget.status = 'MAPPED';
-        alert("Berhasil Bind dengan input nama manual!");
+        alert("Berhasil Bind dengan nama manual!");
       } else {
-        alert("Bind dibatalkan. Nama mahasiswa wajib diisi jika data tidak ada di sistem.");
+        alert("Bind dibatalkan.");
         inputEl.disabled = false;
         return;
       }
@@ -302,7 +299,7 @@ async function prosesBindNim(idMeja) {
     renderTabelPratinjau();
 
   } catch (err) {
-    alert("Gagal melakukan pencarian di database: " + err.message);
+    alert("Gagal melakukan bind: " + err.message);
     inputEl.disabled = false;
   }
 }
@@ -312,8 +309,6 @@ function renderTabelPratinjau() {
   if (!tbody) return;
 
   tbody.innerHTML = globalSyncedResults.map((item) => {
-    
-    // Tampilan Berbeda jika MAPPED vs UNMAPPED
     let nimHtml = '';
     let namaHtml = '';
     let actionHtml = '';
@@ -330,7 +325,7 @@ function renderTabelPratinjau() {
         <td class="px-4 py-3 text-xs">
           <input type="text" id="input_nim_${item.id_meja}" placeholder="Ketik NIM..." class="px-2 py-1.5 border border-rose-300 bg-rose-50 rounded-lg text-xs w-28 focus:outline-none focus:border-rose-500 font-bold text-rose-700 placeholder-rose-300">
         </td>`;
-      namaHtml = `<td class="px-4 py-3 text-xs font-semibold text-rose-500 italic">? (Menunggu Bind)</td>`;
+      namaHtml = `<td class="px-4 py-3 text-xs font-semibold text-rose-500 italic">? (Siswa Susulan)</td>`;
       actionHtml = `
         <button onclick="prosesBindNim('${item.id_meja}')" class="bg-rose-500 hover:bg-rose-600 text-white px-2.5 py-1.5 rounded-md text-[10px] uppercase font-bold shadow-sm flex items-center justify-center w-max gap-1 transition-all">
           <i class="ri-lock-unlock-line"></i> Bind NIM
@@ -355,21 +350,20 @@ function renderTabelPratinjau() {
 
 async function simpanPermanenKeDatabase() {
   if (!globalSyncedResults || globalSyncedResults.length === 0) {
-    alert("Belum ada data nilai yang tersinkronisasi untuk disimpan.");
+    alert("Belum ada data nilai yang tersinkronisasi.");
     return;
   }
 
-  // Cek apakah masih ada yang Unmapped
   const unmappedCount = globalSyncedResults.filter(x => x.status === 'UNMAPPED').length;
   if (unmappedCount > 0) {
-    alert(`[TIDAK BISA DISIMPAN] Masih ada ${unmappedCount} mahasiswa yang belum di-Bind NIM-nya. Silakan isi NIM dan klik Bind terlebih dahulu.`);
+    alert(`[GAGAL] Masih ada ${unmappedCount} siswa susulan yang belum di-Bind NIM-nya. Selesaikan binding terlebih dahulu.`);
     return;
   }
 
   const lab = document.getElementById('selectLabToefl').value;
   const sesi = document.getElementById('selectSesiToefl').value;
   
-  if (!confirm(`Yakin menyimpan hasil test untuk ${globalSyncedResults.length} mahasiswa ini ke database?`)) return;
+  if (!confirm(`Yakin ingin menyimpan data hasil test ini secara permanen ke database?`)) return;
 
   try {
     const { data: logData, error: logErr } = await window.supabaseClient
@@ -405,7 +399,7 @@ async function simpanPermanenKeDatabase() {
 
     if (detailErr) throw detailErr;
 
-    alert("Berhasil! Nilai TOEFL berhasil disimpan secara permanen ke database Supabase.");
+    alert("Berhasil! Data nilai TOEFL tersimpan permanen ke database.");
     window.location.reload();
 
   } catch (err) {
