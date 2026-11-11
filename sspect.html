@@ -32,29 +32,29 @@
 
   <div class="flex h-screen overflow-hidden">
     
-    <!-- SIDEBAR NAVIGATION (Disesuaikan dengan struktur template utama) -->
-    <aside class="w-64 bg-white border-r border-slate-200 hidden md:flex flex-col justify-between z-10">
+    <!-- SIDEBAR NAVIGATION (Disamakan persis dengan layout halaman lain) -->
+    <aside class="w-64 bg-white border-r border-slate-200 hidden md:flex flex-col justify-between shrink-0 z-10">
       <div>
         <div class="p-6 flex items-center gap-3 border-b border-slate-100">
           <img src="./img/polnes.png" alt="Logo Polnes" class="w-8 h-8 object-contain">
           <span class="font-extrabold text-slate-900 tracking-wide text-sm">UPA BAHASA</span>
         </div>
         <div class="p-4 space-y-1 text-xs font-semibold text-slate-600">
-          <a href="dashboard.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 transition-all">
+          <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 transition-all">
             <i class="ri-dashboard-line text-base"></i> Dashboard
           </a>
-          <a href="jadwal-test.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 transition-all">
+          <a href="jadwal-test.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 transition-all">
             <i class="ri-calendar-schedule-line text-base"></i> Penjadwalan
           </a>
-          <div class="pt-2 pb-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3">Hasil Test</div>
-          <a href="toefl.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 transition-all">
+          <div class="pt-4 pb-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider px-4">Hasil Test</div>
+          <a href="toefl.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 transition-all">
             <i class="ri-file-text-line text-base"></i> TOEFL
           </a>
-          <a href="sspect.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-polnes-light text-polnes-main font-bold transition-all">
+          <a href="sspect.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-polnes-light text-polnes-main font-bold transition-all shadow-sm">
             <i class="ri-file-shield-2-line text-base"></i> SSPECT
           </a>
-          <div class="pt-2 pb-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3">Laporan</div>
-          <a href="rekapan.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 transition-all">
+          <div class="pt-4 pb-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider px-4">Laporan</div>
+          <a href="rekapan.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 transition-all">
             <i class="ri-folder-chart-line text-base"></i> Rekapan
           </a>
         </div>
@@ -170,7 +170,7 @@
 
   <!-- Supabase Client CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Inisialisasi Klien Supabase Global (Pastikan file config supabase kamu terhubung) -->
+  <!-- Inisialisasi Klien Supabase Global -->
   <script src="./js/supabase-config.js"></script>
   <!-- Script Logika Modul SSPECT -->
   <script src="./js/modul-hasil-sspect.js"></script>
