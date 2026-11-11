@@ -1,13 +1,12 @@
 /**
  * MODUL HASIL TEST SSPECT - UPA BAHASA POLNES (FULL VERSION UTUH)
- * Menangani 1 file Excel SSPECT, validasi jam sesi SSPECT, auto-mapping peserta,
- * bind NIM siswa susulan, simpan permanen ke tabel HasilTes, dan auto-delete jadwal log.
+ * Menangani 1 file Excel SSPECT, validasi jam, tabel pratinjau apa adanya,
+ * bind NIM siswa susulan, simpan ke tabel HasilTes, dan auto-delete jadwal log.
  */
 
 let parsedSspectData = null;
 let globalSyncedSspectResults = [];
 
-// Rentang jam khusus SSPECT berdasarkan pilihan UI
 const SSPECT_SESI_RANGES = {
   "SESI 1 (08.00 - 10.30 WITA)": { startHour: 8, startMin: 0, endHour: 10, endMin: 30 },
   "SESI 2 (10.30 - 13.00 WITA)": { startHour: 10, startMin: 30, endHour: 13, endMin: 0 },
@@ -33,11 +32,10 @@ function resetSspectInput() {
 }
 
 function parseSspectFileInfo(filename) {
-  // Contoh nama file: TOIEC 13 K 2026-28-10 10-29-23.xlsx
   const dateMatch = filename.match(/(\d{4}-\d{2}-\d{2})/);
   const timeMatch = filename.match(/(\d{2}-\d{2}-\d{2})(?=\.\w+$)/);
 
-  let dateStr = dateMatch ? dateMatch[0] : null; // Format YYYY-DD-MM atau YYYY-MM-DD
+  let dateStr = dateMatch ? dateMatch[0] : null;
   let timeStr = timeMatch ? timeMatch[0] : null; 
   
   let hour = null;
@@ -51,8 +49,7 @@ function parseSspectFileInfo(filename) {
   let dbDate = null;
   if (dateStr) {
     const parts = dateStr.split('-');
-    // Menyesuaikan jika format dari nama file adalah YYYY-DD-MM atau YYYY-MM-DD
-    dbDate = `${parts[0]}-${parts[2]}-${parts[1]}`; 
+    dbDate = `${parts[0]}-${parts[2]}-${parts[1]}`;
   }
 
   return { dateStr, dbDate, timeStr, hour, minute };
@@ -69,7 +66,6 @@ async function handleFileSspectUpload(event) {
   
   const fileInfo = parseSspectFileInfo(file.name);
 
-  // Validasi Rentang Jam Sesi SSPECT
   const rangeSesi = SSPECT_SESI_RANGES[sesiTerpilih];
   if (fileInfo.hour !== null && rangeSesi) {
     const fileTotalMinutes = fileInfo.hour * 60 + fileInfo.minute;
@@ -112,13 +108,12 @@ async function handleFileSspectUpload(event) {
 
 function parseExcelSspectNilai(rows) {
   const results = [];
-  // Membaca baris data nilai SSPECT (mulai baris ke-5 / indeks 4)
   for (let r = 4; r < rows.length; r++) {
     const row = rows[r];
     if (!row) continue;
 
-    const idMejaVal = String(row[0] || '').trim().toUpperCase(); // Kolom A: ID Meja (STUDENT01, dll)
-    const scoreValRaw = String(row[3] || '').trim(); // Kolom D: Skor (contoh: 123 / 200)
+    const idMejaVal = String(row[0] || '').trim().toUpperCase(); 
+    const scoreValRaw = String(row[3] || '').trim(); 
 
     if (idMejaVal.startsWith('STUDENT')) {
       let skorAngka = 0;
@@ -184,7 +179,7 @@ async function jalankanSspectAutoMappingEngine(lab, sesi) {
       nama: p.nama,
       id_meja: p.id_meja,
       jenisTes: 'SSPECT',
-      sec1Listening: matchedRow.skor, // Menyimpan total skor SSPECT ke kolom sec1Listening atau penampung nilai utama
+      sec1Listening: matchedRow.skor, // Skor SSPECT disimpan apa adanya
       sec2Structure: 0,
       sec3Reading: 0,
       totalSkor: matchedRow.skor,
@@ -285,6 +280,9 @@ async function prosesBindNimSspect(idMeja) {
 }
 
 function renderTabelPratinjauSspect() {
+  const container = document.getElementById('previewContainerSspect') || document.getElementById('pratinjauContainer');
+  if (container) container.classList.remove('hidden');
+
   const tbody = document.getElementById('tabelPratinjauBody') || document.getElementById('tabelPratinjauSspectBody');
   if (!tbody) return;
 
@@ -318,7 +316,7 @@ function renderTabelPratinjauSspect() {
         ${nimHtml}
         ${namaHtml}
         <td class="px-4 py-3 text-xs font-mono font-bold text-emerald-600">${item.id_meja}</td>
-        <td class="px-4 py-3 text-sm text-center font-extrabold text-polnes-dark bg-emerald-50/50" colspan="3">${item.totalSkor}</td>
+        <td class="px-4 py-3 text-sm text-center font-extrabold text-polnes-dark bg-emerald-50/50">${item.totalSkor}</td>
         <td class="px-4 py-3 text-xs">${actionHtml}</td>
       </tr>
     `;
@@ -342,7 +340,6 @@ async function simpanPermanenSspectKeDatabase() {
   try {
     const activeIdJadwal = globalSyncedSspectResults[0].idJadwal;
 
-    // 1. Simpan payload ke tabel "HasilTes"
     const payload = globalSyncedSspectResults.map(item => ({
       idJadwal: item.idJadwal,
       nim: item.nim,
@@ -359,13 +356,11 @@ async function simpanPermanenSspectKeDatabase() {
 
     if (insertErr) throw insertErr;
 
-    // 2. Hapus data peserta ujian terkait jadwal ini agar bersih
     await window.supabaseClient
       .from('peserta_ujian')
       .delete()
       .eq('jadwal_id', activeIdJadwal);
 
-    // 3. Hapus data histori jadwal log agar bersih otomatis dari daftar sesi
     const { error: deleteJadwalErr } = await window.supabaseClient
       .from('jadwal_log')
       .delete()
