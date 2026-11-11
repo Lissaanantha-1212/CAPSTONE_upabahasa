@@ -1,6 +1,6 @@
 /**
  * MODUL PENJADWALAN - UPA BAHASA POLNES
- * Deep-Scan Excel Parser + Supabase Sync + PDF Preview Modal (Dengan Logo POLNES & 1 Halaman Padat)
+ * Deep-Scan Excel Parser + Supabase Sync + Filter Kelas di Antrean + PDF Preview Modal 1 Halaman
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -121,7 +121,7 @@ async function bacaDanUploadExcelOtomatis(file) {
         const { data: existingClass, error: errCek } = await window.supabaseClient
           .from('jadwal_log')
           .select('nama_kelas')
-          .eq('nama_kelas', namaKelas);
+          .ilike('nama_kelas', `%${namaKelas}%`);
 
         if (errCek) throw errCek;
 
@@ -183,10 +183,14 @@ function resetFileInputUI() {
   }
 }
 
+let globalAntreanData = [];
+let selectedFilterKelas = 'ALL';
+
 async function renderTabelAntreanDariSupabase() {
   const tbody = document.getElementById('tabelAntreanMhsBody');
   const statusText = document.getElementById('antreanStatusText');
   const masterCheckbox = document.getElementById('selectAllCheckbox');
+  const filterContainer = document.getElementById('filterKelasContainer');
   if (!tbody) return;
 
   const { data: antreanData, error } = await window.supabaseClient
@@ -194,19 +198,40 @@ async function renderTabelAntreanDariSupabase() {
     .select('*')
     .order('created_at', { ascending: true });
 
-  if (error || !antreanData || antreanData.length === 0) {
+  globalAntreanData = antreanData || [];
+
+  if (error || globalAntreanData.length === 0) {
     if (statusText) statusText.innerText = `0 Kelas Menunggu Plotting dalam antrean.`;
     tbody.innerHTML = `<tr><td colspan="6" class="px-4 py-6 text-center text-slate-400 text-xs italic">Belum ada kelas di dalam antrean jadwal.</td></tr>`;
     if (masterCheckbox) masterCheckbox.checked = false;
+    if (filterContainer) filterContainer.innerHTML = '';
     return;
   }
 
-  const uniqueClasses = [...new Set(antreanData.map(m => m.nama_kelas))];
-  if (statusText) statusText.innerText = `${uniqueClasses.length} Kelas Menunggu Plotting dalam antrean (${antreanData.length} Mahasiswa).`;
+  // Ambil daftar kelas unik
+  const uniqueClasses = [...new Set(globalAntreanData.map(m => m.nama_kelas))];
+  if (statusText) statusText.innerText = `${uniqueClasses.length} Kelas Menunggu Plotting dalam antrean (${globalAntreanData.length} Mahasiswa total).`;
+
+  // Render Tombol Filter Kelas
+  if (filterContainer) {
+    let filterHtml = `<button onclick="setFilterKelas('ALL')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${selectedFilterKelas === 'ALL' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">Semua Kelas (${globalAntreanData.length})</button>`;
+    
+    uniqueClasses.forEach(cls => {
+      const count = globalAntreanData.filter(m => m.nama_kelas === cls).length;
+      const isActive = selectedFilterKelas === cls;
+      filterHtml += `<button onclick="setFilterKelas('${cls}')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${isActive ? 'bg-emerald-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${cls} (${count})</button>`;
+    });
+    filterContainer.innerHTML = filterHtml;
+  }
+
+  // Filter data sesuai pilihan aktif
+  const filteredData = selectedFilterKelas === 'ALL' 
+    ? globalAntreanData 
+    : globalAntreanData.filter(m => m.nama_kelas === selectedFilterKelas);
 
   if (masterCheckbox) masterCheckbox.checked = true;
 
-  tbody.innerHTML = antreanData.map((mhs, idx) => {
+  tbody.innerHTML = filteredData.map((mhs, idx) => {
     const idMeja = `STUDENT${String(idx + 1).padStart(2, '0')}`;
     return `
       <tr class="hover:bg-slate-50 transition-colors">
@@ -214,11 +239,16 @@ async function renderTabelAntreanDariSupabase() {
         <td class="px-4 py-3 text-xs font-semibold">${idx + 1}</td>
         <td class="px-4 py-3 text-xs font-bold text-slate-800">${mhs.nim}</td>
         <td class="px-4 py-3 text-xs font-medium">${mhs.nama}</td>
-        <td class="px-4 py-3 text-xs text-slate-500">${mhs.nama_kelas}</td>
-        <td class="px-4 py-3 text-xs font-mono font-bold text-emerald-600">${idMeja}</td>
+        <td class="px-4 py-3 text-xs font-semibold text-emerald-700">${mhs.nama_kelas}</td>
+        <td class="px-4 py-3 text-xs font-mono font-bold text-slate-600">${idMeja}</td>
       </tr>
     `;
   }).join('');
+}
+
+function setFilterKelas(namaKelas) {
+  selectedFilterKelas = namaKelas;
+  renderTabelAntreanDariSupabase();
 }
 
 function toggleSelectAllMhs(master) {
@@ -315,6 +345,7 @@ async function kunciSesiUjianKeSupabase() {
     const selectedNIMs = mhsToSchedule.map(m => m.nim);
     await window.supabaseClient.from('antrean_mahasiswa').delete().in('nim', selectedNIMs);
 
+    selectedFilterKelas = 'ALL'; // Reset filter setelah sukses kunci
     renderTabelAntreanDariSupabase();
     loadHistoriJadwalDariSupabase();
     alert(`Sesi ${jenisTes} di ${lab} (${jumlahMhsPlot} Mahasiswa) Berhasil Dikunci ke Database!`);
@@ -357,7 +388,6 @@ async function loadHistoriJadwalDariSupabase() {
   `).join('');
 }
 
-// Helper untuk mengubah gambar dari URL/path lokal menjadi Base64
 function getBase64ImageFromURL(url) {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -375,7 +405,6 @@ function getBase64ImageFromURL(url) {
   });
 }
 
-// FUNGSI MEMBUAT PDF (Dengan Logo POLNES, Padat & Pasti 1 Halaman)
 async function generatePDFDoc(jenisTes, namaKelas, tanggal, sesi, ruangLab, peserta) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({
@@ -384,7 +413,6 @@ async function generatePDFDoc(jenisTes, namaKelas, tanggal, sesi, ruangLab, pese
     format: 'a4'
   });
 
-  // Coba masukkan Logo POLNES dari folder img/polnes.png
   try {
     const logoBase64 = await getBase64ImageFromURL('./img/polnes.png');
     doc.addImage(logoBase64, 'PNG', 14, 7, 18, 18);
@@ -392,7 +420,6 @@ async function generatePDFDoc(jenisTes, namaKelas, tanggal, sesi, ruangLab, pese
     console.log("Logo polnes.png tidak dapat dimuat:", e);
   }
 
-  // KOP SURAT (Rata Tengah & Rapat)
   doc.setFontSize(9);
   doc.setFont("helvetica", "bold");
   doc.text("KEMENTERIAN PENDIDIKAN, KEBUDAYAAN, RISET, DAN TEKNOLOGI", 105, 8, null, null, "center");
@@ -407,18 +434,15 @@ async function generatePDFDoc(jenisTes, namaKelas, tanggal, sesi, ruangLab, pese
   doc.text("Telepon : PABX(0541)260588 - 260553 - 262018 FAX (0541) 260355", 105, 25, null, null, "center");
   doc.text("Website: www.polnes.ac.id Email : polnes@polnes.ac.id", 105, 28.5, null, null, "center");
   
-  // Garis Bawah Kop Ganda
   doc.setLineWidth(0.6);
   doc.line(14, 31, 196, 31);
   doc.setLineWidth(0.15);
   doc.line(14, 32, 196, 32);
 
-  // JUDUL DOKUMEN (RATA TENGAH)
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
   doc.text(`JADWAL & BERITA ACARA UJIAN ${jenisTes}`, 105, 37.5, null, null, "center");
 
-  // INFORMASI DETAIL (2 Kolom)
   doc.setFontSize(8.5);
   doc.setFont("helvetica", "normal");
   doc.text(`Nama Kelas / Prodi : ${namaKelas}`, 14, 43);
@@ -427,7 +451,6 @@ async function generatePDFDoc(jenisTes, namaKelas, tanggal, sesi, ruangLab, pese
   doc.text(`Sesi & Waktu       : ${sesi}`, 115, 43);
   doc.text(`Ruang Lab          : ${ruangLab}`, 115, 47.5);
 
-  // DATA TABEL PESERTA
   const tableRows = (peserta || []).map((p, index) => [
     index + 1,
     p.nim,
@@ -437,7 +460,6 @@ async function generatePDFDoc(jenisTes, namaKelas, tanggal, sesi, ruangLab, pese
     "........................"
   ]);
 
-  // AUTO TABLE (Diatur agar muat mutlak dalam 1 halaman)
   doc.autoTable({
     startY: 51,
     head: [['No', 'NIM', 'Nama Mahasiswa', 'Kelas / Prodi', 'ID Meja', 'Tanda Tangan']],
@@ -452,8 +474,8 @@ async function generatePDFDoc(jenisTes, namaKelas, tanggal, sesi, ruangLab, pese
       cellPadding: 1.5
     },
     styles: { 
-      fontSize: 7.5,          // Ukuran font kompak
-      cellPadding: 1.2,       // Padding rapat
+      fontSize: 7.5,
+      cellPadding: 1.2,
       valign: 'middle'
     },
     columnStyles: {
@@ -470,7 +492,6 @@ async function generatePDFDoc(jenisTes, namaKelas, tanggal, sesi, ruangLab, pese
   return doc;
 }
 
-// BUKA MODAL PREVIEW PDF
 async function bukaPreviewPDF(jadwalId, jenisTes, namaKelas, tanggal, sesi, ruangLab) {
   const { data: peserta } = await window.supabaseClient
     .from('peserta_ujian')
