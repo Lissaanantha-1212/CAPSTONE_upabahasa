@@ -1,6 +1,6 @@
 /**
- * MODUL HASIL TEST SSPECT - UPA BAHASA POLNES (FULL VERSION UTUH)
- * Menangani 1 file Excel SSPECT, validasi jam, tabel pratinjau apa adanya,
+ * MODUL HASIL TEST SSPECT - UPA BAHASA POLNES (FULL VERSION UTUH MIRIP TOEFL)
+ * Menangani 1 file Excel SSPECT, validasi jam, tabel pratinjau lengkap,
  * bind NIM siswa susulan, simpan ke tabel HasilTes, dan auto-delete jadwal log.
  */
 
@@ -179,7 +179,7 @@ async function jalankanSspectAutoMappingEngine(lab, sesi) {
       nama: p.nama,
       id_meja: p.id_meja,
       jenisTes: 'SSPECT',
-      sec1Listening: matchedRow.skor, // Skor SSPECT disimpan apa adanya
+      sec1Listening: matchedRow.skor,
       sec2Structure: 0,
       sec3Reading: 0,
       totalSkor: matchedRow.skor,
@@ -211,11 +211,6 @@ async function jalankanSspectAutoMappingEngine(lab, sesi) {
   });
 
   renderTabelPratinjauSspect();
-  
-  const statusSync = document.getElementById('infoStatusSync') || document.getElementById('antreanStatusText');
-  if (statusSync) {
-    statusSync.innerHTML = `<span class="text-polnes-main font-bold">Sinkronisasi SSPECT Berhasil!</span> ${dbPesertaList.length} peserta terpetakan. <b class="text-rose-500">${susulanRows.length > 0 ? susulanRows.length + ' Siswa Susulan terdeteksi.' : 'Semua data pas dan valid.'}</b>`;
-  }
 }
 
 async function prosesBindNimSspect(idMeja) {
@@ -280,10 +275,51 @@ async function prosesBindNimSspect(idMeja) {
 }
 
 function renderTabelPratinjauSspect() {
-  const container = document.getElementById('previewContainerSspect') || document.getElementById('pratinjauContainer');
-  if (container) container.classList.remove('hidden');
+  // Pastikan kontainer pratinjau muncul (menghapus class hidden jika ada)
+  let container = document.getElementById('previewContainerSspect') || document.getElementById('pratinjauContainer');
+  if (!container) {
+    // Jika elemen kontainer belum ada di HTML, kita buatkan secara dinamis di bawah form upload
+    const uploadCard = document.querySelector('main') || document.body;
+    const div = document.createElement('div');
+    div.id = 'previewContainerSspect';
+    div.className = 'mt-6 bg-white p-6 rounded-2xl shadow-sm border border-slate-100';
+    div.innerHTML = `
+      <h3 class="text-base font-bold text-slate-800 mb-2">Pratinjau & Sinkronisasi Nilai SSPECT</h3>
+      <p id="infoStatusSync" class="text-xs text-slate-500 mb-4">Sinkronisasi berhasil dicocokkan dengan data jadwal.</p>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50 text-slate-600 text-xs border-b">
+              <th class="px-4 py-3 font-bold">NO</th>
+              <th class="px-4 py-3 font-bold">NIM</th>
+              <th class="px-4 py-3 font-bold">NAMA MAHASISWA</th>
+              <th class="px-4 py-3 font-bold">ID MEJA</th>
+              <th class="px-4 py-3 font-bold text-center">SKOR SSPECT</th>
+              <th class="px-4 py-3 font-bold">AKSI BIND</th>
+            </tr>
+          </thead>
+          <tbody id="tabelPratinjauSspectBody"></tbody>
+        </table>
+      </div>
+      <div class="mt-6 flex justify-end">
+        <button onclick="simpanPermanenSspectKeDatabase()" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-md transition-all flex items-center gap-2">
+          <i class="ri-save-line"></i> Simpan Permanen ke Database
+        </button>
+      </div>
+    `;
+    uploadCard.appendChild(div);
+    container = div;
+  } else {
+    container.classList.remove('hidden');
+  }
 
-  const tbody = document.getElementById('tabelPratinjauBody') || document.getElementById('tabelPratinjauSspectBody');
+  const statusSync = document.getElementById('infoStatusSync');
+  const unmapped = globalSyncedSspectResults.filter(x => x.status === 'UNMAPPED').length;
+  if (statusSync) {
+    statusSync.innerHTML = `<span class="text-polnes-main font-bold">Sinkronisasi Selesai!</span> Total ${globalSyncedSspectResults.length} peserta. <b class="text-rose-500">${unmapped > 0 ? unmapped + ' siswa susulan belum di-Bind.' : 'Semua data pas dan valid.'}</b>`;
+  }
+
+  const tbody = document.getElementById('tabelPratinjauSspectBody') || document.getElementById('tabelPratinjauBody');
   if (!tbody) return;
 
   tbody.innerHTML = globalSyncedSspectResults.map((item) => {
@@ -311,7 +347,7 @@ function renderTabelPratinjauSspect() {
     }
 
     return `
-      <tr class="${item.status === 'UNMAPPED' ? 'bg-rose-50/30' : 'hover:bg-slate-50'} transition-colors">
+      <tr class="${item.status === 'UNMAPPED' ? 'bg-rose-50/30' : 'hover:bg-slate-50'} transition-colors border-b">
         <td class="px-4 py-3 text-xs font-semibold">${item.no}</td>
         ${nimHtml}
         ${namaHtml}
