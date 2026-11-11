@@ -1,6 +1,6 @@
 /**
  * MODUL PENJADWALAN - UPA BAHASA POLNES
- * Smart Deep-Scan Excel Parser (Tanpa Batuan Baris Header Tertentu) + Supabase Sync
+ * Smart Deep-Scan Excel Parser + Supabase Sync + PDF Preview 1 Halaman Rapi
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -58,7 +58,6 @@ async function bacaDanUploadExcelOtomatis(file) {
         const firstSheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[firstSheetName];
         
-        // Konversi sheet menjadi array of arrays (semua baris & kolom dibaca mentah)
         const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
 
         if (!rows || rows.length === 0) {
@@ -69,14 +68,13 @@ async function bacaDanUploadExcelOtomatis(file) {
         let namaColIndex = -1;
         let startRowIndex = 0;
 
-        // STEP 1: Cari posisi kolom NIM dan Nama dengan memindai baris manapun yang memuat kata kunci
         for (let r = 0; r < rows.length; r++) {
           const row = rows[r];
           for (let c = 0; c < row.length; c++) {
             const val = String(row[c]).trim().toLowerCase();
             if (val === 'nim' || val === 'no mhs' || val === 'nomor induk') {
               nimColIndex = c;
-              startRowIndex = r + 1; // Data dimulai setelah baris header ditemukan
+              startRowIndex = r + 1;
             }
             if (val === 'nama' || val === 'nama mahasiswa' || val === 'name') {
               namaColIndex = c;
@@ -85,25 +83,21 @@ async function bacaDanUploadExcelOtomatis(file) {
           if (nimColIndex !== -1 && namaColIndex !== -1) break;
         }
 
-        // Jika header teks tidak ketemu secara eksplisit, gunakan heuristik cerdas (Cari kolom angka panjang sebagai NIM dan teks panjang sebagai Nama)
         let parsedMhs = [];
 
         if (nimColIndex !== -1 && namaColIndex !== -1) {
-          // Jika header ketemu, ambil data dari baris setelah header sampai habis
           for (let r = startRowIndex; r < rows.length; r++) {
             const row = rows[r];
             if (!row) continue;
             let nimVal = String(row[nimColIndex] || '').trim();
             let namaVal = String(row[namaColIndex] || '').trim();
 
-            // Validasi baris valid (NIM berupa angka/KODE dan Nama tidak kosong/bukan header)
             if (nimVal && namaVal && nimVal.toLowerCase() !== 'nim' && nimVal.toLowerCase() !== 'no') {
               parsedMhs.push({ nim: nimVal, nama: namaVal, nama_kelas: namaKelas });
             }
           }
         }
 
-        // FALLBACK: Jika header tidak terdeteksi sama sekali, scan semua baris yang punya format NIM (angka 8-15 digit)
         if (parsedMhs.length === 0) {
           for (let r = 0; r < rows.length; r++) {
             const row = rows[r];
@@ -114,7 +108,6 @@ async function bacaDanUploadExcelOtomatis(file) {
 
             for (let c = 0; c < row.length; c++) {
               const cellStr = String(row[c]).trim();
-              // Deteksi NIM (biasanya angka panjang minimal 8 digit) atau kolom ke-1 / ke-2
               if (/^\d{8,15}$/.test(cellStr)) {
                 foundNim = cellStr;
               } else if (cellStr.length > 3 && isNaN(cellStr) && cellStr.toLowerCase() !== 'nama' && cellStr.toLowerCase() !== 'nim') {
@@ -129,10 +122,9 @@ async function bacaDanUploadExcelOtomatis(file) {
         }
 
         if (parsedMhs.length === 0) {
-          throw new Error("Sistem gagal mendeteksi data mahasiswa di dalam file Excel. Pastikan file berisi kolom NIM dan Nama.");
+          throw new Error("Sistem gagal mendeteksi data mahasiswa di dalam file Excel.");
         }
 
-        // STEP 2: Validasi duplikasi kelas di Supabase
         const { data: existingClass, error: errCek } = await window.supabaseClient
           .from('jadwal_log')
           .select('nama_kelas')
@@ -146,7 +138,6 @@ async function bacaDanUploadExcelOtomatis(file) {
           return;
         }
 
-        // STEP 3: Cek duplikasi NIM mahasiswa agar tidak ganda
         const { data: dbAntrean } = await window.supabaseClient.from('antrean_mahasiswa').select('nim');
         const { data: dbPeserta } = await window.supabaseClient.from('peserta_ujian').select('nim');
 
@@ -366,43 +357,63 @@ async function loadHistoriJadwalDariSupabase() {
       <td class="px-4 py-3 text-xs"><span class="bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full font-bold">Dikunci</span></td>
       <td class="px-4 py-3 text-xs">
         <button onclick="cetakBeritaAcaraPDF('${item.id}', '${item.jenis_tes}', '${item.nama_kelas}', '${item.tanggal}', '${item.sesi}', '${item.ruang_lab}')" class="px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-lg font-bold transition-all flex items-center gap-1 shadow-sm">
-          <i class="ri-file-pdf-line"></i> Cetak / PDF
+          <i class="ri-file-pdf-line"></i> Preview / Cetak PDF
         </button>
       </td>
     </tr>
   `).join('');
 }
 
+// 7. Cetak Berita Acara PDF (Direvisi: Rata Tengah, Kompak 1 Halaman, dan Munculkan Preview)
 async function cetakBeritaAcaraPDF(jadwalId, jenisTes, namaKelas, tanggal, sesi, ruangLab) {
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4'
+  });
 
   const { data: peserta } = await window.supabaseClient
     .from('peserta_ujian')
     .select('*')
     .eq('jadwal_id', jadwalId);
 
-  doc.setFontSize(14);
-  doc.setFont("helvetica", "bold");
-  doc.text("POLITEKNIK NEGERI SAMARINDA", 105, 15, null, null, "center");
-  doc.setFontSize(12);
-  doc.text("UNIT PELAKSANA AKADEMIK (UPA) BAHASA", 105, 22, null, null, "center");
-  doc.setFontSize(9);
-  doc.setFont("helvetica", "normal");
-  doc.text("JL. Cipto Mangunkusumo Kampus Gunung Lipan Samarinda 75131", 105, 27, null, null, "center");
-  doc.line(14, 30, 196, 30);
-
+  // KOP SURAT (DI-CENTERS / DITENGAHKAN)
   doc.setFontSize(11);
   doc.setFont("helvetica", "bold");
-  doc.text(`JADWAL & BERITA ACARA UJIAN ${jenisTes}`, 14, 38);
+  doc.text("KEMENTERIAN PENDIDIKAN, KEBUDAYAAN, RISET, DAN TEKNOLOGI", 105, 12, null, null, "center");
+  
+  doc.setFontSize(13);
+  doc.text("POLITEKNIK NEGERI SAMARINDA", 105, 18, null, null, "center");
+  
+  doc.setFontSize(12);
+  doc.text("UPT. BAHASA", 105, 24, null, null, "center");
+  
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "normal");
+  doc.text("Jalan Dr. Ciptomangunkusumo Kampus Gunung Panjang Samarinda", 105, 29, null, null, "center");
+  doc.text("Telepon : PABX(0541)260588 - 260553 - 262018 FAX (0541) 260355", 105, 33, null, null, "center");
+  doc.text("Website: www.polnes.ac.id Email : polnes@polnes.ac.id", 105, 37, null, null, "center");
+  
+  // Garis Bawah Kop
+  doc.setLineWidth(0.5);
+  doc.line(14, 40, 196, 40);
 
+  // JUDUL DOKUMEN (RATA TENGAH)
+  doc.setFontSize(11);
+  doc.setFont("helvetica", "bold");
+  doc.text(`JADWAL & BERITA ACARA UJIAN ${jenisTes}`, 105, 47, null, null, "center");
+
+  // INFORMASI DETAIL (2 Kolom Rapi)
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
-  doc.text(`Nama Kelas / Prodi : ${namaKelas}`, 14, 44);
-  doc.text(`Tanggal Ujian      : ${tanggal}`, 14, 49);
-  doc.text(`Sesi & Waktu       : ${sesi}`, 120, 44);
-  doc.text(`Ruang Lab          : ${ruangLab}`, 120, 49);
+  doc.text(`Nama Kelas / Prodi : ${namaKelas}`, 14, 54);
+  doc.text(`Tanggal Ujian      : ${tanggal}`, 14, 59);
+  
+  doc.text(`Sesi & Waktu       : ${sesi}`, 115, 54);
+  doc.text(`Ruang Lab          : ${ruangLab}`, 115, 59);
 
+  // DATA TABEL PESERTA
   const tableRows = (peserta || []).map((p, index) => [
     index + 1,
     p.nim,
@@ -412,13 +423,36 @@ async function cetakBeritaAcaraPDF(jadwalId, jenisTes, namaKelas, tanggal, sesi,
     "........................"
   ]);
 
+  // AUTO TABLE (Diatur agar muat 1 halaman penuh & padding kecil)
   doc.autoTable({
-    startY: 54,
+    startY: 63,
     head: [['No', 'NIM', 'Nama Mahasiswa', 'Kelas / Prodi', 'ID Meja', 'Tanda Tangan']],
     body: tableRows,
     theme: 'grid',
-    headStyles: { fillColor: [16, 195, 93] }
+    headStyles: { 
+      fillColor: [16, 195, 93], 
+      textColor: 255, 
+      fontStyle: 'bold',
+      halign: 'center' 
+    },
+    styles: { 
+      fontSize: 8.5,          // Ukuran font dikecilkan sedikit agar pas 1 halaman
+      cellPadding: 2,         // Padding diperkecil agar ringkas
+      valign: 'middle'
+    },
+    columnStyles: {
+      0: { halign: 'center', cellWidth: 10 },
+      1: { halign: 'center', cellWidth: 32 },
+      2: { cellWidth: 65 },
+      3: { halign: 'center', cellWidth: 28 },
+      4: { halign: 'center', cellWidth: 25 },
+      5: { halign: 'center', cellWidth: 22 }
+    },
+    // Pastikan seluruh tabel dipaksa muat dalam 1 halaman
+    pageBreak: 'avoid'
   });
 
-  doc.save(`Jadwal_${jenisTes}_${namaKelas}_${tanggal}.pdf`);
+  // PREVIEW PDF PADA TAB BARU (Sebelum Diunduh)
+  const pdfBlobUrl = doc.output('bloburl');
+  window.open(pdfBlobUrl, '_blank');
 }
