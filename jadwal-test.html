@@ -87,10 +87,21 @@
           </div>
 
           <!-- Menu Layanan Lainnya -->
-          <a href="#" class="flex items-center justify-between px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-polnes-main rounded-lg text-sm font-medium transition-all group">
-            <div class="flex items-center gap-3"><i class="ri-file-upload-line text-lg group-hover:scale-110 transition-transform"></i><span>Hasil Test</span></div>
-            <i class="ri-arrow-right-s-line opacity-50 group-hover:opacity-100"></i>
-          </a>
+          <div class="space-y-1">
+            <button onclick="toggleMenu('subHasilTest', 'arrowHasilTest')" class="w-full flex items-center justify-between px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg text-sm font-medium transition-all">
+              <div class="flex items-center gap-3"><i class="ri-file-upload-line text-lg"></i><span>Hasil Test</span></div>
+              <i id="arrowHasilTest" class="ri-arrow-down-s-line text-slate-400 transition-transform duration-200"></i>
+            </button>
+            <div id="subHasilTest" class="pl-7 space-y-1 hidden">
+              <a href="toefl.html" class="flex items-center gap-2 py-1.5 px-3 text-xs font-semibold text-slate-600 hover:text-polnes-main rounded-lg"><span>•</span> TOEFL</a>
+              <a href="sspect.html" class="flex items-center gap-2 py-1.5 px-3 text-xs font-semibold text-slate-600 hover:text-polnes-main rounded-lg"><span>•</span> SSPECT</a>
+            </div>
+          </div>
+
+          <a href="#" class="flex items-center justify-between px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg text-sm font-medium"><div class="flex items-center gap-3"><i class="ri-calculator-line text-lg"></i><span>Kalkulasi Score</span></div></a>
+          <a href="#" class="flex items-center justify-between px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg text-sm font-medium"><div class="flex items-center gap-3"><i class="ri-folder-chart-line text-lg"></i><span>Rekapan</span></div></a>
+          <a href="#" class="flex items-center justify-between px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-lg text-sm font-medium"><div class="flex items-center gap-3"><i class="ri-information-line text-lg"></i><span>Pusat Informasi</span></div></a>
+        </div>
           <a href="#" class="flex items-center justify-between px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-polnes-main rounded-lg text-sm font-medium transition-all group">
             <div class="flex items-center gap-3"><i class="ri-calculator-line text-lg group-hover:scale-110 transition-transform"></i><span>Kalkulasi Score</span></div>
             <i class="ri-arrow-right-s-line opacity-50 group-hover:opacity-100"></i>
