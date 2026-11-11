@@ -1,6 +1,7 @@
 /**
- * MODUL HASIL TEST TOEFL - UPA BAHASA POLNES
- * Sinkronisasi, Validasi Ketat, Bind Susulan, dan Sinkronisasi Kolom Supabase (Tabel HasilTes)
+ * MODUL HASIL TEST TOEFL - UPA BAHASA POLNES (FULL VERSION UTUH)
+ * Menangani 3 file section, konversi skor TOEFL ITP, auto-mapping peserta, 
+ * bind NIM siswa susulan, simpan permanen ke tabel HasilTes, dan auto-delete jadwal log setelah selesai.
  */
 
 let parsedSec1Data = null;
@@ -214,7 +215,6 @@ async function jalankanAutoMappingEngine(lab, sesi) {
 
   const activeJadwal = jadwalList[0];
 
-  // Cek apakah data di tabel HasilTes sudah ada untuk jadwal ini
   const { data: existingLog } = await window.supabaseClient
     .from('HasilTes')
     .select('id')
@@ -419,10 +419,12 @@ async function simpanPermanenKeDatabase() {
     return;
   }
 
-  if (!confirm(`Yakin ingin menyimpan data hasil test ini secara permanen ke database tabel HasilTes?`)) return;
+  if (!confirm(`Yakin ingin menyimpan data hasil test ini secara permanen ke database tabel HasilTes? Histori jadwal sesi ini juga akan dibersihkan otomatis.`)) return;
 
   try {
-    // Mapping payload agar langsung tersimpan pas ke tabel "HasilTes" di Supabase
+    const activeIdJadwal = globalSyncedResults[0].idJadwal;
+
+    // 1. Simpan payload ke tabel "HasilTes"
     const payload = globalSyncedResults.map(item => ({
       idJadwal: item.idJadwal,
       nim: item.nim,
@@ -439,7 +441,21 @@ async function simpanPermanenKeDatabase() {
 
     if (insertErr) throw insertErr;
 
-    alert("Berhasil! Data nilai TOEFL tersimpan permanen ke tabel HasilTes di database Supabase.");
+    // 2. Hapus data peserta ujian terkait jadwal ini agar bersih
+    await window.supabaseClient
+      .from('peserta_ujian')
+      .delete()
+      .eq('jadwal_id', activeIdJadwal);
+
+    // 3. Hapus data histori jadwal log agar bersih otomatis dari daftar sesi
+    const { error: deleteJadwalErr } = await window.supabaseClient
+      .from('jadwal_log')
+      .delete()
+      .eq('id', activeIdJadwal);
+
+    if (deleteJadwalErr) throw deleteJadwalErr;
+
+    alert("Berhasil! Data nilai tersimpan permanen ke HasilTes dan histori jadwal sesi ini telah dibersihkan otomatis.");
     window.location.reload();
 
   } catch (err) {
