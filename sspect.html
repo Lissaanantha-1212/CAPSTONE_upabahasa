@@ -5,11 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Hasil Test SSPECT - UPA Bahasa POLNES</title>
   
-  <!-- Tailwind CSS & RemixIcon -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
   
-  <!-- SheetJS (XLSX Library) untuk membaca file Excel -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
   <script>
@@ -32,7 +30,6 @@
 
   <div class="flex h-screen overflow-hidden">
     
-    <!-- SIDEBAR NAVIGATION (Identik persis dengan TOEFL) -->
     <aside class="w-64 bg-white border-r border-slate-200 hidden md:flex flex-col justify-between shrink-0 z-10 overflow-y-auto">
       <div>
         <div class="p-6 flex items-center gap-3 border-b border-slate-100">
@@ -46,11 +43,13 @@
           </a>
           
           <div class="pt-2 pb-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3">Layanan Test</div>
-          <a href="jadwal-test.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 transition-all">
-            <i class="ri-calendar-schedule-line text-base"></i> Penjadwalan
-          </a>
           
-          <!-- Menu Hasil Test (Submenu SSPECT Aktif) -->
+          <div class="space-y-1 pt-1">
+            <a href="jadwal-test.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 transition-all">
+              <i class="ri-calendar-schedule-line text-base"></i> Penjadwalan
+            </a>
+          </div>
+
           <div class="space-y-1 pt-1">
             <div class="flex items-center justify-between px-3 py-2.5 rounded-xl bg-polnes-light text-polnes-main font-bold">
               <div class="flex items-center gap-3">
@@ -59,12 +58,12 @@
               <i class="ri-arrow-down-s-line"></i>
             </div>
             <div class="pl-6 space-y-1">
-              <a href="toefl.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100 text-slate-600 transition-all">TOEFL</a>
-              <a href="sspect.html" class="block px-3 py-2 rounded-lg bg-emerald-50 text-polnes-main font-bold transition-all">SSPECT</a>
+              <a href="toefl.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 text-slate-600 transition-all before:content-['•'] before:text-slate-400 before:mr-1">TOEFL</a>
+              <a href="sspect.html" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-emerald-50 text-polnes-main font-bold transition-all before:content-['•'] before:text-polnes-main before:mr-1">SSPECT</a>
             </div>
           </div>
 
-          <a href="kalkulasi-score.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 transition-all">
+          <a href="kalkulasi-score.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 transition-all mt-1">
             <i class="ri-calculator-line text-base"></i> Kalkulasi Score
           </a>
           <a href="rekapan.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 transition-all">
@@ -92,57 +91,45 @@
           </a>
         </div>
       </div>
-
-      <div class="p-4 border-t border-slate-100 bg-white">
-        <div class="flex items-center gap-3 px-3 py-2">
-          <div class="w-8 h-8 rounded-full bg-polnes-main text-white flex items-center justify-center font-bold text-xs">ST</div>
-          <div class="overflow-hidden">
-            <p class="text-xs font-bold text-slate-800 truncate">Admin UPA</p>
-            <p class="text-[10px] text-slate-400 truncate">upabahasa@polnes.ac.id</p>
-          </div>
-        </div>
-      </div>
     </aside>
 
-    <!-- MAIN CONTENT AREA -->
     <main class="flex-1 overflow-y-auto">
       
-      <!-- Top Header -->
       <header class="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
         <div>
-          <p class="text-[10px] uppercase tracking-wider font-extrabold text-slate-400">Hasil Test / SSPECT</p>
-          <h1 class="text-lg font-extrabold text-slate-900">Modul Hasil Test: SSPECT & Auto-Mapping Engine</h1>
+          <p class="text-[10px] uppercase tracking-wider font-extrabold text-slate-400">HASIL TEST / SSPECT</p>
         </div>
-        <div class="w-9 h-9 rounded-full bg-emerald-100 text-polnes-main flex items-center justify-center font-bold text-xs shadow-sm">
-          ST
+        <div class="flex items-center gap-4">
+           <i class="ri-notification-3-line text-slate-400 text-lg"></i>
+           <i class="ri-settings-3-line text-slate-400 text-lg"></i>
+           <div class="w-9 h-9 rounded-full bg-polnes-light border border-polnes-main text-polnes-main flex items-center justify-center font-bold text-xs shadow-sm">
+             ST
+           </div>
         </div>
       </header>
 
-      <!-- Content Body -->
       <div class="p-8 max-w-7xl mx-auto space-y-6">
 
-        <!-- Header Keterangan Modul -->
-        <div class="space-y-1">
-          <h2 class="text-xl font-extrabold text-slate-900">Modul Hasil Test: SSPECT & Auto-Mapping Engine</h2>
-          <p class="text-xs text-slate-500">Validasi file hasil ujian SSPECT, sinkronisasi data peserta dengan nomor meja secara otomatis.</p>
+        <div class="space-y-1 mb-2">
+          <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Modul 3: Upload Nilai SSPECT & Auto-Mapping Engine</h1>
+          <p class="text-sm text-slate-500">Validasi ketat 1 file, sinkronisasi data peserta dengan nomor meja[cite: 18].</p>
         </div>
 
-        <!-- Parameter Acuan Sesi Ujian -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-          <h3 class="text-sm font-extrabold text-slate-800 flex items-center gap-2 mb-4">
-            <i class="ri-settings-3-line text-polnes-main"></i> Parameter Acuan Sesi Ujian
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+          <h3 class="text-[13px] font-bold text-slate-800 flex items-center gap-2 mb-4">
+            <i class="ri-settings-3-line text-polnes-main text-base"></i> Parameter Acuan Sesi Ujian
           </h3>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wider">PILIH RUANG LAB UJIAN</label>
-              <select id="selectLabSspect" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-polnes-main bg-slate-50">
+              <label class="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">PILIH RUANG LAB UJIAN</label>
+              <select id="selectLabSspect" class="w-full px-4 py-3 border border-slate-200 rounded-xl text-[13px] font-semibold focus:outline-none focus:border-polnes-main focus:ring-1 focus:ring-polnes-main bg-white">
                 <option value="Lab A">Lab Komputer Bahasa A</option>
                 <option value="Lab B">Lab Komputer Bahasa B</option>
               </select>
             </div>
             <div>
-              <label class="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-wider">PILIH SESI & RENTANG JAM</label>
-              <select id="selectSesiSspect" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-polnes-main bg-slate-50">
+              <label class="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">PILIH SESI & RENTANG JAM</label>
+              <select id="selectSesiSspect" class="w-full px-4 py-3 border border-slate-200 rounded-xl text-[13px] font-semibold focus:outline-none focus:border-polnes-main focus:ring-1 focus:ring-polnes-main bg-white">
                 <option value="SESI 1 (08.00 - 10.30 WITA)">Sesi 1 (Pagi) | 08.00 - 10.30 WITA</option>
                 <option value="SESI 2 (10.30 - 13.00 WITA)">Sesi 2 (Siang) | 10.30 - 13.00 WITA</option>
                 <option value="SESI 3 (14.00 - 16.30 WITA)">Sesi 3 (Sore) | 14.00 - 16.30 WITA</option>
@@ -151,51 +138,46 @@
           </div>
         </div>
 
-        <!-- Upload File Hasil Test SSPECT (1 File Saja) -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-          <h3 class="text-sm font-extrabold text-slate-800 flex items-center gap-2 mb-4">
-            <i class="ri-file-excel-line text-polnes-main"></i> Upload File Hasil Test SSPECT (1 File Cukup)
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+          <h3 class="text-[13px] font-bold text-slate-800 flex items-center gap-2 mb-4">
+            <i class="ri-file-excel-line text-polnes-main text-base"></i> Upload File Hasil Test SSPECT (Wajib 1 File)
           </h3>
           
-          <div class="max-w-xl mx-auto border-2 border-dashed border-sky-300 bg-sky-50/20 rounded-2xl p-8 text-center">
+          <div class="border-2 border-dashed border-sky-300 bg-sky-50/30 rounded-2xl p-8 text-center max-w-2xl mx-auto hover:bg-sky-50/50 transition-colors">
             <input type="file" id="fileSspectInput" accept=".xlsx, .xls" class="hidden">
-            <div class="w-12 h-12 bg-sky-100 text-sky-600 rounded-full flex items-center justify-center mx-auto mb-3 text-xl font-bold">
-              <i class="ri-file-excel-2-line"></i>
-            </div>
-            <button onclick="document.getElementById('fileSspectInput').click()" class="px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all cursor-pointer">
-              <i class="ri-upload-cloud-line mr-1"></i> Unggah Excel Hasil SSPECT
+            <button onclick="document.getElementById('fileSspectInput').click()" class="px-6 py-3 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-[13px] font-bold shadow-sm transition-all cursor-pointer flex items-center justify-center mx-auto gap-2">
+              <i class="ri-upload-cloud-line text-lg"></i> Unggah Excel SSPECT
             </button>
-            <p id="labelSspectFile" class="text-xs text-slate-500 mt-3 font-medium">Belum ada file</p>
+            <p id="labelSspectFile" class="text-xs text-slate-400 mt-3 font-medium">Belum ada file</p>
           </div>
         </div>
 
-        <!-- Pratinjau Hasil Sinkronisasi Nilai (Tata letak plek ketiplek TOEFL, isi tabel SSPECT) -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
             <div>
-              <h3 class="text-sm font-extrabold text-slate-800">Pratinjau Hasil Sinkronisasi Nilai SSPECT</h3>
-              <p id="infoStatusSync" class="text-xs text-slate-500 mt-0.5">Silakan unggah file hasil ujian di atas untuk melakukan auto-mapping.</p>
+              <h3 class="text-[15px] font-bold text-slate-800">Pratinjau Hasil Sinkronisasi Nilai</h3>
+              <p id="infoStatusSync" class="text-xs text-slate-500 mt-1">Silakan unggah file hasil ujian di atas untuk melakukan auto-mapping.</p>
             </div>
-            <button onclick="simpanPermanenSspectKeDatabase()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center gap-2 cursor-pointer w-max">
+            <button onclick="simpanPermanenSspectKeDatabase()" class="px-5 py-2.5 bg-polnes-dark hover:bg-green-800 text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center gap-2 cursor-pointer w-max">
               <i class="ri-save-line"></i> Simpan Permanen ke Database
             </button>
           </div>
 
-          <div class="overflow-x-auto">
+          <div class="overflow-x-auto rounded-xl border border-slate-100">
             <table class="w-full text-left border-collapse">
               <thead>
-                <tr class="bg-slate-50 text-slate-600 text-xs border-b border-slate-200">
-                  <th class="px-4 py-3 font-bold">NO</th>
-                  <th class="px-4 py-3 font-bold">NOMOR INDUK / NIM</th>
-                  <th class="px-4 py-3 font-bold">NAMA MAHASISWA SISTEM</th>
-                  <th class="px-4 py-3 font-bold">NOMOR MEJA</th>
-                  <th class="px-4 py-3 font-bold text-center">SKOR SSPECT</th>
-                  <th class="px-4 py-3 font-bold">AKSI SUSULAN (BIND)</th>
+                <tr class="bg-slate-50 text-slate-500 text-[11px] border-b border-slate-200 uppercase tracking-wider">
+                  <th class="px-5 py-4 font-bold">NO</th>
+                  <th class="px-5 py-4 font-bold">NOMOR INDUK / NIM</th>
+                  <th class="px-5 py-4 font-bold">NAMA MAHASISWA SISTEM</th>
+                  <th class="px-5 py-4 font-bold">NOMOR MEJA</th>
+                  <th class="px-5 py-4 font-bold text-center">SKOR SSPECT</th>
+                  <th class="px-5 py-4 font-bold text-center">AKSI SUSULAN (BIND)</th>
                 </tr>
               </thead>
               <tbody id="tabelPratinjauSspectBody">
                 <tr>
-                  <td colspan="6" class="px-4 py-8 text-center text-slate-400 text-xs italic">
+                  <td colspan="6" class="px-5 py-8 text-center text-slate-400 text-xs italic">
                     Belum ada data disinkronkan.
                   </td>
                 </tr>
@@ -208,7 +190,6 @@
     </main>
   </div>
 
-  <!-- Supabase Client CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./js/supabase-config.js"></script>
   <script src="./js/modul-hasil-sspect.js"></script>
