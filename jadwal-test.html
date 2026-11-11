@@ -214,11 +214,21 @@
             <button onclick="kunciSesiUjianKeSupabase()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5">
               <i class="ri-lock-line"></i> Kunci Sesi Ujian
             </button>
+
+            <!-- Tombol Hapus / Reset Antrean -->
+            <button onclick="hapusAntreanSupabase()" class="px-3 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5" title="Hapus data di antrean">
+              <i class="ri-delete-bin-line"></i> Hapus Antrean
+            </button>
           </div>
         </div>
 
+        <!-- Tombol Filter Kelas di Antrean -->
+        <div id="filterKelasContainer" class="flex flex-wrap items-center gap-2 pt-1">
+          <!-- Tombol filter kelas muncul otomatis di sini -->
+        </div>
+
         <!-- TABEL ANTREAN MAHASISWA -->
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto pt-2">
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider font-bold">

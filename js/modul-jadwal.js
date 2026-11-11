@@ -1,6 +1,6 @@
 /**
  * MODUL PENJADWALAN - UPA BAHASA POLNES
- * Deep-Scan Excel Parser + Supabase Sync + Filter Kelas di Antrean + PDF Preview Modal 1 Halaman
+ * Deep-Scan Excel Parser + Supabase Sync + Filter Kelas + Tombol Hapus + PDF Logo & 1 Halaman
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -208,11 +208,9 @@ async function renderTabelAntreanDariSupabase() {
     return;
   }
 
-  // Ambil daftar kelas unik
   const uniqueClasses = [...new Set(globalAntreanData.map(m => m.nama_kelas))];
   if (statusText) statusText.innerText = `${uniqueClasses.length} Kelas Menunggu Plotting dalam antrean (${globalAntreanData.length} Mahasiswa total).`;
 
-  // Render Tombol Filter Kelas
   if (filterContainer) {
     let filterHtml = `<button onclick="setFilterKelas('ALL')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${selectedFilterKelas === 'ALL' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">Semua Kelas (${globalAntreanData.length})</button>`;
     
@@ -224,7 +222,6 @@ async function renderTabelAntreanDariSupabase() {
     filterContainer.innerHTML = filterHtml;
   }
 
-  // Filter data sesuai pilihan aktif
   const filteredData = selectedFilterKelas === 'ALL' 
     ? globalAntreanData 
     : globalAntreanData.filter(m => m.nama_kelas === selectedFilterKelas);
@@ -253,6 +250,35 @@ function setFilterKelas(namaKelas) {
 
 function toggleSelectAllMhs(master) {
   document.querySelectorAll('.mhs-checkbox').forEach(cb => cb.checked = master.checked);
+}
+
+// Fungsi Hapus Antrean (Reset Sementaran)
+async function hapusAntreanSupabase() {
+  const pesanKonfirmasi = selectedFilterKelas === 'ALL' 
+    ? "Apakah Anda yakin ingin menghapus SEMUA data di antrean sementara?" 
+    : `Apakah Anda yakin ingin menghapus kelas "${selectedFilterKelas}" dari antrean?`;
+
+  if (!confirm(pesanKonfirmasi)) return;
+
+  try {
+    let query = window.supabaseClient.from('antrean_mahasiswa').delete();
+
+    if (selectedFilterKelas !== 'ALL') {
+      query = query.eq('nama_kelas', selectedFilterKelas);
+    } else {
+      query = query.neq('id', 0);
+    }
+
+    const { error } = await query;
+    if (error) throw error;
+
+    alert("Data antrean berhasil dibersihkan!");
+    selectedFilterKelas = 'ALL';
+    await renderTabelAntreanDariSupabase();
+
+  } catch (err) {
+    alert("Gagal menghapus antrean: " + err.message);
+  }
 }
 
 async function kunciSesiUjianKeSupabase() {
@@ -345,7 +371,7 @@ async function kunciSesiUjianKeSupabase() {
     const selectedNIMs = mhsToSchedule.map(m => m.nim);
     await window.supabaseClient.from('antrean_mahasiswa').delete().in('nim', selectedNIMs);
 
-    selectedFilterKelas = 'ALL'; // Reset filter setelah sukses kunci
+    selectedFilterKelas = 'ALL';
     renderTabelAntreanDariSupabase();
     loadHistoriJadwalDariSupabase();
     alert(`Sesi ${jenisTes} di ${lab} (${jumlahMhsPlot} Mahasiswa) Berhasil Dikunci ke Database!`);
