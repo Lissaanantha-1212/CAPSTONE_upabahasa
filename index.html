@@ -112,7 +112,10 @@
   <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
     
     <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 z-10 shadow-sm">
-      <div></div>
+      <div class="relative w-96">
+        <i class="ri-search-line absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+        <input type="text" placeholder="Cari data mahasiswa atau kelas..." class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-polnes-main transition-all">
+      </div>
       <div class="flex items-center gap-3">
         <button class="w-10 h-10 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-100 transition-colors relative">
           <i class="ri-notification-3-line text-xl"></i>
@@ -125,93 +128,165 @@
       </div>
     </header>
 
-    <div class="flex-1 overflow-y-auto p-6 md:p-8 space-y-6">
+    <div class="flex-1 overflow-y-auto p-6 md:p-8 space-y-8">
+      
       <!-- HEADER DASHBOARD -->
       <div>
-        <h1 class="text-3xl font-extrabold text-slate-800">Overview Dashboard</h1>
-        <p class="text-slate-500 text-sm mt-1">Selamat datang kembali, Petugas UPA Bahasa!</p>
+        <h1 class="text-2xl font-extrabold text-slate-800">Overview Dashboard</h1>
+        <p class="text-slate-500 text-sm mt-1">Pantau antrean kelas, jadwal terkunci, dan hasil sinkronisasi ujian secara real-time.</p>
       </div>
 
-      <!-- KARTU STATISTIK (Seperti di Gambar) -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Card 1 -->
-        <div class="bg-emerald-500 rounded-3xl p-8 text-white shadow-lg relative overflow-hidden">
-          <div class="absolute -right-10 -bottom-10 opacity-20">
-            <i class="ri-group-line text-9xl"></i>
+      <!-- KARTU STATISTIK (Dibuat lebih proporsional: 4 kolom) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        
+        <!-- Card 1: Antrean Kelas Terjadwal -->
+        <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 relative overflow-hidden flex flex-col justify-between hover:shadow-md transition-all">
+          <div class="flex justify-between items-start mb-4">
+            <div class="w-12 h-12 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center">
+              <i class="ri-timer-line text-2xl"></i>
+            </div>
+            <span class="bg-rose-50 text-rose-600 px-2.5 py-1 rounded-lg text-xs font-bold border border-rose-100">Antrean</span>
           </div>
-          <div class="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm mb-6">
-            <i class="ri-group-line text-2xl"></i>
+          <div>
+            <h2 id="dashAntreanKelas" class="text-4xl font-extrabold text-slate-800 mb-1">0</h2>
+            <p class="text-slate-500 text-xs font-semibold uppercase tracking-wider">Kelas Menunggu Jadwal</p>
           </div>
-          <h2 class="text-5xl font-extrabold mb-2">1,245</h2>
-          <p class="text-emerald-50 font-medium">Total Mahasiswa Terdaftar</p>
         </div>
 
-        <!-- Card 2 -->
-        <div class="bg-teal-500 rounded-3xl p-8 text-white shadow-lg relative overflow-hidden">
-          <div class="absolute -right-10 -bottom-10 opacity-20">
-            <i class="ri-calendar-check-line text-9xl"></i>
+        <!-- Card 2: Jadwal Sesi Terkunci -->
+        <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 relative overflow-hidden flex flex-col justify-between hover:shadow-md transition-all">
+          <div class="flex justify-between items-start mb-4">
+            <div class="w-12 h-12 bg-sky-100 text-sky-600 rounded-2xl flex items-center justify-center">
+              <i class="ri-calendar-check-line text-2xl"></i>
+            </div>
+            <span class="bg-sky-50 text-sky-600 px-2.5 py-1 rounded-lg text-xs font-bold border border-sky-100">Modul 1</span>
           </div>
-          <div class="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm mb-6">
-            <i class="ri-calendar-check-line text-2xl"></i>
+          <div>
+            <h2 id="dashJadwalTerkunci" class="text-4xl font-extrabold text-slate-800 mb-1">0</h2>
+            <p class="text-slate-500 text-xs font-semibold uppercase tracking-wider">Sesi Jadwal Terkunci</p>
           </div>
-          <h2 class="text-5xl font-extrabold mb-2">48</h2>
-          <p class="text-teal-50 font-medium">Sesi Ujian Telah Selesai</p>
         </div>
+
+        <!-- Card 3: Mahasiswa Siap Ujian -->
+        <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 relative overflow-hidden flex flex-col justify-between hover:shadow-md transition-all">
+          <div class="flex justify-between items-start mb-4">
+            <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center">
+              <i class="ri-group-line text-2xl"></i>
+            </div>
+            <span class="bg-amber-50 text-amber-600 px-2.5 py-1 rounded-lg text-xs font-bold border border-amber-100">Modul 1</span>
+          </div>
+          <div>
+            <h2 id="dashTotalMhsJadwal" class="text-4xl font-extrabold text-slate-800 mb-1">0</h2>
+            <p class="text-slate-500 text-xs font-semibold uppercase tracking-wider">Mhs Terjadwal (Aktif)</p>
+          </div>
+        </div>
+
+        <!-- Card 4: Hasil Sinkronisasi Selesai -->
+        <div class="bg-polnes-main rounded-3xl p-6 text-white shadow-lg relative overflow-hidden flex flex-col justify-between transform transition-transform hover:-translate-y-1">
+          <div class="absolute -right-6 -bottom-6 opacity-20">
+            <i class="ri-shield-check-fill text-9xl"></i>
+          </div>
+          <div class="flex justify-between items-start mb-4 relative z-10">
+            <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+              <i class="ri-file-list-3-line text-2xl"></i>
+            </div>
+            <span class="bg-white/20 text-white px-2.5 py-1 rounded-lg text-xs font-bold border border-white/20">Modul 3</span>
+          </div>
+          <div class="relative z-10">
+            <h2 id="dashHasilUjian" class="text-4xl font-extrabold text-white mb-1">0</h2>
+            <p class="text-polnes-light text-xs font-semibold uppercase tracking-wider">Sesi Ujian Selesai Dinilai</p>
+          </div>
+        </div>
+
       </div>
 
       <!-- BAGIAN CHART/GRAFIK -->
       <div class="bg-white rounded-3xl p-8 shadow-sm border border-slate-200 mt-6">
-        <p class="text-sm font-bold text-slate-400 mb-1">Statistik Tahunan</p>
-        <h3 class="text-2xl font-bold text-slate-800 mb-8">Tren Pendaftaran TOEFL & SSPECT</h3>
+        <p class="text-sm font-bold text-slate-400 mb-1">Statistik Pelaksanaan Test</p>
+        <h3 class="text-xl font-bold text-slate-800 mb-8">Tren Pendaftaran TOEFL & SSPECT Bulanan</h3>
         
-        <!-- Simulasi Chart -->
+        <!-- Simulasi Chart Visual -->
         <div class="h-64 flex items-end gap-4 border-l border-b border-slate-200 pt-4 pr-4">
-          <!-- Y-Axis Labels -->
-          <div class="flex flex-col justify-between h-full text-xs font-bold text-slate-400 pr-4 pb-6">
-            <span>120</span>
+          <!-- Y-Axis -->
+          <div class="flex flex-col justify-between h-full text-[10px] font-bold text-slate-400 pr-4 pb-6">
+            <span>200</span>
+            <span>150</span>
             <span>100</span>
-            <span>80</span>
-            <span>60</span>
-            <span>40</span>
-            <span>20</span>
+            <span>50</span>
             <span>0</span>
           </div>
 
           <!-- Bar 1 -->
           <div class="flex-1 flex flex-col items-center justify-end gap-2 group cursor-pointer">
-            <div class="w-full max-w-[40px] bg-polnes-main/20 group-hover:bg-polnes-main rounded-t-lg transition-all h-[30%] relative"></div>
-            <span class="text-xs font-bold text-slate-500">Jan</span>
+            <div class="w-full max-w-[50px] bg-slate-100 group-hover:bg-slate-200 rounded-t-lg transition-all h-[10%] relative"><div class="absolute -top-7 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100">12</div></div>
+            <span class="text-xs font-bold text-slate-400">Jan</span>
           </div>
           <!-- Bar 2 -->
           <div class="flex-1 flex flex-col items-center justify-end gap-2 group cursor-pointer">
-            <div class="w-full max-w-[40px] bg-polnes-main/40 group-hover:bg-polnes-main rounded-t-lg transition-all h-[50%] relative"></div>
+            <div class="w-full max-w-[50px] bg-sky-200 group-hover:bg-sky-300 rounded-t-lg transition-all h-[30%] relative"><div class="absolute -top-7 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100">65</div></div>
             <span class="text-xs font-bold text-slate-500">Feb</span>
           </div>
           <!-- Bar 3 -->
           <div class="flex-1 flex flex-col items-center justify-end gap-2 group cursor-pointer">
-            <div class="w-full max-w-[40px] bg-polnes-main/60 group-hover:bg-polnes-main rounded-t-lg transition-all h-[75%] relative"></div>
-            <span class="text-xs font-bold text-slate-500">Mar</span>
+            <div class="w-full max-w-[50px] bg-polnes-main/40 group-hover:bg-polnes-main/60 rounded-t-lg transition-all h-[60%] relative"><div class="absolute -top-7 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100">120</div></div>
+            <span class="text-xs font-bold text-slate-600">Mar</span>
           </div>
-          <!-- Bar 4 -->
+          <!-- Bar 4 (Tertinggi) -->
           <div class="flex-1 flex flex-col items-center justify-end gap-2 group cursor-pointer">
-            <div class="w-full max-w-[40px] bg-polnes-main rounded-t-lg transition-all shadow-lg h-[95%] relative"></div>
-            <span class="text-xs font-bold text-slate-800">Apr</span>
+            <div class="w-full max-w-[50px] bg-polnes-main rounded-t-lg transition-all shadow-md h-[90%] relative"><div class="absolute -top-7 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100">185</div></div>
+            <span class="text-xs font-extrabold text-polnes-dark">Apr</span>
           </div>
           <!-- Bar 5 -->
           <div class="flex-1 flex flex-col items-center justify-end gap-2 group cursor-pointer">
-            <div class="w-full max-w-[40px] bg-polnes-main/30 group-hover:bg-polnes-main rounded-t-lg transition-all h-[40%] relative"></div>
-            <span class="text-xs font-bold text-slate-500">Mei</span>
+            <div class="w-full max-w-[50px] bg-slate-100 group-hover:bg-slate-200 rounded-t-lg transition-all h-[5%] relative"><div class="absolute -top-7 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100">0</div></div>
+            <span class="text-xs font-bold text-slate-400">Mei</span>
           </div>
         </div>
       </div>
     </div>
   </main>
 
+  <!-- Sidebar Toggle Script -->
   <script>
     function toggleMenu(menuId, arrowId) {
       document.getElementById(menuId).classList.toggle('hidden');
       document.getElementById(arrowId).classList.toggle('rotate-180');
     }
+  </script>
+
+  <!-- Script Supabase Integrasi Dashboard Real-time -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./js/supabase-config.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        // 1. Hitung total Kelas di Antrean (Unique nama_kelas di tabel antrean_mahasiswa)
+        const { data: antreanData, error: errAntrean } = await window.supabaseClient.from('antrean_mahasiswa').select('nama_kelas');
+        if (!errAntrean && antreanData) {
+          const uniqueClasses = new Set(antreanData.map(item => item.nama_kelas));
+          document.getElementById('dashAntreanKelas').innerText = uniqueClasses.size;
+        }
+
+        // 2. Hitung Sesi Jadwal yang Terkunci & Total Mahasiswa yang dijadwalkan
+        const { data: jadwalData, error: errJadwal } = await window.supabaseClient.from('jadwal_log').select('jumlah_mhs');
+        if (!errJadwal && jadwalData) {
+          document.getElementById('dashJadwalTerkunci').innerText = jadwalData.length;
+          
+          let totalMhs = 0;
+          jadwalData.forEach(j => { totalMhs += (j.jumlah_mhs || 0) });
+          document.getElementById('dashTotalMhsJadwal').innerText = totalMhs;
+        }
+
+        // 3. Hitung Hasil Sesi Ujian yang sudah Selesai/Dinilai
+        const { data: hasilData, error: errHasil } = await window.supabaseClient.from('hasil_test_log').select('id');
+        if (!errHasil && hasilData) {
+          document.getElementById('dashHasilUjian').innerText = hasilData.length;
+        }
+
+      } catch (err) {
+        console.error("Gagal memuat data statistik dashboard:", err);
+      }
+    });
   </script>
 </body>
 </html>
