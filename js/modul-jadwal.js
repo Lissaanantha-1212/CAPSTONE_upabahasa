@@ -1,6 +1,6 @@
 /**
  * MODUL PENJADWALAN - UPA BAHASA POLNES
- * Deep-Scan Excel Parser + Supabase Sync + Filter Kelas + Tombol Hapus + PDF Logo & 1 Halaman
+ * Deep-Scan Excel Parser + Supabase Sync + Filter Per Kelas (Tanpa "Semua Kelas") + PDF Preview Modal
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -158,6 +158,9 @@ async function bacaDanUploadExcelOtomatis(file) {
 
         resetFileInputUI();
         document.getElementById('namaKelasInput').value = '';
+        
+        // Otomatis pilih kelas yang baru di-upload sebagai filter aktif
+        selectedFilterKelas = namaKelas;
         await renderTabelAntreanDariSupabase();
 
       } catch (err) {
@@ -184,7 +187,7 @@ function resetFileInputUI() {
 }
 
 let globalAntreanData = [];
-let selectedFilterKelas = 'ALL';
+let selectedFilterKelas = '';
 
 async function renderTabelAntreanDariSupabase() {
   const tbody = document.getElementById('tabelAntreanMhsBody');
@@ -205,26 +208,31 @@ async function renderTabelAntreanDariSupabase() {
     tbody.innerHTML = `<tr><td colspan="6" class="px-4 py-6 text-center text-slate-400 text-xs italic">Belum ada kelas di dalam antrean jadwal.</td></tr>`;
     if (masterCheckbox) masterCheckbox.checked = false;
     if (filterContainer) filterContainer.innerHTML = '';
+    selectedFilterKelas = '';
     return;
   }
 
   const uniqueClasses = [...new Set(globalAntreanData.map(m => m.nama_kelas))];
   if (statusText) statusText.innerText = `${uniqueClasses.length} Kelas Menunggu Plotting dalam antrean (${globalAntreanData.length} Mahasiswa total).`;
 
+  // Jika belum ada kelas yang dipilih atau kelas yang dipilih sudah tidak ada, pilih kelas pertama secara otomatis
+  if (!selectedFilterKelas || !uniqueClasses.includes(selectedFilterKelas)) {
+    selectedFilterKelas = uniqueClasses[0];
+  }
+
+  // Render Tombol Filter Per Kelas (Tanpa Tombol "Semua Kelas")
   if (filterContainer) {
-    let filterHtml = `<button onclick="setFilterKelas('ALL')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${selectedFilterKelas === 'ALL' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">Semua Kelas (${globalAntreanData.length})</button>`;
-    
+    let filterHtml = '';
     uniqueClasses.forEach(cls => {
       const count = globalAntreanData.filter(m => m.nama_kelas === cls).length;
       const isActive = selectedFilterKelas === cls;
-      filterHtml += `<button onclick="setFilterKelas('${cls}')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${isActive ? 'bg-emerald-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${cls} (${count})</button>`;
+      filterHtml += `<button onclick="setFilterKelas('${cls}')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${isActive ? 'bg-emerald-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">${cls} (${count} Mhs)</button>`;
     });
     filterContainer.innerHTML = filterHtml;
   }
 
-  const filteredData = selectedFilterKelas === 'ALL' 
-    ? globalAntreanData 
-    : globalAntreanData.filter(m => m.nama_kelas === selectedFilterKelas);
+  // Filter data murni berdasarkan kelas yang sedang aktif dipilih
+  const filteredData = globalAntreanData.filter(m => m.nama_kelas === selectedFilterKelas);
 
   if (masterCheckbox) masterCheckbox.checked = true;
 
@@ -252,28 +260,22 @@ function toggleSelectAllMhs(master) {
   document.querySelectorAll('.mhs-checkbox').forEach(cb => cb.checked = master.checked);
 }
 
-// Fungsi Hapus Antrean (Reset Sementaran)
+// Fungsi Hapus Antrean per Kelas Aktif atau Seluruhnya
 async function hapusAntreanSupabase() {
-  const pesanKonfirmasi = selectedFilterKelas === 'ALL' 
-    ? "Apakah Anda yakin ingin menghapus SEMUA data di antrean sementara?" 
-    : `Apakah Anda yakin ingin menghapus kelas "${selectedFilterKelas}" dari antrean?`;
+  if (!selectedFilterKelas) return;
 
-  if (!confirm(pesanKonfirmasi)) return;
+  if (!confirm(`Apakah Anda yakin ingin menghapus kelas "${selectedFilterKelas}" dari antrean?`)) return;
 
   try {
-    let query = window.supabaseClient.from('antrean_mahasiswa').delete();
+    const { error } = await window.supabaseClient
+      .from('antrean_mahasiswa')
+      .delete()
+      .eq('nama_kelas', selectedFilterKelas);
 
-    if (selectedFilterKelas !== 'ALL') {
-      query = query.eq('nama_kelas', selectedFilterKelas);
-    } else {
-      query = query.neq('id', 0);
-    }
-
-    const { error } = await query;
     if (error) throw error;
 
-    alert("Data antrean berhasil dibersihkan!");
-    selectedFilterKelas = 'ALL';
+    alert(`Kelas "${selectedFilterKelas}" berhasil dihapus dari antrean!`);
+    selectedFilterKelas = '';
     await renderTabelAntreanDariSupabase();
 
   } catch (err) {
@@ -371,7 +373,7 @@ async function kunciSesiUjianKeSupabase() {
     const selectedNIMs = mhsToSchedule.map(m => m.nim);
     await window.supabaseClient.from('antrean_mahasiswa').delete().in('nim', selectedNIMs);
 
-    selectedFilterKelas = 'ALL';
+    selectedFilterKelas = '';
     renderTabelAntreanDariSupabase();
     loadHistoriJadwalDariSupabase();
     alert(`Sesi ${jenisTes} di ${lab} (${jumlahMhsPlot} Mahasiswa) Berhasil Dikunci ke Database!`);
