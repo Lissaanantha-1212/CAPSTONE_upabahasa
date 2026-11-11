@@ -25,7 +25,7 @@
             polnes: {
               main: '#10C35D',  /* Hijau Utama POLNES */
               dark: '#0a8a40',  /* Hijau Tua */
-              light: '#eafbf0', /* Hijau Super Muda untuk hover/background */
+              light: '#eafbf0', /* Hijau Muda Hover */
             }
           }
         }
@@ -38,10 +38,10 @@
   <!-- ================= SIDEBAR (MENU KIRI) ================= -->
   <aside class="w-64 bg-white border-r border-slate-200 flex flex-col hidden md:flex z-20 shadow-sm relative">
     
-    <!-- Logo Area -->
+    <!-- Logo Area dengan Gambar -->
     <div class="h-16 flex items-center px-6 border-b border-slate-100">
       <div class="flex items-center gap-3">
-        <img src="./img/polnes.png" alt="Logo" class="w-9 h-9 object-contain rounded-lg">
+        <img src="./img/polnes.png" alt="Logo UPA Bahasa" class="w-9 h-9 object-contain rounded-lg">
         <span class="font-extrabold text-[15px] tracking-wide text-slate-800">UPA BAHASA</span>
       </div>
     </div>
@@ -55,12 +55,12 @@
         <span>Dashboard</span>
       </a>
 
-      <!-- Kategori 1: Layanan -->
-            <div>
+      <!-- Kategori 1: Layanan Test -->
+      <div>
         <h4 class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Layanan Test</h4>
         <div class="space-y-1">
-          
-          <!-- Menu Penjadwalan dengan 3 Sub-Menu -->
+
+          <!-- Menu Penjadwalan dengan Dropdown 3 Sub Menu -->
           <div class="space-y-1">
             <button onclick="togglePenjadwalanMenu()" class="w-full flex items-center justify-between px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-polnes-main rounded-lg text-sm font-medium transition-all group">
               <div class="flex items-center gap-3">
@@ -84,7 +84,7 @@
             </div>
           </div>
 
-          <!-- Menu Lainnya -->
+          <!-- Menu Layanan Lainnya -->
           <a href="#" class="flex items-center justify-between px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-polnes-main rounded-lg text-sm font-medium transition-all group">
             <div class="flex items-center gap-3"><i class="ri-file-upload-line text-lg group-hover:scale-110 transition-transform"></i><span>Hasil Test</span></div>
             <i class="ri-arrow-right-s-line opacity-50 group-hover:opacity-100"></i>
@@ -104,7 +104,7 @@
         </div>
       </div>
 
-      <!-- Kategori 2: Manajemen -->
+      <!-- Kategori 2: Manajemen Konten -->
       <div>
         <h4 class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Manajemen Konten</h4>
         <div class="space-y-1.5">
@@ -132,27 +132,25 @@
   <!-- ================= MAIN CONTENT (AREA KANAN) ================= -->
   <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
     
-    <!-- Top Header Navigation -->
-<!-- Top Header Navigation -->
+    <!-- Top Header Navigation (Bersih Tanpa Search & Tanpa Garis Tiga) -->
     <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 z-10 shadow-sm">
-    
-    <!-- Sisi Kiri: Dikosongkan total (tanpa tombol garis tiga) -->
-    <div></div>
-    
-    <!-- Sisi Kanan: 3 Ikon (Tetap rapi di pojok kanan) -->
-    <div class="flex items-center gap-3">
+      
+      <!-- Sisi Kiri: Kosong Bersih -->
+      <div></div>
+      
+      <!-- Sisi Kanan: 3 Ikon (Notifikasi, Setting, Profile Avatar) -->
+      <div class="flex items-center gap-3">
         <button class="w-10 h-10 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-100 transition-colors relative">
-        <i class="ri-notification-3-line text-xl"></i>
-        <span class="absolute top-2 right-2 w-2.5 h-2.5 bg-rose-500 border-2 border-white rounded-full"></span>
+          <i class="ri-notification-3-line text-xl"></i>
+          <span class="absolute top-2 right-2 w-2.5 h-2.5 bg-rose-500 border-2 border-white rounded-full"></span>
         </button>
         <button class="w-10 h-10 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-100 transition-colors">
-        <i class="ri-settings-3-line text-xl"></i>
+          <i class="ri-settings-3-line text-xl"></i>
         </button>
         <div class="w-10 h-10 rounded-full bg-polnes-light border border-polnes-main text-polnes-dark flex items-center justify-center font-bold text-sm ml-2 cursor-pointer shadow-sm hover:ring-2 ring-polnes-main/30 transition-all">
-        ST
+          ST
         </div>
-    </div>
-
+      </div>
     </header>
 
     <!-- Content Area (Scrollable) -->
@@ -168,9 +166,9 @@
           <button class="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg text-sm font-semibold hover:bg-slate-50 transition-all flex items-center gap-2 shadow-sm">
             <i class="ri-file-excel-line text-polnes-main"></i> Import Excel
           </button>
-          <button class="px-4 py-2 bg-polnes-main hover:bg-polnes-dark text-white rounded-lg text-sm font-bold transition-all shadow-md shadow-polnes-main/20 flex items-center gap-2">
+          <a href="jadwal-test.html" class="px-4 py-2 bg-polnes-main hover:bg-polnes-dark text-white rounded-lg text-sm font-bold transition-all shadow-md shadow-polnes-main/20 flex items-center gap-2">
             <i class="ri-add-line text-lg"></i> Buat Jadwal Baru
-          </button>
+          </a>
         </div>
       </div>
 
@@ -218,7 +216,7 @@
       <!-- ================= CHARTS SECTION ================= -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         
-        <!-- Left: Bar Chart Area (Takes 2 columns) -->
+        <!-- Left: Bar Chart Area -->
         <div class="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
           <div class="flex justify-between items-center mb-6">
             <div>
@@ -235,7 +233,7 @@
           </div>
         </div>
 
-        <!-- Right: Mini Line Chart & List Area (Takes 1 column) -->
+        <!-- Right: Mini Line Chart Area -->
         <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col">
           <div class="flex justify-between items-center mb-4">
             <h4 class="text-base font-bold text-slate-800">Skor Rata-Rata</h4>
@@ -270,14 +268,14 @@
         </div>
       </div>
 
-      <!-- ================= RECENT ACTIVITY TABLE (DATA TERKINI) ================= -->
+      <!-- ================= RECENT ACTIVITY TABLE ================= -->
       <div class="bg-white rounded-2xl shadow-sm border border-slate-200 mb-8 overflow-hidden">
         <div class="p-6 border-b border-slate-100 flex justify-between items-center">
           <div>
             <h4 class="text-lg font-bold text-slate-800">Jadwal Ujian Terdekat</h4>
             <p class="text-sm text-slate-500 mt-1">Daftar plotting jadwal yang aktif minggu ini.</p>
           </div>
-          <a href="#" class="text-sm font-bold text-polnes-main hover:text-polnes-dark transition-colors">Lihat Semua</a>
+          <a href="jadwal-test.html" class="text-sm font-bold text-polnes-main hover:text-polnes-dark transition-colors">Lihat Semua</a>
         </div>
         
         <div class="overflow-x-auto">
@@ -327,9 +325,18 @@
     </div>
   </main>
 
-  <!-- ================= SCRIPT RENDER CHART (VISUAL DUMMY) ================= -->
+  <!-- ================= SCRIPT TOGGLE SUB-MENU PENJADWALAN ================= -->
   <script>
-    // Inisialisasi Chart Utama (Bar)
+    function togglePenjadwalanMenu() {
+      const subMenu = document.getElementById('subPenjadwalan');
+      const arrow = document.getElementById('arrowPenjadwalan');
+      subMenu.classList.toggle('hidden');
+      arrow.classList.toggle('rotate-180');
+    }
+  </script>
+
+  <!-- ================= SCRIPT RENDER CHART ================= -->
+  <script>
     const ctxMain = document.getElementById('mainChart').getContext('2d');
     new Chart(ctxMain, {
       type: 'bar',
@@ -349,7 +356,6 @@
       }
     });
 
-    // Inisialisasi Chart Mini (Area Line)
     const ctxMini = document.getElementById('miniChart').getContext('2d');
     let gradient = ctxMini.createLinearGradient(0, 0, 0, 120);
     gradient.addColorStop(0, 'rgba(16, 195, 93, 0.25)');
@@ -369,14 +375,8 @@
   </script>
 
   <!-- ================= SCRIPT KONEKSI SUPABASE & FILE MODUL ================= -->
-  
-  <!-- 1. Load library Supabase dari CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  
-  <!-- 2. Load File Koneksi Supabase milikmu (Pastikan API Key & URL sudah diisi di dalamnya!) -->
   <script src="./js/supabase-config.js"></script>
-  
-  <!-- 3. Load seluruh Script Modul Logika -->
   <script src="./js/dashboard.js"></script>
   <script src="./js/modul-jadwal.js"></script>
   <script src="./js/modul-mapping.js"></script>
