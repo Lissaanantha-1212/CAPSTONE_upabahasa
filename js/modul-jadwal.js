@@ -1,11 +1,11 @@
 /**
  * MODUL PENJADWALAN - UPA BAHASA POLNES (FULL VERSION UTUH)
- * Menangani Upload Excel, Manajemen Antrean, Filter Kelas, Kunci Sesi, Histori, 
+ * Menangani Upload Excel, Manajemen Antrean, Filter Kelas (Tanpa "Semua Kelas"), Kunci Sesi, Histori, 
  * Dinamis Jam Sesi (TOEFL vs SSPECT), dan Cetak Berita Acara PDF (Format Paten 1 Halaman).
  */
 
 let uploadedMahasiswaList = [];
-let selectedKelasFilter = 'ALL';
+let selectedKelasFilter = '';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const today = new Date().toISOString().split('T')[0];
@@ -141,6 +141,13 @@ async function loadAntreanDariSupabase() {
     if (error) throw error;
 
     uploadedMahasiswaList = data || [];
+    
+    // Otomatis pilih kelas pertama jika belum ada filter yang aktif
+    const kelasSet = [...new Set(uploadedMahasiswaList.map(m => m.nama_kelas))];
+    if (!kelasSet.includes(selectedKelasFilter) && kelasSet.length > 0) {
+      selectedKelasFilter = kelasSet[0];
+    }
+
     renderFilterKelasButtons();
     renderTabelAntrean();
 
@@ -149,14 +156,19 @@ async function loadAntreanDariSupabase() {
   }
 }
 
+// --- RENDER TOMBOL FILTER KELAS (TANPA "SEMUA KELAS") ---
 function renderFilterKelasButtons() {
   const container = document.getElementById('filterKelasContainer');
   if (!container) return;
 
   const kelasSet = [...new Set(uploadedMahasiswaList.map(m => m.nama_kelas))];
 
-  let html = `<button onclick="filterKelas('ALL')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${selectedKelasFilter === 'ALL' ? 'bg-polnes-main text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">Semua Kelas (${uploadedMahasiswaList.length})</button>`;
+  if (kelasSet.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
 
+  let html = '';
   kelasSet.forEach(k => {
     const count = uploadedMahasiswaList.filter(m => m.nama_kelas === k).length;
     const isActive = selectedKelasFilter === k;
@@ -172,18 +184,21 @@ function filterKelas(namaKelas) {
   renderTabelAntrean();
 }
 
+// --- RENDER TABEL ANTREAN (HANYA MENAMPILKAN KELAS YANG DIPILIH) ---
 function renderTabelAntrean() {
   const tbody = document.getElementById('tabelAntreanMhsBody');
   const statusText = document.getElementById('antreanStatusText');
   if (!tbody) return;
 
-  let filteredList = uploadedMahasiswaList;
-  if (selectedKelasFilter !== 'ALL') {
-    filteredList = uploadedMahasiswaList.filter(m => m.nama_kelas === selectedKelasFilter);
+  const kelasSet = [...new Set(uploadedMahasiswaList.map(m => m.nama_kelas))];
+  if (!kelasSet.includes(selectedKelasFilter) && kelasSet.length > 0) {
+    selectedKelasFilter = kelasSet[0];
   }
 
+  let filteredList = uploadedMahasiswaList.filter(m => m.nama_kelas === selectedKelasFilter);
+
   if (statusText) {
-    statusText.innerText = `Total ${uploadedMahasiswaList.length} mahasiswa dalam antrean (Menampilkan: ${filteredList.length} orang).`;
+    statusText.innerText = `Menampilkan antrean untuk kelas: ${selectedKelasFilter} (${filteredList.length} orang).`;
   }
 
   if (filteredList.length === 0) {
