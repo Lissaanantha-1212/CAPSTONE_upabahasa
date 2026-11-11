@@ -1,6 +1,6 @@
 /**
  * MODUL PENJADWALAN - UPA BAHASA POLNES
- * Deep-Scan Excel Parser + Supabase Sync + PDF Preview Modal & Kop Resmi 1 Halaman
+ * Deep-Scan Excel Parser + Supabase Sync + PDF Preview Modal (1 Halaman Padat & Rapi)
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -357,7 +357,7 @@ async function loadHistoriJadwalDariSupabase() {
   `).join('');
 }
 
-// FUNGSI MEMBUAT PDF (Kop Resmi Sesuai Contoh & 1 Halaman Pas)
+// FUNGSI MEMBUAT PDF (Padat, Jarak Rapat, Pasti 1 Halaman)
 async function generatePDFDoc(jenisTes, namaKelas, tanggal, sesi, ruangLab, peserta) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({
@@ -366,40 +366,40 @@ async function generatePDFDoc(jenisTes, namaKelas, tanggal, sesi, ruangLab, pese
     format: 'a4'
   });
 
-  // KOP SURAT RESMI (RATA TENGAH SESUAI CONTOH)
-  doc.setFontSize(9.5);
+  // KOP SURAT (Jarak Atas Lebih Padat)
+  doc.setFontSize(9);
   doc.setFont("helvetica", "bold");
-  doc.text("KEMENTERIAN PENDIDIKAN, KEBUDAYAAN, RISET, DAN TEKNOLOGI", 105, 12, null, null, "center");
-  doc.text("POLITEKNIK NEGERI SAMARINDA", 105, 17, null, null, "center");
+  doc.text("KEMENTERIAN PENDIDIKAN, KEBUDAYAAN, RISET, DAN TEKNOLOGI", 105, 8, null, null, "center");
+  doc.text("POLITEKNIK NEGERI SAMARINDA", 105, 12.5, null, null, "center");
   
-  doc.setFontSize(11);
-  doc.text("UPT. BAHASA", 105, 23, null, null, "center");
+  doc.setFontSize(10.5);
+  doc.text("UPT. BAHASA", 105, 17.5, null, null, "center");
   
-  doc.setFontSize(8);
+  doc.setFontSize(7.5);
   doc.setFont("helvetica", "normal");
-  doc.text("Jalan Dr. Ciptomangunkusumo Kampus Gunung Panjang Samarinda", 105, 28, null, null, "center");
-  doc.text("Telepon : PABX(0541)260588 - 260553 - 262018 FAX (0541) 260355", 105, 32, null, null, "center");
-  doc.text("Website: www.polnes.ac.id Email : polnes@polnes.ac.id", 105, 36, null, null, "center");
+  doc.text("Jalan Dr. Ciptomangunkusumo Kampus Gunung Panjang Samarinda", 105, 21.5, null, null, "center");
+  doc.text("Telepon : PABX(0541)260588 - 260553 - 262018 FAX (0541) 260355", 105, 25, null, null, "center");
+  doc.text("Website: www.polnes.ac.id Email : polnes@polnes.ac.id", 105, 28.5, null, null, "center");
   
-  // Garis Bawah Kop Ganda / Tebal
-  doc.setLineWidth(0.8);
-  doc.line(14, 39, 196, 39);
-  doc.setLineWidth(0.2);
-  doc.line(14, 40, 196, 40);
+  // Garis Bawah Kop Ganda
+  doc.setLineWidth(0.6);
+  doc.line(14, 31, 196, 31);
+  doc.setLineWidth(0.15);
+  doc.line(14, 32, 196, 32);
 
   // JUDUL DOKUMEN (RATA TENGAH)
-  doc.setFontSize(11);
+  doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
-  doc.text(`JADWAL & BERITA ACARA UJIAN ${jenisTes}`, 105, 47, null, null, "center");
+  doc.text(`JADWAL & BERITA ACARA UJIAN ${jenisTes}`, 105, 37.5, null, null, "center");
 
-  // INFORMASI DETAIL (2 Kolom)
-  doc.setFontSize(9);
+  // INFORMASI DETAIL (2 Kolom Lebih Rapat)
+  doc.setFontSize(8.5);
   doc.setFont("helvetica", "normal");
-  doc.text(`Nama Kelas / Prodi : ${namaKelas}`, 14, 54);
-  doc.text(`Tanggal Ujian      : ${tanggal}`, 14, 59);
+  doc.text(`Nama Kelas / Prodi : ${namaKelas}`, 14, 43);
+  doc.text(`Tanggal Ujian      : ${tanggal}`, 14, 47.5);
   
-  doc.text(`Sesi & Waktu       : ${sesi}`, 115, 54);
-  doc.text(`Ruang Lab          : ${ruangLab}`, 115, 59);
+  doc.text(`Sesi & Waktu       : ${sesi}`, 115, 43);
+  doc.text(`Ruang Lab          : ${ruangLab}`, 115, 47.5);
 
   // DATA TABEL PESERTA
   const tableRows = (peserta || []).map((p, index) => [
@@ -411,9 +411,9 @@ async function generatePDFDoc(jenisTes, namaKelas, tanggal, sesi, ruangLab, pese
     "........................"
   ]);
 
-  // AUTO TABLE (Diatur agar muat pas 1 halaman penuh)
+  // AUTO TABLE (Diatur sangat kompak agar pas 1 halaman mutlak)
   doc.autoTable({
-    startY: 63,
+    startY: 51,
     head: [['No', 'NIM', 'Nama Mahasiswa', 'Kelas / Prodi', 'ID Meja', 'Tanda Tangan']],
     body: tableRows,
     theme: 'grid',
@@ -421,11 +421,13 @@ async function generatePDFDoc(jenisTes, namaKelas, tanggal, sesi, ruangLab, pese
       fillColor: [16, 195, 93], 
       textColor: 255, 
       fontStyle: 'bold',
-      halign: 'center' 
+      halign: 'center',
+      fontSize: 8.5,
+      cellPadding: 1.5
     },
     styles: { 
-      fontSize: 8,          // Ukuran font ringkas agar muat 1 halaman
-      cellPadding: 1.8,     // Padding rapat
+      fontSize: 7.5,          // Font sangat ringkas agar muat 30 baris dalam 1 halaman
+      cellPadding: 1.2,       // Padding tipis agar tidak makan tempat
       valign: 'middle'
     },
     columnStyles: {
@@ -452,14 +454,12 @@ async function bukaPreviewPDF(jadwalId, jenisTes, namaKelas, tanggal, sesi, ruan
   const doc = await generatePDFDoc(jenisTes, namaKelas, tanggal, sesi, ruangLab, peserta);
   const pdfBlobUrl = doc.output('bloburl');
 
-  // Set URL ke iframe modal
   const iframe = document.getElementById('pdfPreviewIframe');
   const modal = document.getElementById('pdfPreviewModal');
   if (iframe && modal) {
     iframe.src = pdfBlobUrl;
     modal.classList.remove('hidden');
 
-    // Hubungkan tombol Download & Print di Modal
     document.getElementById('btnActionDownload').onclick = () => {
       doc.save(`Jadwal_${jenisTes}_${namaKelas}_${tanggal}.pdf`);
     };
