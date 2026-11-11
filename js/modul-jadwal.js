@@ -1,6 +1,6 @@
 /**
  * MODUL PENJADWALAN - UPA BAHASA POLNES
- * Deep-Scan Excel Parser + Supabase Sync + PDF Preview Modal (1 Halaman Padat & Rapi)
+ * Deep-Scan Excel Parser + Supabase Sync + PDF Preview Modal (Dengan Logo POLNES & 1 Halaman Padat)
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -357,7 +357,25 @@ async function loadHistoriJadwalDariSupabase() {
   `).join('');
 }
 
-// FUNGSI MEMBUAT PDF (Padat, Jarak Rapat, Pasti 1 Halaman)
+// Helper untuk mengubah gambar dari URL/path lokal menjadi Base64
+function getBase64ImageFromURL(url) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "Anonymous";
+    img.onload = function() {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0);
+      resolve(canvas.toDataURL("image/png"));
+    };
+    img.onerror = error => reject(error);
+    img.src = url;
+  });
+}
+
+// FUNGSI MEMBUAT PDF (Dengan Logo POLNES, Padat & Pasti 1 Halaman)
 async function generatePDFDoc(jenisTes, namaKelas, tanggal, sesi, ruangLab, peserta) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({
@@ -366,7 +384,15 @@ async function generatePDFDoc(jenisTes, namaKelas, tanggal, sesi, ruangLab, pese
     format: 'a4'
   });
 
-  // KOP SURAT (Jarak Atas Lebih Padat)
+  // Coba masukkan Logo POLNES dari folder img/polnes.png
+  try {
+    const logoBase64 = await getBase64ImageFromURL('./img/polnes.png');
+    doc.addImage(logoBase64, 'PNG', 14, 7, 18, 18);
+  } catch (e) {
+    console.log("Logo polnes.png tidak dapat dimuat:", e);
+  }
+
+  // KOP SURAT (Rata Tengah & Rapat)
   doc.setFontSize(9);
   doc.setFont("helvetica", "bold");
   doc.text("KEMENTERIAN PENDIDIKAN, KEBUDAYAAN, RISET, DAN TEKNOLOGI", 105, 8, null, null, "center");
@@ -392,7 +418,7 @@ async function generatePDFDoc(jenisTes, namaKelas, tanggal, sesi, ruangLab, pese
   doc.setFont("helvetica", "bold");
   doc.text(`JADWAL & BERITA ACARA UJIAN ${jenisTes}`, 105, 37.5, null, null, "center");
 
-  // INFORMASI DETAIL (2 Kolom Lebih Rapat)
+  // INFORMASI DETAIL (2 Kolom)
   doc.setFontSize(8.5);
   doc.setFont("helvetica", "normal");
   doc.text(`Nama Kelas / Prodi : ${namaKelas}`, 14, 43);
@@ -411,7 +437,7 @@ async function generatePDFDoc(jenisTes, namaKelas, tanggal, sesi, ruangLab, pese
     "........................"
   ]);
 
-  // AUTO TABLE (Diatur sangat kompak agar pas 1 halaman mutlak)
+  // AUTO TABLE (Diatur agar muat mutlak dalam 1 halaman)
   doc.autoTable({
     startY: 51,
     head: [['No', 'NIM', 'Nama Mahasiswa', 'Kelas / Prodi', 'ID Meja', 'Tanda Tangan']],
@@ -426,8 +452,8 @@ async function generatePDFDoc(jenisTes, namaKelas, tanggal, sesi, ruangLab, pese
       cellPadding: 1.5
     },
     styles: { 
-      fontSize: 7.5,          // Font sangat ringkas agar muat 30 baris dalam 1 halaman
-      cellPadding: 1.2,       // Padding tipis agar tidak makan tempat
+      fontSize: 7.5,          // Ukuran font kompak
+      cellPadding: 1.2,       // Padding rapat
       valign: 'middle'
     },
     columnStyles: {
