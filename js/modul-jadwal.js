@@ -1,33 +1,31 @@
 /**
  * MODUL PENJADWALAN - UPA BAHASA POLNES
- * Integrasi 100% Database Supabase (Tanpa LocalStorage)
+ * Single Upload Excel + Supabase DB Direct (Zero LocalStorage)
  */
 
-let selectedFilesData = { 1: null, 2: null, 3: null };
+let tempSelectedData = null;
 
 document.addEventListener('DOMContentLoaded', () => {
-  setupFileListeners();
+  setupSingleFileListener();
   renderTabelAntreanDariSupabase();
   loadHistoriJadwalDariSupabase();
 });
 
-// 1. SETUP EVENT LISTENER UPLOAD FILE EXCEL
-function setupFileListeners() {
-  [1, 2, 3].forEach(slot => {
-    const fileInput = document.getElementById(`excelFileInput${slot}`);
-    if (fileInput) {
-      fileInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-          bacaExcelSlot(file, slot);
-        }
-      });
-    }
-  });
+// 1. SETUP FILE LISTENER UNTUK SINGLE EXCEL UPLOAD
+function setupSingleFileListener() {
+  const fileInput = document.getElementById('excelFileInput');
+  if (fileInput) {
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        bacaExcelFile(file);
+      }
+    });
+  }
 }
 
-// 2. PARSING EXCEL & HITUNG JUMLAH MAHASISWA
-function bacaExcelSlot(file, slot) {
+// 2. PARSING SINGLE EXCEL FILE
+function bacaExcelFile(file) {
   const reader = new FileReader();
   reader.onload = (e) => {
     const data = new Uint8Array(e.target.result);
@@ -41,22 +39,43 @@ function bacaExcelSlot(file, slot) {
       nama: String(row.NAMA || row.Nama || row.nama || '').trim()
     })).filter(m => m.nim !== '' && m.nama !== '');
 
-    selectedFilesData[slot] = parsedMhs;
+    tempSelectedData = parsedMhs;
 
-    const fileNameElement = document.getElementById(`fileName${slot}`);
-    if (fileNameElement) {
-      fileNameElement.innerText = `${file.name} (Terbaca ${parsedMhs.length} Mahasiswa)`;
-      fileNameElement.classList.add('text-emerald-600', 'font-bold');
+    const fileNameText = document.getElementById('fileNameText');
+    if (fileNameText) {
+      fileNameText.innerText = `${file.name} (${parsedMhs.length} Mhs)`;
+      fileNameText.classList.add('text-emerald-600', 'font-bold');
     }
   };
   reader.readAsArrayBuffer(file);
 }
 
-// 3. UPLOAD SLOT KE SUPABASE (TABEL antrean_mahasiswa)
-async function prosesProsesUploadMultiSlot() {
-  let countAdded = 0;
+// 3. UPLOAD SINGLE KELAS LANGSUNG KE TABEL `antrean_mahasiswa` SUPABASE
+async function prosesUploadSingleClass() {
+  const namaKelas = document.getElementById('namaKelasInput').value.trim();
 
-  // Fetch data NIM yang sudah ada di DB (antrean & peserta resmi) untuk cegah duplikasi
+  if (!namaKelas) {
+    alert("Harap masukkan Nama Kelas Baru terlebih dahulu!");
+    return;
+  }
+
+  if (!tempSelectedData || tempSelectedData.length === 0) {
+    alert("Harap pilih file Excel mahasiswa terlebih dahulu!");
+    return;
+  }
+
+  // VALIDASI UAT-2.3: Cek Duplikasi Nama Kelas di histori DB
+  const { data: existingClass } = await supabaseClient
+    .from('jadwal_log')
+    .select('nama_kelas')
+    .eq('nama_kelas', namaKelas);
+
+  if (existingClass && existingClass.length > 0) {
+    alert(`[PENOLAKAN] Kelas "${namaKelas}" sudah pernah dikunci di database!`);
+    return;
+  }
+
+  // VALIDASI UAT-2.4: Fetch NIM yang ada di DB untuk cegah duplikasi
   const { data: dbAntrean } = await supabaseClient.from('antrean_mahasiswa').select('nim');
   const { data: dbPeserta } = await supabaseClient.from('peserta_ujian').select('nim');
 
@@ -65,57 +84,40 @@ async function prosesProsesUploadMultiSlot() {
     ...(dbPeserta ? dbPeserta.map(p => p.nim) : [])
   ]);
 
-  for (let slot = 1; slot <= 3; slot++) {
-    const namaKelas = document.getElementById(`namaKelasInput${slot}`).value.trim();
-    const dataMhs = selectedFilesData[slot];
-
-    if (!namaKelas || !dataMhs || dataMhs.length === 0) continue;
-
-    // Cek duplikasi Nama Kelas di histori jadwal
-    const { data: existingClass } = await supabaseClient
-      .from('jadwal_log')
-      .select('nama_kelas')
-      .eq('nama_kelas', namaKelas);
-
-    if (existingClass && existingClass.length > 0) {
-      alert(`[PENOLAKAN] Kelas "${namaKelas}" sudah pernah dikunci di database!`);
-      continue;
-    }
-
-    const payloadBatch = [];
-    for (let mhs of dataMhs) {
-      if (!existingNIMSet.has(mhs.nim)) {
-        payloadBatch.push({
-          nim: mhs.nim,
-          nama: mhs.nama,
-          nama_kelas: namaKelas
-        });
-        existingNIMSet.add(mhs.nim);
-      }
-    }
-
-    if (payloadBatch.length > 0) {
-      const { error } = await supabaseClient.from('antrean_mahasiswa').insert(payloadBatch);
-      if (!error) countAdded++;
+  const payloadBatch = [];
+  for (let mhs of tempSelectedData) {
+    if (!existingNIMSet.has(mhs.nim)) {
+      payloadBatch.push({
+        nim: mhs.nim,
+        nama: mhs.nama,
+        nama_kelas: namaKelas
+      });
+      existingNIMSet.add(mhs.nim);
     }
   }
 
-  // Clear input form
-  [1, 2, 3].forEach(slot => {
-    document.getElementById(`namaKelasInput${slot}`).value = '';
-    document.getElementById(`fileName${slot}`).innerText = 'Belum ada file dipilih';
-    document.getElementById(`fileName${slot}`).classList.remove('text-emerald-600', 'font-bold');
-    selectedFilesData[slot] = null;
-  });
+  if (payloadBatch.length > 0) {
+    const { error } = await supabaseClient.from('antrean_mahasiswa').insert(payloadBatch);
+    if (error) {
+      alert("Gagal mengunggah ke database: " + error.message);
+      return;
+    }
+    alert(`Berhasil mengunggah ${payloadBatch.length} mahasiswa dari kelas "${namaKelas}" ke antrean database!`);
+  } else {
+    alert("Semua mahasiswa dalam file Excel ini sudah terdaftar di sesi lain/antrean!");
+  }
+
+  // Reset Input Form
+  document.getElementById('namaKelasInput').value = '';
+  document.getElementById('fileNameText').innerText = 'Pilih File Excel...';
+  document.getElementById('fileNameText').classList.remove('text-emerald-600', 'font-bold');
+  document.getElementById('excelFileInput').value = '';
+  tempSelectedData = null;
 
   renderTabelAntreanDariSupabase();
-
-  if (countAdded > 0) {
-    alert(`Berhasil menyimpan ${countAdded} kelas ke antrean database Supabase.`);
-  }
 }
 
-// 4. RENDER TABEL ANTREAN LANGSUNG DARI SUPABASE
+// 4. RENDER TABEL ANTREAN DARI SUPABASE
 async function renderTabelAntreanDariSupabase() {
   const tbody = document.getElementById('tabelAntreanMhsBody');
   const statusText = document.getElementById('antreanStatusText');
@@ -154,7 +156,7 @@ function toggleSelectAllMhs(master) {
   document.querySelectorAll('.mhs-checkbox').forEach(cb => cb.checked = master.checked);
 }
 
-// 5. KUNCI SESI UJIAN (TRANSFER DARI antrean_mahasiswa KE jadwal_log & peserta_ujian)
+// 5. KUNCI SESI UJIAN (TRANSFER ANTREAN KE LOG HISTORI SUPABASE)
 async function kunciSesiUjianKeSupabase() {
   const jenisTes = document.getElementById('selectJenisTes').value;
   const tanggal = document.getElementById('inputTanggalUjian').value;
@@ -185,7 +187,7 @@ async function kunciSesiUjianKeSupabase() {
     return;
   }
 
-  // VALIDASI 1: CEK BENTROK JADWAL (TANGGAL + SESI + LAB)
+  // VALIDASI 1: BENTROK TANGGAL + SESI + LAB
   const { data: jadwalBentrok } = await supabaseClient
     .from('jadwal_log')
     .select('id')
@@ -198,7 +200,7 @@ async function kunciSesiUjianKeSupabase() {
     return;
   }
 
-  // VALIDASI 2: ATURAN LAB CADANGAN (JIKA LAB PASANGAN = 30 MHS, MAKA LAB INI WAJIB < 30)
+  // VALIDASI 2: LAB CADANGAN (JIKA LAB PASANGAN = 30 MHS, LAB INI WAJIB < 30)
   const labPasangan = (lab === 'Lab A') ? 'Lab B' : 'Lab A';
 
   const { data: jadwalPasangan } = await supabaseClient
@@ -219,7 +221,7 @@ async function kunciSesiUjianKeSupabase() {
 
   const namaKelasSesi = [...new Set(mhsToSchedule.map(m => m.nama_kelas))].join(', ');
 
-  // 1. Insert ke `jadwal_log`
+  // Insert Header ke `jadwal_log`
   const { data: logData, error: logErr } = await supabaseClient
     .from('jadwal_log')
     .insert([{
@@ -240,7 +242,7 @@ async function kunciSesiUjianKeSupabase() {
 
   const jadwalId = logData[0].id;
 
-  // 2. Insert ke `peserta_ujian`
+  // Insert Detail ke `peserta_ujian`
   const pesertaPayload = mhsToSchedule.map((mhs, idx) => ({
     jadwal_id: jadwalId,
     nim: mhs.nim,
@@ -251,7 +253,7 @@ async function kunciSesiUjianKeSupabase() {
 
   await supabaseClient.from('peserta_ujian').insert(pesertaPayload);
 
-  // 3. Hapus data yang sudah dikunci dari tabel `antrean_mahasiswa` Supabase
+  // Hapus dari `antrean_mahasiswa` Supabase
   const selectedNIMs = mhsToSchedule.map(m => m.nim);
   await supabaseClient.from('antrean_mahasiswa').delete().in('nim', selectedNIMs);
 

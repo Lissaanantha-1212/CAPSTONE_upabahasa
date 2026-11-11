@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Jadwal Test - UPA Bahasa POLNES</title>
   
-  <!-- Fonts & Icons -->
+  <!-- Font & Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -17,6 +17,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 
+  <!-- Tailwind Custom Config -->
   <script>
     tailwind.config = {
       theme: {
@@ -24,9 +25,9 @@
           fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
           colors: {
             polnes: {
-              main: '#10C35D',
-              dark: '#0a8a40',
-              light: '#eafbf0',
+              main: '#10C35D',  /* Hijau Utama POLNES */
+              dark: '#0a8a40',  /* Hijau Tua */
+              light: '#eafbf0', /* Hijau Muda Hover */
             }
           }
         }
@@ -36,7 +37,7 @@
 </head>
 <body class="bg-slate-50 font-sans text-slate-800 antialiased flex h-screen overflow-hidden">
 
-  <!-- ================= SIDEBAR (TETAP SAMA DENGAN INDEX) ================= -->
+  <!-- ================= SIDEBAR (MENU KIRI - PLEK KETIPLEK INDEX) ================= -->
   <aside class="w-64 bg-white border-r border-slate-200 flex flex-col hidden md:flex z-20 shadow-sm relative">
     
     <!-- Logo Area dengan Gambar -->
@@ -61,14 +62,14 @@
         <h4 class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Layanan Test</h4>
         <div class="space-y-1">
 
-          <!-- Dropdown Penjadwalan (Aktif) -->
+          <!-- Menu Penjadwalan dengan Dropdown 3 Sub Menu (Aktif) -->
           <div class="space-y-1">
-            <button onclick="togglePenjadwalanMenu()" class="w-full flex items-center justify-between px-3 py-2 text-polnes-dark font-bold bg-polnes-light rounded-lg text-sm transition-all">
+            <button onclick="togglePenjadwalanMenu()" class="w-full flex items-center justify-between px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-polnes-main rounded-lg text-sm font-medium transition-all group">
               <div class="flex items-center gap-3">
-                <i class="ri-calendar-event-fill text-lg"></i>
+                <i class="ri-calendar-event-line text-lg group-hover:scale-110 transition-transform"></i>
                 <span>Penjadwalan</span>
               </div>
-              <i id="arrowPenjadwalan" class="ri-arrow-down-s-line text-polnes-dark transition-transform duration-200 rotate-180"></i>
+              <i id="arrowPenjadwalan" class="ri-arrow-down-s-line text-slate-400 transition-transform duration-200 rotate-180"></i>
             </button>
 
             <!-- Sub-Menu Container -->
@@ -87,26 +88,53 @@
 
           <!-- Menu Layanan Lainnya -->
           <a href="#" class="flex items-center justify-between px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-polnes-main rounded-lg text-sm font-medium transition-all group">
-            <div class="flex items-center gap-3"><i class="ri-file-upload-line text-lg"></i><span>Hasil Test</span></div>
+            <div class="flex items-center gap-3"><i class="ri-file-upload-line text-lg group-hover:scale-110 transition-transform"></i><span>Hasil Test</span></div>
+            <i class="ri-arrow-right-s-line opacity-50 group-hover:opacity-100"></i>
           </a>
           <a href="#" class="flex items-center justify-between px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-polnes-main rounded-lg text-sm font-medium transition-all group">
-            <div class="flex items-center gap-3"><i class="ri-calculator-line text-lg"></i><span>Kalkulasi Score</span></div>
+            <div class="flex items-center gap-3"><i class="ri-calculator-line text-lg group-hover:scale-110 transition-transform"></i><span>Kalkulasi Score</span></div>
+            <i class="ri-arrow-right-s-line opacity-50 group-hover:opacity-100"></i>
           </a>
           <a href="#" class="flex items-center justify-between px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-polnes-main rounded-lg text-sm font-medium transition-all group">
-            <div class="flex items-center gap-3"><i class="ri-folder-chart-line text-lg"></i><span>Rekapan</span></div>
+            <div class="flex items-center gap-3"><i class="ri-folder-chart-line text-lg group-hover:scale-110 transition-transform"></i><span>Rekapan</span></div>
+            <i class="ri-arrow-right-s-line opacity-50 group-hover:opacity-100"></i>
           </a>
           <a href="#" class="flex items-center justify-between px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-polnes-main rounded-lg text-sm font-medium transition-all group">
-            <div class="flex items-center gap-3"><i class="ri-information-line text-lg"></i><span>Pusat Informasi</span></div>
+            <div class="flex items-center gap-3"><i class="ri-information-line text-lg group-hover:scale-110 transition-transform"></i><span>Pusat Informasi</span></div>
+            <i class="ri-arrow-right-s-line opacity-50 group-hover:opacity-100"></i>
           </a>
         </div>
       </div>
+
+      <!-- Kategori 2: Manajemen Konten -->
+      <div>
+        <h4 class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Manajemen Konten</h4>
+        <div class="space-y-1.5">
+          <a href="#" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-polnes-main rounded-lg text-sm font-medium transition-all group">
+            <i class="ri-article-line text-lg group-hover:scale-110 transition-transform"></i><span>Konten Utama</span>
+          </a>
+          <a href="#" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-polnes-main rounded-lg text-sm font-medium transition-all group">
+            <i class="ri-service-line text-lg group-hover:scale-110 transition-transform"></i><span>Layanan Tambahan</span>
+          </a>
+          <a href="#" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-polnes-main rounded-lg text-sm font-medium transition-all group">
+            <i class="ri-book-open-line text-lg group-hover:scale-110 transition-transform"></i><span>Pembelajaran</span>
+          </a>
+          <a href="#" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-polnes-main rounded-lg text-sm font-medium transition-all group">
+            <i class="ri-discuss-line text-lg group-hover:scale-110 transition-transform"></i><span>Pengaduan</span>
+          </a>
+          <a href="#" class="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-polnes-main rounded-lg text-sm font-medium transition-all group">
+            <i class="ri-survey-line text-lg group-hover:scale-110 transition-transform"></i><span>Survei</span>
+          </a>
+        </div>
+      </div>
+
     </div>
   </aside>
 
-  <!-- ================= MAIN CONTENT (HANYA AREA INI YANG BERUBAH ISINYA) ================= -->
+  <!-- ================= MAIN CONTENT (AREA KANAN) ================= -->
   <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
     
-    <!-- Top Header Navigation (TETAP SAMA) -->
+    <!-- Top Header Navigation (Identik Tanpa Search & Garis Tiga) -->
     <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 z-10 shadow-sm">
       <div></div>
       <div class="flex items-center gap-3">
@@ -123,60 +151,46 @@
       </div>
     </header>
 
-    <!-- Content Area -->
+    <!-- Content Area (Scrollable) -->
     <div class="flex-1 overflow-y-auto p-6 md:p-8 space-y-6">
       <div>
         <h1 class="text-2xl font-extrabold text-slate-800">Modul 1: Penjadwalan & Penguncian Sesi Ujian</h1>
-        <p class="text-sm text-slate-500 mt-1">Upload master data kelas baru (Excel), tentukan jenis tes, sesi jam, lab, dan kunci jadwal ke Supabase.</p>
+        <p class="text-sm text-slate-500 mt-1">Upload master data kelas baru (Excel), tentukan jenis tes, sesi, lab, dan kunci jadwal ke Supabase.</p>
       </div>
 
-      <!-- FORM UPLOAD & ANTREAN KELAS -->
+      <!-- FORM UPLOAD MASTER DATA KELAS (1 UPLOAD TUNGGAL RAPI) -->
       <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
         <h3 class="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
-          <i class="ri-file-excel-2-line text-emerald-600 text-xl"></i> Upload Master Data Kelas Baru (Maks 3 Slot Antrean)
+          <i class="ri-file-excel-2-line text-emerald-600 text-xl"></i> Upload Master Data Kelas Baru (Excel)
         </h3>
         
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <!-- Slot 1 -->
-          <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
-            <span class="text-xs font-bold text-slate-400 uppercase">SLOT ANTREAN #1</span>
-            <input type="text" id="namaKelasInput1" placeholder="Nama Kelas (mis: 3A D3-AK)" class="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-polnes-main">
-            <input type="file" id="excelFileInput1" accept=".xlsx, .xls" class="hidden">
-            <button onclick="document.getElementById('excelFileInput1').click()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2">
-              <i class="ri-upload-2-line"></i> Choose File Slot 1
+        <div class="flex flex-col md:flex-row items-end gap-4">
+          <!-- Input Nama Kelas -->
+          <div class="w-full md:w-1/3">
+            <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Nama Kelas Baru</label>
+            <input type="text" id="namaKelasInput" placeholder="Contoh: 3A D3-AK" class="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-polnes-main font-medium">
+          </div>
+          
+          <!-- Input Pilih File Excel -->
+          <div class="w-full md:w-1/3">
+            <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">File Excel Mahasiswa</label>
+            <input type="file" id="excelFileInput" accept=".xlsx, .xls" class="hidden">
+            <button onclick="document.getElementById('excelFileInput').click()" class="w-full px-4 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center justify-between border border-slate-200">
+              <span id="fileNameText" class="truncate">Pilih File Excel...</span>
+              <i class="ri-upload-2-line text-emerald-600 text-base ml-2"></i>
             </button>
-            <p id="fileName1" class="text-[11px] text-slate-500 font-medium truncate">Belum ada file dipilih</p>
           </div>
 
-          <!-- Slot 2 -->
-          <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
-            <span class="text-xs font-bold text-slate-400 uppercase">SLOT ANTREAN #2</span>
-            <input type="text" id="namaKelasInput2" placeholder="Nama Kelas (mis: 4B D4-TI)" class="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-polnes-main">
-            <input type="file" id="excelFileInput2" accept=".xlsx, .xls" class="hidden">
-            <button onclick="document.getElementById('excelFileInput2').click()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2">
-              <i class="ri-upload-2-line"></i> Choose File Slot 2
+          <!-- Tombol Upload -->
+          <div class="w-full md:w-1/3">
+            <button onclick="prosesUploadSingleClass()" class="w-full py-2.5 bg-polnes-main hover:bg-polnes-dark text-white rounded-xl text-sm font-bold transition-all shadow-md flex items-center justify-center gap-2">
+              <i class="ri-add-circle-line text-lg"></i> Upload File Excel Mhs
             </button>
-            <p id="fileName2" class="text-[11px] text-slate-500 font-medium truncate">Belum ada file dipilih</p>
-          </div>
-
-          <!-- Slot 3 -->
-          <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
-            <span class="text-xs font-bold text-slate-400 uppercase">SLOT ANTREAN #3</span>
-            <input type="text" id="namaKelasInput3" placeholder="Nama Kelas (mis: 2C D3-TK)" class="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-polnes-main">
-            <input type="file" id="excelFileInput3" accept=".xlsx, .xls" class="hidden">
-            <button onclick="document.getElementById('excelFileInput3').click()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2">
-              <i class="ri-upload-2-line"></i> Choose File Slot 3
-            </button>
-            <p id="fileName3" class="text-[11px] text-slate-500 font-medium truncate">Belum ada file dipilih</p>
           </div>
         </div>
-
-        <button onclick="prosesProsesUploadMultiSlot()" class="mt-4 px-6 py-2.5 bg-polnes-main hover:bg-polnes-dark text-white rounded-xl text-sm font-bold transition-all shadow-md flex items-center gap-2">
-          <i class="ri-add-circle-line text-lg"></i> Masukkan ke Antrean Plotting
-        </button>
       </div>
 
-      <!-- FORM PENGATURAN SESI & PLOTTING MAHASISWA -->
+      <!-- PENGATURAN SESI & TABEL ANTREAN -->
       <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 pb-4">
           <div>
@@ -186,23 +200,19 @@
           
           <!-- Control Panel: Form Jenis Test, Tanggal, Jam Sesi, Lab -->
           <div class="flex flex-wrap items-center gap-3">
-            <!-- Jenis Test -->
             <select id="selectJenisTes" class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 outline-none focus:border-polnes-main">
               <option value="TOEFL">TOEFL</option>
               <option value="SSPECT">SSPECT</option>
             </select>
 
-            <!-- Tanggal -->
             <input type="date" id="inputTanggalUjian" class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 outline-none focus:border-polnes-main">
 
-            <!-- Jam Sesi (Sesuai Detail Gambar) -->
             <select id="selectSesi" class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 outline-none focus:border-polnes-main">
               <option value="SESI 1 (08.00 - 10.00 WITA)">SESI 1 (08.00 - 10.00 WITA)</option>
               <option value="SESI 2 (10.00 - 12.00 WITA)">SESI 2 (10.00 - 12.00 WITA)</option>
               <option value="SESI 3 (14.00 - 16.00 WITA)">SESI 3 (14.00 - 16.00 WITA)</option>
             </select>
 
-            <!-- Pilihan Lab -->
             <select id="selectLab" class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 outline-none focus:border-polnes-main">
               <option value="Lab A">Lab A (Kapasitas 30)</option>
               <option value="Lab B">Lab B (Kapasitas 30)</option>
