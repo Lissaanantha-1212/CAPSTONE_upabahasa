@@ -1,9 +1,9 @@
 // js/supabase-config.js
 
-const supabaseUrl = 'https://aquqdodontgzjdfcvxgbs.supabase.co'; // Pastikan URL ini sesuai dengan dashboard Supabase kamu
-const supabaseKey = 'sb_publishable_aaAmOWSAFRFfnXfPFqftQw_v948Hbr0';
+const SUPABASE_URL = 'https://aquqdodontgzjdfcvxgbs.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_aaAmOWSAFRFfnXfPFqftQw_v948Hbr0';
 
-// Inisialisasi koneksi global yang aman
-window.supabaseClient = window.supabaseClient || window.supabase.createClient(supabaseUrl, supabaseKey);
+// Inisialisasi global aman
+window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 console.log("Supabase berhasil diinisialisasi!");
