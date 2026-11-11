@@ -1,6 +1,6 @@
 /**
  * MODUL PENJADWALAN - UPA BAHASA POLNES
- * Fixed Header Range (Baris 4 Excel) & Supabase Direct Sync
+ * Smart Deep-Scan Excel Parser (Tanpa Batuan Baris Header Tertentu) + Supabase Sync
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -58,42 +58,81 @@ async function bacaDanUploadExcelOtomatis(file) {
         const firstSheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[firstSheetName];
         
-        // Mengatur agar pembacaan header dimulai dari baris ke-4 (index 3) sesuai file Excel kamu
-        const jsonData = XLSX.utils.sheet_to_json(worksheet, { range: 3, defval: "" });
+        // Konversi sheet menjadi array of arrays (semua baris & kolom dibaca mentah)
+        const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
 
-        if (!jsonData || jsonData.length === 0) {
-          throw new Error("File Excel kosong atau format baris tidak sesuai.");
+        if (!rows || rows.length === 0) {
+          throw new Error("File Excel kosong.");
         }
 
+        let nimColIndex = -1;
+        let namaColIndex = -1;
+        let startRowIndex = 0;
+
+        // STEP 1: Cari posisi kolom NIM dan Nama dengan memindai baris manapun yang memuat kata kunci
+        for (let r = 0; r < rows.length; r++) {
+          const row = rows[r];
+          for (let c = 0; c < row.length; c++) {
+            const val = String(row[c]).trim().toLowerCase();
+            if (val === 'nim' || val === 'no mhs' || val === 'nomor induk') {
+              nimColIndex = c;
+              startRowIndex = r + 1; // Data dimulai setelah baris header ditemukan
+            }
+            if (val === 'nama' || val === 'nama mahasiswa' || val === 'name') {
+              namaColIndex = c;
+            }
+          }
+          if (nimColIndex !== -1 && namaColIndex !== -1) break;
+        }
+
+        // Jika header teks tidak ketemu secara eksplisit, gunakan heuristik cerdas (Cari kolom angka panjang sebagai NIM dan teks panjang sebagai Nama)
         let parsedMhs = [];
-        jsonData.forEach(row => {
-          let nimVal = '';
-          let namaVal = '';
 
-          for (let key in row) {
-            let cleanKey = key.trim().toLowerCase();
-            if (cleanKey === 'nim' || cleanKey === 'no mhs' || cleanKey === 'nomor') {
-              nimVal = String(row[key]).trim();
-            }
-            if (cleanKey === 'nama' || cleanKey === 'nama mahasiswa' || cleanKey === 'name') {
-              namaVal = String(row[key]).trim();
+        if (nimColIndex !== -1 && namaColIndex !== -1) {
+          // Jika header ketemu, ambil data dari baris setelah header sampai habis
+          for (let r = startRowIndex; r < rows.length; r++) {
+            const row = rows[r];
+            if (!row) continue;
+            let nimVal = String(row[nimColIndex] || '').trim();
+            let namaVal = String(row[namaColIndex] || '').trim();
+
+            // Validasi baris valid (NIM berupa angka/KODE dan Nama tidak kosong/bukan header)
+            if (nimVal && namaVal && nimVal.toLowerCase() !== 'nim' && nimVal.toLowerCase() !== 'no') {
+              parsedMhs.push({ nim: nimVal, nama: namaVal, nama_kelas: namaKelas });
             }
           }
+        }
 
-          if (nimVal !== '' && namaVal !== '' && nimVal.toLowerCase() !== 'nim') {
-            parsedMhs.push({
-              nim: nimVal,
-              nama: namaVal,
-              nama_kelas: namaKelas
-            });
+        // FALLBACK: Jika header tidak terdeteksi sama sekali, scan semua baris yang punya format NIM (angka 8-15 digit)
+        if (parsedMhs.length === 0) {
+          for (let r = 0; r < rows.length; r++) {
+            const row = rows[r];
+            if (!row) continue;
+            
+            let foundNim = '';
+            let foundNama = '';
+
+            for (let c = 0; c < row.length; c++) {
+              const cellStr = String(row[c]).trim();
+              // Deteksi NIM (biasanya angka panjang minimal 8 digit) atau kolom ke-1 / ke-2
+              if (/^\d{8,15}$/.test(cellStr)) {
+                foundNim = cellStr;
+              } else if (cellStr.length > 3 && isNaN(cellStr) && cellStr.toLowerCase() !== 'nama' && cellStr.toLowerCase() !== 'nim') {
+                if (!foundNama) foundNama = cellStr;
+              }
+            }
+
+            if (foundNim && foundNama) {
+              parsedMhs.push({ nim: foundNim, nama: foundNama, nama_kelas: namaKelas });
+            }
           }
-        });
+        }
 
         if (parsedMhs.length === 0) {
-          throw new Error("Kolom 'Nim' atau 'Nama' tidak ditemukan. Pastikan header berada di baris ke-4.");
+          throw new Error("Sistem gagal mendeteksi data mahasiswa di dalam file Excel. Pastikan file berisi kolom NIM dan Nama.");
         }
 
-        // Cek duplikasi kelas di DB Supabase
+        // STEP 2: Validasi duplikasi kelas di Supabase
         const { data: existingClass, error: errCek } = await window.supabaseClient
           .from('jadwal_log')
           .select('nama_kelas')
@@ -107,7 +146,7 @@ async function bacaDanUploadExcelOtomatis(file) {
           return;
         }
 
-        // Cek duplikasi NIM mahasiswa
+        // STEP 3: Cek duplikasi NIM mahasiswa agar tidak ganda
         const { data: dbAntrean } = await window.supabaseClient.from('antrean_mahasiswa').select('nim');
         const { data: dbPeserta } = await window.supabaseClient.from('peserta_ujian').select('nim');
 
