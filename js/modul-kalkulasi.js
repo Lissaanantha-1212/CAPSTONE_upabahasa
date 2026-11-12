@@ -1,6 +1,7 @@
 /**
  * MODUL 4: KALKULASI & PUBLIKASI SCORE - UPA BAHASA POLNES (FULL VERSION UTUH)
- * Menampilkan antrean sesi, kalkulasi konversi live, dan Publish dengan validasi status.
+ * Menampilkan antrean sesi dengan informasi detail (Kelas, Lab, Sesi, Tanggal),
+ * kalkulasi konversi live, dan Publish dengan validasi status.
  */
 
 let globalDataAntrean = [];
@@ -39,7 +40,7 @@ async function loadAntreanSesi() {
   if (!select) return;
 
   try {
-    // Ambil data idJadwal yang belum dipublish berdasarkan kolom status
+    // 1. Ambil data idJadwal yang belum dipublish dari HasilTes
     const { data: listHasil, error } = await window.supabaseClient
       .from('HasilTes')
       .select('idJadwal, jenisTes, status')
@@ -52,21 +53,19 @@ async function loadAntreanSesi() {
       return;
     }
 
-    // Filter duplikat batch ID
-    const uniqueBatches = [];
-    const map = new Map();
-    for (const item of listHasil) {
-      if (!map.has(item.idJadwal)) {
-        map.set(item.idJadwal, true);
-        uniqueBatches.push({
-          idJadwal: item.idJadwal,
-          jenisTes: item.jenisTes
-        });
-      }
-    }
+    // Ambil unique idJadwal
+    const uniqueIds = [...new Set(listHasil.map(item => item.idJadwal))];
 
-    select.innerHTML = '<option value="">-- Pilih Batch Sesi Ujian --</option>' + uniqueBatches.map(b => 
-      `<option value="${b.idJadwal}">BATCH JADWAL ID: ${b.idJadwal} - (Tes: ${b.jenisTes})</option>`
+    // 2. Ambil detail lengkap dari tabel jadwal_log agar staff tahu kelas & lab nya
+    const { data: jadwalList, error: jadwalErr } = await window.supabaseClient
+      .from('jadwal_log')
+      .select('*')
+      .in('id', uniqueIds);
+
+    if (jadwalErr) throw jadwalErr;
+
+    select.innerHTML = '<option value="">-- Pilih Batch Sesi Ujian --</option>' + (jadwalList || []).map(j => 
+      `<option value="${j.id}">[${j.jenis_tes}] Kelas: ${j.nama_kelas} | ${j.ruang_lab} | ${j.sesi} | Tgl: ${j.tanggal}</option>`
     ).join('');
 
   } catch (err) {
@@ -153,12 +152,11 @@ async function publishKeWebUtama() {
     return;
   }
 
-  if (!confirm(`Yakin ingin MEM-PUBLISH data hasil test Batch ${activeIdJadwal} ini? Setelah dipublikasikan, mahasiswa dapat langsung melihat skor resminya.`)) {
+  if (!confirm(`Yakin ingin MEM-PUBLISH data hasil test Batch ini? Setelah dipublikasikan, mahasiswa dapat langsung melihat skor resminya.`)) {
     return;
   }
 
   try {
-    // Update status menjadi 'PUBLISHED' agar data masuk ke web utama frontend mahasiswa
     const { error } = await window.supabaseClient
       .from('HasilTes')
       .update({ status: 'PUBLISHED' })
