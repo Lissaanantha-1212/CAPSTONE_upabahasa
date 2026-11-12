@@ -198,7 +198,7 @@
             <option value="REMEDIAL 2">REMEDIAL 2</option>
             <option value="REMEDIAL 3">REMEDIAL 3</option>
           </select>
-          <button onclick="simpanKeArsipMasterDariToefl()" class="px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-2 transition-all shrink-0">
+          <button id="btnSimpanToefl" onclick="simpanKeArsipMasterDariToefl()" class="px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-2 transition-all shrink-0">
             <i class="ri-save-line text-sm"></i> Simpan Permanen ke Database
           </button>
         </div>
@@ -268,7 +268,6 @@
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
 
-        // Cadangan ambil tanggal & jam dari sel D2 Excel jika nama file diubah
         if ((!fileTanggal || !fileJamStr) && rows[1] && rows[1][3]) {
           const d2 = String(rows[1][3]).trim();
           const m = d2.match(/(\d{4})[\/\-](\d{2})[\/\-](\d{2})\s+(\d{2}:\d{2}:\d{2})/);
@@ -338,7 +337,6 @@
       if (isNaN(hours) || isNaN(minutes)) return null;
       const totalMinutes = hours * 60 + minutes;
 
-      // Sesi 1: 08.00 - 10.00 | Sesi 2: 10.00 - 12.00 | Sesi 3: 14.00 - 16.00
       if (totalMinutes >= 480 && totalMinutes < 600) return "SESI 1";
       if (totalMinutes >= 600 && totalMinutes < 720) return "SESI 2";
       if (totalMinutes >= 840 && totalMinutes < 960) return "SESI 3";
@@ -597,6 +595,20 @@
       alert(`Sukses! ${mejaId} berhasil di-bind ke ${foundNama} (${nimClean}).`);
     }
 
+    function deteksiJurusanDariProdi(prodiStr) {
+      const p = String(prodiStr || "").toUpperCase();
+      if (p.includes("MESIN") || p.includes("ALAT BERAT")) return "TEKNIK MESIN";
+      if (p.includes("INFORMATIKA") || p.includes("KOMPUTER") || p.includes("MULTIMEDIA")) return "TEKNOLOGI INFORMASI";
+      if (p.includes("AKUNTANSI") || p.includes("KEUANGAN")) return "AKUNTANSI";
+      if (p.includes("ADMINISTRASI") || p.includes("PERJALANAN") || p.includes("PEMASARAN")) return "ADMINISTRASI BISNIS";
+      if (p.includes("ELEKTRO") || p.includes("LISTRIK")) return "TEKNIK ELEKTRO";
+      if (p.includes("SIPIL") || p.includes("JALAN") || p.includes("JEMBATAN")) return "TEKNIK SIPIL";
+      if (p.includes("KIMIA") || p.includes("PETRO")) return "TEKNIK KIMIA";
+      if (p.includes("MARITIM") || p.includes("NAUTIKA") || p.includes("TEKNIKA")) return "KEMARITIMAN";
+      if (p.includes("DESAIN") || p.includes("ARSITEK")) return "DESAIN";
+      return "TEKNOLOGI INFORMASI";
+    }
+
     async function simpanKeArsipMasterDariToefl() {
       const kategoriPilihan = document.getElementById('selectKategoriTargetToefl').value;
 
@@ -615,38 +627,125 @@
         return;
       }
 
+      const btnSimpan = document.getElementById('btnSimpanToefl');
+      btnSimpan.disabled = true;
+      btnSimpan.innerHTML = `<i class="ri-loader-4-line animate-spin text-sm"></i> Menyimpan...`;
+
       try {
-        const payload = window.previewDataGlobal.map(m => {
-          let keyMap = 'toeflD3';
-          if (kategoriPilihan === 'TOEFL D4') keyMap = 'toeflD4';
-          else if (kategoriPilihan === 'TOEFL LATIHAN D3') keyMap = 'latihanD3';
-          else if (kategoriPilihan === 'TOEFL LATIHAN D4') keyMap = 'latihanD4';
-          else if (kategoriPilihan === 'REMEDIAL 1') keyMap = 'remedial1';
-          else if (kategoriPilihan === 'REMEDIAL 2') keyMap = 'remedial2';
-          else if (kategoriPilihan === 'REMEDIAL 3') keyMap = 'remedial3';
+        let keyMap = 'toeflD3';
+        if (kategoriPilihan === 'TOEFL D4') keyMap = 'toeflD4';
+        else if (kategoriPilihan === 'TOEFL LATIHAN D3') keyMap = 'latihanD3';
+        else if (kategoriPilihan === 'TOEFL LATIHAN D4') keyMap = 'latihanD4';
+        else if (kategoriPilihan === 'REMEDIAL 1') keyMap = 'remedial1';
+        else if (kategoriPilihan === 'REMEDIAL 2') keyMap = 'remedial2';
+        else if (kategoriPilihan === 'REMEDIAL 3') keyMap = 'remedial3';
 
-          const riwayatObj = {
-            sspect: '-', latihanD3: '-', latihanD4: '-', toeflD3: '-', toeflD4: '-', remedial1: '-', remedial2: '-', remedial3: '-'
-          };
-          riwayatObj[keyMap] = m.totalSkor;
-
-          return {
-            nim: m.nim,
-            nama: m.nama,
-            jurusan: "TEKNOLOGI INFORMASI",
-            prodi: m.prodi,
-            tahun_angkatan: "2024",
-            kategori_tes: kategoriPilihan,
-            skor_total: String(m.totalSkor),
-            riwayat_json: JSON.stringify(riwayatObj)
-          };
-        });
-
-        const { error: errInsert } = await window.supabaseClient
+        // Ambil semua data yang sudah ada di arsip_master_rekapan agar bisa digabung (merge) per NIM
+        const nimList = window.previewDataGlobal.map(m => String(m.nim).trim());
+        const { data: existingAll, error: errFetch } = await window.supabaseClient
           .from('arsip_master_rekapan')
-          .insert(payload);
-        if (errInsert) throw errInsert;
+          .select('*')
+          .in('nim', nimList);
 
+        if (errFetch) throw errFetch;
+
+        const rowsToInsert = [];
+        const duplicateIdsToDelete = [];
+
+        for (const m of window.previewDataGlobal) {
+          const nimClean = String(m.nim).trim();
+          const matchedRows = (existingAll || []).filter(r => String(r.nim || "").trim() === nimClean);
+
+          // Susun objek riwayat default
+          const mergedRiwayat = {
+            sspect: '-',
+            latihanD3: '-',
+            latihanD4: '-',
+            toeflD3: '-',
+            toeflD4: '-',
+            remedial1: '-',
+            remedial2: '-',
+            remedial3: '-'
+          };
+
+          if (matchedRows.length > 0) {
+            // Gabungkan semua skor lama yang sudah tersimpan di baris-baris mahasiswa ini
+            for (const oldRow of matchedRows) {
+              if (oldRow.riwayat_json) {
+                try {
+                  const parsedOld = typeof oldRow.riwayat_json === 'string'
+                    ? JSON.parse(oldRow.riwayat_json)
+                    : oldRow.riwayat_json;
+
+                  for (const k of Object.keys(mergedRiwayat)) {
+                    if (parsedOld[k] !== undefined && parsedOld[k] !== null && String(parsedOld[k]).trim() !== '' && String(parsedOld[k]).trim() !== '-') {
+                      mergedRiwayat[k] = parsedOld[k];
+                    }
+                  }
+                } catch (_) {}
+              }
+            }
+
+            // Masukkan skor tes baru ke slot kategori yang dipilih (misal: latihanD3)
+            mergedRiwayat[keyMap] = m.totalSkor;
+
+            // Update baris utama pertama milik mahasiswa ini
+            const primaryRow = matchedRows[0];
+            const { error: errUpdate } = await window.supabaseClient
+              .from('arsip_master_rekapan')
+              .update({
+                nama: primaryRow.nama || m.nama,
+                prodi: primaryRow.prodi || m.prodi,
+                jurusan: primaryRow.jurusan || deteksiJurusanDariProdi(m.prodi),
+                kategori_tes: kategoriPilihan,
+                skor_total: String(m.totalSkor),
+                riwayat_json: JSON.stringify(mergedRiwayat)
+              })
+              .eq('id', primaryRow.id);
+
+            if (errUpdate) throw errUpdate;
+
+            // Tandai baris duplikat jika ada lebih dari 1 baris untuk NIM yang sama
+            if (matchedRows.length > 1) {
+              for (let d = 1; d < matchedRows.length; d++) {
+                if (matchedRows[d].id !== undefined && matchedRows[d].id !== null) {
+                  duplicateIdsToDelete.push(matchedRows[d].id);
+                }
+              }
+            }
+          } else {
+            // Mahasiswa belum pernah ada di arsip_master_rekapan -> buat baris baru
+            mergedRiwayat[keyMap] = m.totalSkor;
+            const angkatan = /^\d{2}/.test(nimClean) ? `20${nimClean.substring(0, 2)}` : "2024";
+
+            rowsToInsert.push({
+              nim: nimClean,
+              nama: m.nama,
+              jurusan: deteksiJurusanDariProdi(m.prodi),
+              prodi: m.prodi,
+              tahun_angkatan: angkatan,
+              kategori_tes: kategoriPilihan,
+              skor_total: String(m.totalSkor),
+              riwayat_json: JSON.stringify(mergedRiwayat)
+            });
+          }
+        }
+
+        if (rowsToInsert.length > 0) {
+          const { error: errInsert } = await window.supabaseClient
+            .from('arsip_master_rekapan')
+            .insert(rowsToInsert);
+          if (errInsert) throw errInsert;
+        }
+
+        if (duplicateIdsToDelete.length > 0) {
+          await window.supabaseClient
+            .from('arsip_master_rekapan')
+            .delete()
+            .in('id', duplicateIdsToDelete);
+        }
+
+        // Hapus jadwal terkait dari tabel jadwal_log setelah skor berhasil disimpan
         if (window.activeJadwalLogId) {
           const { error: errDel } = await window.supabaseClient
             .from('jadwal_log')
@@ -655,11 +754,14 @@
           if (errDel) console.warn("Gagal menghapus jadwal_log:", errDel.message);
         }
 
-        alert(`SUKSES! ${window.previewDataGlobal.length} nilai berhasil disimpan ke Rekapan Master dan jadwal terkait telah dihapus dari log.`);
-        resetPreview("Data berhasil disimpan dan log jadwal telah dibersihkan.");
+        alert(`SUKSES! ${window.previewDataGlobal.length} nilai berhasil digabungkan ke Rekapan Master (${kategoriPilihan}) dan jadwal terkait telah dihapus dari log.`);
+        resetPreview("Data berhasil disimpan ke Rekapan Master dan log jadwal telah dibersihkan.");
 
       } catch (err) {
         alert("Gagal menyimpan ke database Supabase: " + err.message);
+      } finally {
+        btnSimpan.disabled = false;
+        btnSimpan.innerHTML = `<i class="ri-save-line text-sm"></i> Simpan Permanen ke Database`;
       }
     }
   </script>
