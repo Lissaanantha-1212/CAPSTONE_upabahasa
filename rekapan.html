@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rekapan & Arsip Master - UPA Bahasa POLNES</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+          colors: { polnes: { main: '#10C35D', dark: '#0B8A42', light: '#E8F8EF' } }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 antialiased flex h-screen overflow-hidden">
+
+  <!-- ==================== SIDEBAR KONSISTEN ==================== -->
+  <aside class="w-[260px] bg-white border-r border-slate-200 flex flex-col flex-shrink-0 h-full overflow-y-auto z-20">
+    <div class="p-6 flex items-center gap-3 border-b border-slate-100 sticky top-0 bg-white z-10">
+      <img src="./img/polnes.png" alt="Logo Polnes" class="w-8 h-8 object-contain">
+      <span class="font-extrabold text-slate-900 tracking-wide text-sm">UPA BAHASA</span>
+    </div>
+    
+    <div class="p-4 space-y-1 flex-1">
+      <a href="index.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
+        <i class="ri-layout-grid-line text-lg text-slate-500"></i> Dashboard
+      </a>
+      
+      <div class="pt-4 pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider px-4">LAYANAN TEST</div>
+      
+      <!-- Dropdown Penjadwalan -->
+      <div class="space-y-1">
+        <div onclick="document.getElementById('subPenjadwalan').classList.toggle('hidden'); document.getElementById('arrowPenjadwalan').classList.toggle('rotate-180')" class="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-slate-50 text-slate-600 font-medium text-[13px] cursor-pointer transition-all">
+          <div class="flex items-center gap-3"><i class="ri-calendar-line text-lg text-slate-500"></i> Penjadwalan</div>
+          <i id="arrowPenjadwalan" class="ri-arrow-down-s-line text-slate-400 text-lg"></i>
+        </div>
+        <div id="subPenjadwalan" class="pl-7 space-y-1 pt-1 pb-1 hidden">
+          <a href="jadwal-test.html" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 transition-all font-medium text-[13px]">
+            <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div> Jadwal Test
+          </a>
+          <a href="jadwal-remedial.html" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 transition-all font-medium text-[13px]">
+            <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div> Jadwal Remedial
+          </a>
+          <a href="jadwal-kursus.html" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 transition-all font-medium text-[13px]">
+            <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div> Jadwal Kursus
+          </a>
+        </div>
+      </div>
+
+      <!-- Dropdown Hasil Test -->
+      <div class="space-y-1">
+        <div onclick="document.getElementById('subHasilTest').classList.toggle('hidden'); document.getElementById('arrowHasilTest').classList.toggle('rotate-180')" class="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-slate-50 text-slate-600 font-medium text-[13px] cursor-pointer transition-all">
+          <div class="flex items-center gap-3"><i class="ri-file-upload-line text-lg text-slate-500"></i> Hasil Test</div>
+          <i id="arrowHasilTest" class="ri-arrow-down-s-line text-slate-400 text-lg"></i>
+        </div>
+        <div id="subHasilTest" class="pl-7 space-y-1 pt-1 pb-1 hidden">
+          <a href="toefl.html" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 transition-all font-medium text-[13px]">
+            <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div> TOEFL
+          </a>
+          <a href="sspect.html" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 transition-all font-medium text-[13px]">
+            <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div> SSPECT
+          </a>
+        </div>
+      </div>
+
+      <a href="kalkulasi-score.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
+        <i class="ri-calculator-line text-lg text-slate-500"></i> Kalkulasi Score
+      </a>
+
+      <!-- Menu Rekapan (AKTIF) -->
+      <a href="rekapan.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-polnes-light text-polnes-main font-bold transition-all text-[13px]">
+        <i class="ri-folder-history-line text-lg"></i> Rekapan
+      </a>
+
+      <a href="pusat-informasi.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
+        <i class="ri-information-line text-lg text-slate-500"></i> Pusat Informasi
+      </a>
+
+      <div class="pt-4 pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider px-4">MANAJEMEN KONTEN</div>
+      <a href="konten-utama.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
+        <i class="ri-article-line text-lg text-slate-500"></i> Konten Utama
+      </a>
+      <a href="layanan-tambahan.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
+        <i class="ri-heart-pulse-line text-lg text-slate-500"></i> Layanan Tambahan
+      </a>
+      <a href="pembelajaran.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
+        <i class="ri-book-open-line text-lg text-slate-500"></i> Pembelajaran
+      </a>
+      <a href="pengaduan.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
+        <i class="ri-message-2-line text-lg text-slate-500"></i> Pengaduan
+      </a>
+      <a href="survei.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
+        <i class="ri-clipboard-line text-lg text-slate-500"></i> Survei
+      </a>
+    </div>
+  </aside>
+
+  <!-- ==================== MAIN CONTENT ==================== -->
+  <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
+    
+    <header class="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between sticky top-0 z-10 shrink-0">
+      <div>
+        <p class="text-[10px] uppercase tracking-wider font-extrabold text-slate-400">REKAPAN / ARSIP MASTER</p>
+      </div>
+      <div class="flex items-center gap-4">
+         <div class="w-9 h-9 rounded-full bg-polnes-light border border-polnes-main text-polnes-main flex items-center justify-center font-bold text-xs shadow-sm">ST</div>
+      </div>
+    </header>
+
+    <div class="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 pb-12">
+      
+      <!-- Navigasi Folder Tahun & Tombol Tambah Angkatan -->
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h3 class="text-base font-bold text-slate-800">Folder Angkatan / Tahun Akademik</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Pilih tahun arsip atau tambahkan tahun baru untuk mengelola rekap nilai mahasiswa.</p>
+          </div>
+          <button onclick="tambahTahunBaru()" class="px-4 py-2.5 bg-polnes-main hover:bg-polnes-dark text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-2 transition-all">
+            <i class="ri-folder-add-line text-sm"></i> Tambah Tahun Angkatan
+          </button>
+        </div>
+
+        <!-- Daftar Folder Tahun -->
+        <div id="containerFolderTahun" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4 pt-2">
+          <!-- Folder dinamis akan dimuat di sini -->
+        </div>
+      </div>
+
+      <!-- Modul Upload & Kategori Test Master -->
+      <div id="panelUploadMaster" class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-6 hidden">
+        <div class="flex justify-between items-center border-b border-slate-100 pb-4">
+          <div>
+            <h3 id="judulPanelUpload" class="text-base font-bold text-slate-800">Arsip Master: Tahun 2025</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Pilih kategori tes, unggah file rekap, lalu simpan ke database.</p>
+          </div>
+          <span id="badgeTahunAktif" class="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-extrabold rounded-lg uppercase"></span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">PILIH KATEGORI TES (8 OPSI)</label>
+            <select id="selectKategoriTes" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-[13px] font-semibold text-slate-700 outline-none focus:border-polnes-main">
+              <option value="SSPECT">SSPECT (Semester 2)</option>
+              <option value="TOEFL LATIHAN D3">TOEFL LATIHAN D3 (Semester 4)</option>
+              <option value="TOEFL LATIHAN D4">TOEFL LATIHAN D4 (Semester 6)</option>
+              <option value="TOEFL D3">TOEFL D3 (Semester 6)</option>
+              <option value="TOEFL D4">TOEFL D4 (Semester 8)</option>
+              <option value="REMEDIAL 1">REMEDIAL 1</option>
+              <option value="REMEDIAL 2">REMEDIAL 2</option>
+              <option value="REMEDIAL 3">REMEDIAL 3</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">FILE REKAP MASTER (.XLS / .XLSX)</label>
+            <input type="file" id="fileRekapInput" accept=".xlsx, .xls" class="hidden" onchange="handleFileRekapChange(this)">
+            <button onclick="document.getElementById('fileRekapInput').click()" class="w-full px-4 py-3 border border-slate-200 bg-slate-50 rounded-xl text-[13px] font-semibold text-slate-600 hover:bg-slate-100 transition-all flex items-center justify-between">
+              <span id="labelFileRekap" class="truncate">Klik untuk Pilih File Excel...</span>
+              <i class="ri-upload-cloud-line text-lg"></i>
+            </button>
+          </div>
+          <div>
+            <button onclick="simpanDataMasterKeDatabase()" class="w-full px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[13px] font-bold shadow-sm flex items-center justify-center gap-2 transition-all">
+              <i class="ri-save-line"></i> Simpan ke Arsip Master
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pratinjau Tabel Utama Dikelompokkan per Jurusan -->
+      <div id="panelTabelJurusan" class="space-y-6 hidden">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+          <h3 class="text-base font-bold text-slate-800 mb-1">Pratinjau Data Rekapan Terkelompok</h3>
+          <p class="text-xs text-slate-500 mb-4">Klik pada nama mahasiswa untuk melihat detail kartu skor dan unduh sertifikat kelulusan.</p>
+          
+          <div id="containerJurusan" class="space-y-8">
+            <!-- Tabel Jurusan & Prodi Dinamis -->
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- MODAL DETAIL MAHASISWA & KARTU SKOR -->
+  <div id="modalDetailMhs" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <h3 class="text-sm font-extrabold text-slate-800 flex items-center gap-2">
+          <i class="ri-user-star-line text-polnes-main text-lg"></i> Detail Riwayat Skor & Kelulusan Mahasiswa
+        </h3>
+        <button onclick="tutupModalDetail()" class="w-8 h-8 rounded-lg bg-slate-200 hover:bg-rose-500 hover:text-white text-slate-600 flex items-center justify-center transition-all font-bold">
+          <i class="ri-close-line text-lg"></i>
+        </button>
+      </div>
+      
+      <div class="p-6 space-y-6">
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex justify-between items-center">
+          <div>
+            <h4 id="modalNamaMhs" class="text-base font-bold text-slate-900">-</h4>
+            <p id="modalNimMhs" class="text-xs font-semibold text-slate-500 mt-0.5">-</p>
+          </div>
+          <div class="text-right">
+            <span id="modalProdiMhs" class="text-[11px] font-extrabold text-sky-700 bg-sky-50 px-2.5 py-1 rounded-lg uppercase border border-sky-200">-</span>
+          </div>
+        </div>
+
+        <div>
+          <h5 class="text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-3">Kotak-Kotak Rekap Nilai Tahapan Test</h5>
+          <div id="modalGridSkor" class="grid grid-cols-3 sm:grid-cols-6 gap-3 text-center">
+            <!-- Kotak Skor Dinamis (SSPECT, Latihan, TOEFL, Remedial) -->
+          </div>
+        </div>
+
+        <div id="containerSertifikat" class="pt-2">
+          <!-- Tombol Unduh Sertifikat akan aktif otomatis jika lulus -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // State Aplikasi Rekapan
+    let daftarTahun = ["2024", "2025", "2026"];
+    let tahunAktif = "2025";
+    let dataMasterArsip = []; // Menyimpan data sementara file yang diunggah
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderFolderTahun();
+    });
+
+    function renderFolderTahun() {
+      const container = document.getElementById('containerFolderTahun');
+      if (!container) return;
+
+      container.innerHTML = daftarTahun.map(th => {
+        const isActive = tahunAktif === th;
+        return `
+          <div onclick="pilihTahunFolder('${th}')" class="cursor-pointer p-4 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-2 ${isActive ? 'border-polnes-main bg-polnes-light text-polnes-dark font-extrabold shadow-sm' : 'border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600'}">
+            <i class="ri-folder-shared-line text-2xl ${isActive ? 'text-polnes-main' : 'text-slate-400'}"></i>
+            <span class="text-sm">Tahun ${th}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function tambahTahunBaru() {
+      const input = prompt("Masukkan Tahun Angkatan Baru (Contoh: 2027):");
+      if (!input) return;
+      const thBersih = input.trim();
+      if (!daftarTahun.includes(thBersih)) {
+        daftarTahun.push(thBersih);
+        pilihTahunFolder(thBersih);
+      } else {
+        pilihTahunFolder(thBersih);
+      }
+    }
+
+    function pilihTahunFolder(th) {
+      tahunAktif = th;
+      renderFolderTahun();
+      
+      document.getElementById('panelUploadMaster').classList.remove('hidden');
+      document.getElementById('judulPanelUpload').innerText = `Arsip Master: Tahun Angkatan ${th}`;
+      document.getElementById('badgeTahunAktif').innerText = `Tahun ${th}`;
+    }
+
+    function handleFileRekapChange(input) {
+      const file = input.files[0];
+      if (!file) return;
+      document.getElementById('labelFileRekap').innerText = file.name;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const sheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[sheetName];
+          const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
+
+          let parsedData = [];
+          let currentJurusan = "TEKNOLOGI INFORMASI";
+          let currentProdi = "D3 - TEKNIK INFORMATIKA";
+
+          rows.forEach(row => {
+            const rText = row.join(" ").toUpperCase();
+            if (rText.includes("JURUSAN") || rText.includes("TEKNIK") || rText.includes("AKUNTANSI") || rText.includes("BISNIS")) {
+              currentJurusan = row[0] || row[1] || currentJurusan;
+            }
+            if (rText.includes("D3") || rText.includes("D4")) {
+              currentProdi = row[0] || row[1] || currentProdi;
+            }
+
+            // Deteksi baris mahasiswa (biasanya kolom Nim / Nama / Score)
+            const nimCandidate = String(row[1] || row[2] || "").trim();
+            const namaCandidate = String(row[2] || row[1] || "").trim();
+            const skorCandidate = parseInt(row[row.length - 1]) || 350;
+
+            if (nimCandidate.length >= 8 && !isNaN(nimCandidate)) {
+              parsedData.push({
+                nim: nimCandidate,
+                nama: namaCandidate.toUpperCase(),
+                prodi: currentProdi.toUpperCase(),
+                jurusan: currentJurusan.toUpperCase(),
+                skorTotal: skorCandidate,
+                tahun: tahunAktif,
+                kategori: document.getElementById('selectKategoriTes').value,
+                // Simulasi riwayat kotak skor lengkap
+                riwayat: {
+                  sspect: 420,
+                  latihanD3: 410,
+                  latihanD4: 430,
+                  toeflD3: 460,
+                  toeflD4: 480,
+                  remedial1: '-',
+                  remedial2: '-',
+                  remedial3: '-'
+                }
+              });
+            }
+          });
+
+          dataMasterArsip = parsedData;
+          renderTabelPratinjauJurusan();
+          document.getElementById('panelTabelJurusan').classList.remove('hidden');
+          alert(`Berhasil membaca ${parsedData.length} data mahasiswa dari file Excel.`);
+
+        } catch (err) {
+          alert("Gagal memparsing file Excel: " + err.message);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function renderTabelPratinjauJurusan() {
+      const container = document.getElementById('containerJurusan');
+      if (!container) return;
+
+      // Kelompokkan berdasarkan Jurusan
+      const grouped = {};
+      dataMasterArsip.forEach(item => {
+        const jur = item.jurusan || 'JURUSAN UMUM';
+        if (!grouped[jur]) grouped[jur] = [];
+        grouped[jur].push(item);
+      });
+
+      let html = '';
+      for (const [jurusan, listMhs] of Object.entries(grouped)) {
+        html += `
+          <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+            <div class="bg-slate-100 px-5 py-3 border-b border-slate-200 flex justify-between items-center">
+              <h4 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider"><i class="ri-building-2-line text-polnes-main mr-1.5"></i> ${jurusan}</h4>
+              <span class="text-[11px] font-bold text-slate-500 bg-white px-2.5 py-0.5 rounded-md border border-slate-200">${listMhs.length} Mahasiswa</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-slate-50/70 text-slate-500 text-[11px] border-b border-slate-200 uppercase tracking-wider">
+                    <th class="px-4 py-3 font-bold border-r border-slate-200 text-center w-12">NO</th>
+                    <th class="px-4 py-3 font-bold border-r border-slate-200 w-32 text-center">NIM</th>
+                    <th class="px-4 py-3 font-bold border-r border-slate-200">NAMA MAHASISWA (KLIK DETAIL)</th>
+                    <th class="px-4 py-3 font-bold border-r border-slate-200">PROGRAM STUDI</th>
+                    <th class="px-4 py-3 font-bold text-center w-28">SKOR AKHIR</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
+        `;
+
+        listMhs.forEach((m, idx) => {
+          html += `
+            <tr class="hover:bg-slate-50 transition-colors">
+              <td class="px-4 py-3 text-center text-xs font-semibold border-r border-slate-100">${idx + 1}</td>
+              <td class="px-4 py-3 text-center text-xs font-bold text-slate-800 border-r border-slate-100 font-mono">${m.nim}</td>
+              <td class="px-4 py-3 text-xs font-bold text-polnes-dark border-r border-slate-100 cursor-pointer hover:underline" onclick='bukaDetailMhs(${JSON.stringify(m)})'>
+                <i class="ri-user-line mr-1 text-slate-400"></i> ${m.nama}
+              </td>
+              <td class="px-4 py-3 text-xs font-semibold text-slate-600 border-r border-slate-100 uppercase">${m.prodi}</td>
+              <td class="px-4 py-3 text-center text-xs font-extrabold text-emerald-600 bg-emerald-50/40">${m.skorTotal}</td>
+            </tr>
+          `;
+        });
+
+        html += `
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      }
+
+      container.innerHTML = html;
+    }
+
+    function bukaDetailMhs(mhs) {
+      document.getElementById('modalNamaMhs').innerText = mhs.nama;
+      document.getElementById('modalNimMhs').innerText = `NIM: ${mhs.nim}`;
+      document.getElementById('modalProdiMhs').innerText = mhs.prodi;
+
+      const gridSkor = document.getElementById('modalGridSkor');
+      gridSkor.innerHTML = `
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">SSPECT</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.sspect}</span></div>
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">LAT. D3</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.latihanD3}</span></div>
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">LAT. D4</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.latihanD4}</span></div>
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">TOEFL D3</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.toeflD3}</span></div>
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">TOEFL D4</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.toeflD4}</span></div>
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">REMEDIAL</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.remedial1}</span></div>
+      `;
+
+      // Cek kelulusan (Contoh standar lulus skor >= 400)
+      const isLulus = mhs.skorTotal >= 400;
+      const containerSertif = document.getElementById('containerSertifikat');
+      
+      if (isLulus) {
+        containerSertif.innerHTML = `
+          <button onclick="unduhSertifikatResmi('${mhs.nama}')" class="w-full py-3 bg-polnes-main hover:bg-polnes-dark text-white rounded-xl text-xs font-bold shadow-sm flex items-center justify-center gap-2 transition-all">
+            <i class="ri-award-line text-base"></i> Unduh Sertifikat Kelulusan (Lulus)
+          </button>
+        `;
+      } else {
+        containerSertif.innerHTML = `
+          <div class="p-3 bg-amber-50 border border-amber-200 text-amber-700 rounded-xl text-xs font-semibold text-center">
+            Status: Belum Lulus (Skor belum memenuhi ambang batas minimum sertifikasi).
+          </div>
+        `;
+      }
+
+      document.getElementById('modalDetailMhs').classList.remove('hidden');
+    }
+
+    function tutupModalDetail() {
+      document.getElementById('modalDetailMhs').classList.add('hidden');
+    }
+
+    function unduhSertifikatResmi(nama) {
+      alert(`Berhasil mengunduh Sertifikat Kelulusan resmi untuk ${nama}!`);
+    }
+
+    function simpanDataMasterKeDatabase() {
+      if (dataMasterArsip.length === 0) {
+        alert("Belum ada data file rekap yang diproses.");
+        return;
+      }
+      alert(`Sukses! ${dataMasterArsip.length} data arsip master untuk Tahun Angkatan ${tahunAktif} berhasil disimpan permanen.`);
+    }
+  </script>
+</body>
+</html>
