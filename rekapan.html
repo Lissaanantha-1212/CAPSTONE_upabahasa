@@ -275,13 +275,13 @@
   <script src="./js/supabase-config.js"></script>
   <script>
     let daftarFolderTahun = ["2024", "2025", "2026"];
-    let tahunArsipAktif = "2025";
+    let tahunArsipAktif = "2024";
     let dataArsipMasterParsed = [];
     let prodiAktifPreview = "";
 
     document.addEventListener('DOMContentLoaded', async () => {
       renderFolderTahunUI();
-      await muatArsipDariSupabase();
+      await pilihFolderTahun(tahunArsipAktif);
     });
 
     function renderFolderTahunUI() {
@@ -309,7 +309,7 @@
       pilihFolderTahun(thBersih);
     }
 
-    function pilihFolderTahun(th) {
+    async function pilihFolderTahun(th) {
       tahunArsipAktif = th;
       renderFolderTahunUI();
       
@@ -322,7 +322,19 @@
       const badge = document.getElementById('badgeTahunAktif');
       if (badge) badge.innerText = `Tahun ${th}`;
 
-      muatArsipDariSupabase();
+      // RESET BERSIH DATA LAMA SAAT PINDAH FOLDER
+      dataArsipMasterParsed = [];
+      const containerTabel = document.getElementById('containerTabelProdi');
+      if (containerTabel) containerTabel.innerHTML = '';
+      const panelTabel = document.getElementById('panelTabelProdi');
+      if (panelTabel) panelTabel.classList.add('hidden');
+      const labelFile = document.getElementById('labelFileRekap');
+      if (labelFile) labelFile.innerText = "Klik untuk Pilih File Excel Master...";
+      const inputfile = document.getElementById('fileRekapInput');
+      if (inputfile) inputfile.value = "";
+
+      // Muat data khusus tahun tersebut dari database Supabase
+      await muatArsipDariSupabase();
     }
 
     function handleFileRekapChange(input) {
@@ -345,12 +357,10 @@
 
           let parsedList = [];
           let currentJurusan = "TEKNOLOGI INFORMASI";
-          let currentProdi = "D3 - TEKNIK INFORMATIKA";
+          let currentProdi = "D3 - TEKNIK ALAT BERAT";
 
           rows.forEach((row) => {
             let rowText = row.join(" ").toUpperCase();
-            
-            // Koreksi typo DII menjadi D3
             rowText = rowText.replace(/DII\b/g, "D3");
 
             if (rowText.includes("TEKNIK") || rowText.includes("AKUNTANSI") || rowText.includes("ADMINISTRASI") || rowText.includes("JURUSAN") || rowText.includes("D3") || rowText.includes("D4") || rowText.includes("DIV")) {
@@ -507,7 +517,6 @@
       const gridSkor = document.getElementById('modalGridSkor');
 
       if (isD3) {
-        // Kotak khusus D3 (Tanpa Lat. D4 & TOEFL D4)
         gridSkor.innerHTML = `
           <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">SSPECT</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.sspect}</span></div>
           <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">LAT. D3</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.latihanD3}</span></div>
@@ -517,7 +526,6 @@
           <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">REMEDIAL 3</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.remedial3}</span></div>
         `;
       } else {
-        // Kotak khusus D4 (Tanpa Lat. D3 & TOEFL D3)
         gridSkor.innerHTML = `
           <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">SSPECT</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.sspect}</span></div>
           <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">LAT. D4</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.latihanD4}</span></div>
@@ -657,7 +665,7 @@
           if (panelTabel) panelTabel.classList.remove('hidden');
         }
       } catch (err) {
-        console.error("Belum ada tabel arsip di Supabase atau gagal dimuat:", err);
+        console.error("Belum ada data arsip untuk tahun ini di Supabase:", err);
       }
     }
   </script>
