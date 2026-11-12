@@ -1,6 +1,6 @@
 /**
  * MODUL 4: KALKULASI & PUBLIKASI SCORE - UPA BAHASA POLNES (FULL VERSION UTUH)
- * Menampilkan pilihan antrean murni berdasarkan Nama Kelas & Jenis Tes.
+ * Memuat antrean berdasarkan data HasilTes dan mencocokkannya ke jadwal_log dengan aman.
  */
 
 let globalDataAntrean = [];
@@ -39,14 +39,14 @@ async function loadAntreanSesi() {
   if (!select) return;
 
   try {
-    // Ambil semua data dari HasilTes yang belum dipublish (atau status kosong/selain PUBLISHED)
+    // 1. Ambil data dari HasilTes
     const { data: listHasil, error } = await window.supabaseClient
       .from('HasilTes')
       .select('idJadwal, jenisTes, status');
 
     if (error) throw error;
 
-    // Filter yang belum PUBLISHED di sisi JavaScript agar lebih aman dari data null/undefined
+    // Filter yang belum dipublished
     const belumPublish = (listHasil || []).filter(item => item.status !== 'PUBLISHED');
 
     if (belumPublish.length === 0) {
@@ -56,7 +56,7 @@ async function loadAntreanSesi() {
 
     const uniqueIds = [...new Set(belumPublish.map(item => item.idJadwal))];
 
-    // Ambil detail jadwal dari tabel jadwal_log
+    // 2. Ambil detail dari jadwal_log
     const { data: jadwalList, error: jadwalErr } = await window.supabaseClient
       .from('jadwal_log')
       .select('*')
@@ -64,8 +64,16 @@ async function loadAntreanSesi() {
 
     if (jadwalErr) throw jadwalErr;
 
-    // TAMPILAN UTAMA MURNI NAMA KELAS & JENIS TES
-    select.innerHTML = '<option value="">-- Pilih Kelas & Jenis Tes --</option>' + (jadwalList || []).map(j => 
+    // Jika jadwal_log tidak ditemukan, buat fallback dari idJadwal langsung agar tetap tampil
+    if (!jadwalList || jadwalList.length === 0) {
+      select.innerHTML = '<option value="">-- Pilih Kelas & Sesi Ujian --</option>' + uniqueIds.map(id => 
+        `<option value="${id}">ID Jadwal: ${id} (Data Kelas)</option>`
+      ).join('');
+      return;
+    }
+
+    // TAMPILAN DROPDOWN: Nama Kelas di depan dengan info lengkap
+    select.innerHTML = '<option value="">-- Pilih Kelas & Sesi Ujian --</option>' + jadwalList.map(j => 
       `<option value="${j.id}">Kelas: ${j.nama_kelas} — ${j.jenis_tes.toUpperCase()} (${j.ruang_lab} | ${j.sesi} | Tgl: ${j.tanggal})</option>`
     ).join('');
 
@@ -81,7 +89,7 @@ async function muatDataKalkulasi() {
   
   const idj = select.value;
   if (!idj) {
-    alert("Pilih kelas dan jenis tes terlebih dahulu.");
+    alert("Pilih kelas dan sesi ujian terlebih dahulu.");
     return;
   }
   
