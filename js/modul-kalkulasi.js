@@ -1,12 +1,12 @@
 /**
- * MODUL 4: KALKULASI & PUBLIKASI SCORE - UPA BAHASA POLNES
- * Menampilkan antrean sesi, kalkulasi konversi live, dan Publish.
+ * MODUL 4: KALKULASI & PUBLIKASI SCORE - UPA BAHASA POLNES (FULL VERSION UTUH)
+ * Menampilkan antrean sesi, kalkulasi konversi live, dan Publish dengan validasi status.
  */
 
 let globalDataAntrean = [];
 let activeIdJadwal = null;
 
-// Tabel Konversi Resmi ITP
+// Tabel Konversi Resmi ITP TOEFL
 const TABEL_KONVERSI_TOEFL = {
   50: { l: 68, s: 68, r: 67 }, 49: { l: 67, s: 67, r: 66 }, 48: { l: 66, s: 65, r: 65 }, 47: { l: 65, s: 63, r: 63 },
   46: { l: 63, s: 61, r: 61 }, 45: { l: 62, s: 60, r: 60 }, 44: { l: 61, s: 59, r: 59 }, 43: { l: 60, s: 58, r: 58 },
@@ -36,15 +36,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function loadAntreanSesi() {
   const select = document.getElementById('selectAntreanSesi');
+  if (!select) return;
+
   try {
-    // Ambil data idJadwal yang ada di tabel HasilTes (Group By simulasi)
-    // Asumsi: status_publish = false atau column status != 'PUBLISHED'
+    // Ambil data idJadwal yang belum dipublish berdasarkan kolom status
     const { data: listHasil, error } = await window.supabaseClient
       .from('HasilTes')
       .select('idJadwal, jenisTes, status')
-      .neq('status', 'PUBLISHED'); // Hanya ambil yang belum publish
+      .neq('status', 'PUBLISHED');
 
     if (error) throw error;
+
+    if (!listHasil || listHasil.length === 0) {
+      select.innerHTML = '<option value="">Semua data telah ter-Publish (Tidak ada antrean)</option>';
+      return;
+    }
 
     // Filter duplikat batch ID
     const uniqueBatches = [];
@@ -59,39 +65,37 @@ async function loadAntreanSesi() {
       }
     }
 
-    if (uniqueBatches.length === 0) {
-      select.innerHTML = '<option value="">Semua data telah ter-Publish (Tidak ada antrean)</option>';
-      return;
-    }
-
-    select.innerHTML = uniqueBatches.map(b => 
-      `<option value="${b.idJadwal}">BATCH JADWAL ID: ${b.idJadwal} — (Tes: ${b.jenisTes})</option>`
+    select.innerHTML = '<option value="">-- Pilih Batch Sesi Ujian --</option>' + uniqueBatches.map(b => 
+      `<option value="${b.idJadwal}">BATCH JADWAL ID: ${b.idJadwal} - (Tes: ${b.jenisTes})</option>`
     ).join('');
 
   } catch (err) {
     select.innerHTML = '<option value="">Gagal memuat data antrean</option>';
-    console.error(err);
+    console.error("Error loadAntreanSesi:", err);
   }
 }
 
 async function muatDataKalkulasi() {
   const select = document.getElementById('selectAntreanSesi');
-  const idJ = select.value;
-  if (!idJ) {
+  if (!select) return;
+  
+  const idj = select.value;
+  if (!idj) {
     alert("Pilih batch antrean sesi terlebih dahulu.");
     return;
   }
-  activeIdJadwal = idJ;
+  
+  activeIdJadwal = idj;
 
   try {
     const { data: records, error } = await window.supabaseClient
       .from('HasilTes')
       .select('*')
-      .eq('idJadwal', idJ);
+      .eq('idJadwal', idj);
 
     if (error) throw error;
 
-    globalDataAntrean = records;
+    globalDataAntrean = records || [];
     renderTabelKalkulasi();
 
   } catch (err) {
@@ -108,36 +112,35 @@ function renderTabelKalkulasi() {
     return;
   }
 
-  let no = 1;
-  tbody.innerHTML = globalDataAntrean.map((item) => {
-    let tampilanL, tampilanS, tampilanR, tampilanTotal;
+  tbody.innerHTML = globalDataAntrean.map((item, index) => {
+    let tampilanL = '', tampilanS = '', tampilanR = '', tampilanTotal = '';
+    const no = index + 1;
 
     if (item.jenisTes === 'TOEFL') {
-      // Hitung ulang untuk divisualisasikan: BENAR = KONVERSI
       const konvL = hitungKonversiDetail(item.sec1Listening, 1);
       const konvS = hitungKonversiDetail(item.sec2Structure, 2);
       const konvR = hitungKonversiDetail(item.sec3Reading, 3);
-      
-      tampilanL = `<b class="text-slate-700">${item.sec1Listening}</b> <span class="text-slate-300 mx-1">➔</span> <b class="text-sky-600">${konvL}</b>`;
-      tampilanS = `<b class="text-slate-700">${item.sec2Structure}</b> <span class="text-slate-300 mx-1">➔</span> <b class="text-purple-600">${konvS}</b>`;
-      tampilanR = `<b class="text-slate-700">${item.sec3Reading}</b> <span class="text-slate-300 mx-1">➔</span> <b class="text-amber-600">${konvR}</b>`;
-      tampilanTotal = item.totalSkor;
+
+      tampilanL = `<span class="text-slate-700">${item.sec1Listening}</span> <span class="text-slate-300 mx-1">→</span> <span class="text-sky-600 font-bold">${konvL}</span>`;
+      tampilanS = `<span class="text-slate-700">${item.sec2Structure}</span> <span class="text-slate-300 mx-1">→</span> <span class="text-purple-600 font-bold">${konvS}</span>`;
+      tampilanR = `<span class="text-slate-700">${item.sec3Reading}</span> <span class="text-slate-300 mx-1">→</span> <span class="text-amber-600 font-bold">${konvR}</span>`;
+      tampilanTotal = Math.round(((konvL + konvS + konvR) * 10) / 3);
     } else {
       // SSPECT
-      tampilanL = `<b class="text-slate-700">${item.sec1Listening}</b> <span class="text-slate-300 mx-1">➔</span> <b class="text-sky-600">${item.sec1Listening}</b>`;
-      tampilanS = `<span class="text-slate-300">-</span>`;
-      tampilanR = `<span class="text-slate-300">-</span>`;
-      tampilanTotal = item.totalSkor;
+      tampilanL = `<span class="text-slate-700 font-semibold">${item.sec1Listening || 0}</span>`;
+      tampilanS = `-`;
+      tampilanR = `-`;
+      tampilanTotal = item.totalSkor || item.sec1Listening || 0;
     }
 
     return `
       <tr class="hover:bg-slate-50 transition-colors border-b border-slate-100">
-        <td class="px-4 py-4 text-[13px] font-semibold border-r border-slate-100">${no++}</td>
+        <td class="px-4 py-4 text-[13px] font-semibold border-r border-slate-100 text-center">${no}</td>
         <td class="px-4 py-4 text-[13px] font-bold text-slate-800 border-r border-slate-100">${item.nim}</td>
-        <td class="px-4 py-4 text-[11px] font-bold text-slate-500 border-r border-slate-100 bg-slate-50 uppercase">${item.jenisTes}</td>
-        <td class="px-4 py-4 text-[13px] text-center border-r border-slate-100">${tampilanL}</td>
-        <td class="px-4 py-4 text-[13px] text-center border-r border-slate-100">${tampilanS}</td>
-        <td class="px-4 py-4 text-[13px] text-center border-r border-slate-100">${tampilanR}</td>
+        <td class="px-4 py-4 text-[11px] font-bold text-slate-500 uppercase border-r border-slate-100 text-center">${item.jenisTes}</td>
+        <td class="px-4 py-4 text-center border-r border-slate-100 text-[13px]">${tampilanL}</td>
+        <td class="px-4 py-4 text-center border-r border-slate-100 text-[13px]">${tampilanS}</td>
+        <td class="px-4 py-4 text-center border-r border-slate-100 text-[13px]">${tampilanR}</td>
         <td class="px-4 py-4 text-[15px] font-extrabold text-center text-polnes-dark bg-emerald-50/50">${tampilanTotal}</td>
       </tr>
     `;
@@ -150,10 +153,12 @@ async function publishKeWebUtama() {
     return;
   }
 
-  if (!confirm(`Yakin ingin MEM-PUBLISH data hasil test Batch ${activeIdJadwal} ini? Setelah dipublish, mahasiswa dapat langsung melihat skor resminya di web utama.`)) return;
+  if (!confirm(`Yakin ingin MEM-PUBLISH data hasil test Batch ${activeIdJadwal} ini? Setelah dipublikasikan, mahasiswa dapat langsung melihat skor resminya.`)) {
+    return;
+  }
 
   try {
-    // Kita update kolom 'status' menjadi 'PUBLISHED' agar masuk ke web frontend mahasiswa
+    // Update status menjadi 'PUBLISHED' agar data masuk ke web utama frontend mahasiswa
     const { error } = await window.supabaseClient
       .from('HasilTes')
       .update({ status: 'PUBLISHED' })
@@ -161,7 +166,7 @@ async function publishKeWebUtama() {
 
     if (error) throw error;
 
-    alert("🎉 Publikasi Berhasil! Data skor mahasiswa sekarang sudah LIVE dan dapat diakses di portal mahasiswa.");
+    alert("Publikasi Berhasil! Data skor mahasiswa sekarang sudah LIVE dan dapat diakses di portal mahasiswa.");
     window.location.reload();
 
   } catch (err) {
