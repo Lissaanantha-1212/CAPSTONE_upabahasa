@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Overview Dashboard - UPA Bahasa POLNES</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+          colors: { polnes: { main: '#10C35D', dark: '#0B8A42', light: '#E8F8EF' } }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 antialiased flex h-screen overflow-hidden">
+
+  <!-- ==================== SIDEBAR KONSISTEN (SEMUA MENU AKTIF) ==================== -->
+  <aside class="w-[260px] bg-white border-r border-slate-200 flex flex-col flex-shrink-0 h-full overflow-y-auto z-20">
+    <div class="p-6 flex items-center gap-3 border-b border-slate-100 sticky top-0 bg-white z-10">
+      <img src="./img/polnes.png" alt="Logo Polnes" class="w-8 h-8 object-contain">
+      <span class="font-extrabold text-slate-900 tracking-wide text-sm">UPA BAHASA</span>
+    </div>
+    
+    <div class="p-4 space-y-1 flex-1">
+      <!-- Dashboard (AKTIF) -->
+      <a href="index.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-polnes-light text-polnes-main font-bold transition-all text-[13px]">
+        <i class="ri-layout-grid-line text-lg text-polnes-main"></i> Dashboard
+      </a>
+      
+      <div class="pt-4 pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider px-4">LAYANAN TEST</div>
+      
+      <!-- Dropdown Penjadwalan -->
+      <div class="space-y-1">
+        <div onclick="document.getElementById('subPenjadwalan').classList.toggle('hidden'); document.getElementById('arrowPenjadwalan').classList.toggle('rotate-180')" class="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-slate-50 text-slate-600 font-medium text-[13px] cursor-pointer transition-all">
+          <div class="flex items-center gap-3"><i class="ri-calendar-line text-lg text-slate-500"></i> Penjadwalan</div>
+          <i id="arrowPenjadwalan" class="ri-arrow-down-s-line text-slate-400 text-lg transition-transform"></i>
+        </div>
+        <div id="subPenjadwalan" class="pl-7 space-y-1 pt-1 pb-1 hidden">
+          <a href="jadwal-test.html" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 transition-all font-medium text-[13px]">
+            <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div> Jadwal Test
+          </a>
+          <a href="jadwal-remedial.html" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 transition-all font-medium text-[13px]">
+            <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div> Jadwal Remedial
+          </a>
+          <a href="jadwal-kursus.html" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 transition-all font-medium text-[13px]">
+            <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div> Jadwal Kursus
+          </a>
+        </div>
+      </div>
+
+      <!-- Dropdown Hasil Test -->
+      <div class="space-y-1">
+        <div onclick="document.getElementById('subHasilTest').classList.toggle('hidden'); document.getElementById('arrowHasilTest').classList.toggle('rotate-180')" class="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-slate-50 text-slate-600 font-medium text-[13px] cursor-pointer transition-all">
+          <div class="flex items-center gap-3"><i class="ri-file-upload-line text-lg text-slate-500"></i> Hasil Test</div>
+          <i id="arrowHasilTest" class="ri-arrow-down-s-line text-slate-400 text-lg transition-transform"></i>
+        </div>
+        <div id="subHasilTest" class="pl-7 space-y-1 pt-1 pb-1 hidden">
+          <a href="toefl.html" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 transition-all font-medium text-[13px]">
+            <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div> TOEFL
+          </a>
+          <a href="sspect.html" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 transition-all font-medium text-[13px]">
+            <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div> SSPECT
+          </a>
+        </div>
+      </div>
+
+      <a href="kalkulasi-score.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
+        <i class="ri-calculator-line text-lg text-slate-500"></i> Kalkulasi Score
+      </a>
+
+      <a href="rekapan.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
+        <i class="ri-folder-history-line text-lg text-slate-500"></i> Rekapan
+      </a>
+
+      <a href="pusat-informasi.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
+        <i class="ri-information-line text-lg text-slate-500"></i> Pusat Informasi
+      </a>
+
+      <div class="pt-4 pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider px-4">MANAJEMEN KONTEN</div>
+      <a href="konten-utama.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
+        <i class="ri-article-line text-lg text-slate-500"></i> Konten Utama
+      </a>
+      <a href="layanan-tambahan.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
+        <i class="ri-heart-pulse-line text-lg text-slate-500"></i> Layanan Tambahan
+      </a>
+      <a href="pembelajaran.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
+        <i class="ri-book-open-line text-lg text-slate-500"></i> Pembelajaran
+      </a>
+      <a href="pengaduan.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
+        <i class="ri-message-2-line text-lg text-slate-500"></i> Pengaduan
+      </a>
+      <a href="survei.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
+        <i class="ri-clipboard-line text-lg text-slate-500"></i> Survei
+      </a>
+    </div>
+  </aside>
+
+  <!-- ==================== MAIN CONTENT ==================== -->
+  <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
+    
+    <!-- Top Header Bersih (Tanpa Search, Hanya Ikon ST di Pojok Kanan Atas) -->
+    <header class="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between sticky top-0 z-10 shrink-0">
+      <div>
+        <p class="text-[10px] uppercase tracking-wider font-extrabold text-slate-400">DASHBOARD / OVERVIEW</p>
+      </div>
+      <div class="flex items-center gap-4">
+        <div class="w-9 h-9 rounded-full bg-polnes-light border border-polnes-main text-polnes-main flex items-center justify-center font-bold text-xs shadow-sm">ST</div>
+      </div>
+    </header>
+
+    <div class="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 pb-12">
+      
+      <!-- Judul Halaman -->
+      <div>
+        <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Overview Dashboard</h1>
+        <p class="text-xs text-slate-500 mt-1">Pantau antrean kelas, jadwal terkunci, dan hasil sinkronisasi ujian secara real-time.</p>
+      </div>
+
+      <!-- 4 Kartu Statistik -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        
+        <!-- Card 1: Kelas Menunggu Jadwal -->
+        <a href="jadwal-test.html" class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:border-rose-300 transition-all flex flex-col justify-between group">
+          <div class="flex items-start justify-between">
+            <div class="w-11 h-11 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center text-xl">
+              <i class="ri-timer-line"></i>
+            </div>
+            <span class="px-2.5 py-1 rounded-lg bg-rose-50 border border-rose-100 text-rose-500 text-[10px] font-bold">Antrean</span>
+          </div>
+          <div class="mt-6">
+            <div id="statAntrean" class="text-3xl font-extrabold text-slate-900 group-hover:text-rose-600 transition-colors">0</div>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">KELAS MENUNGGU JADWAL</p>
+          </div>
+        </a>
+
+        <!-- Card 2: Sesi Jadwal Terkunci -->
+        <a href="jadwal-test.html" class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:border-sky-300 transition-all flex flex-col justify-between group">
+          <div class="flex items-start justify-between">
+            <div class="w-11 h-11 rounded-2xl bg-sky-50 text-sky-500 flex items-center justify-center text-xl">
+              <i class="ri-calendar-check-line"></i>
+            </div>
+            <span class="px-2.5 py-1 rounded-lg bg-sky-50 border border-sky-100 text-sky-600 text-[10px] font-bold">Modul 1</span>
+          </div>
+          <div class="mt-6">
+            <div id="statJadwalTerkunci" class="text-3xl font-extrabold text-slate-900 group-hover:text-sky-600 transition-colors">0</div>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">SESI JADWAL TERKUNCI</p>
+          </div>
+        </a>
+
+        <!-- Card 3: MHS Terjadwal (Aktif) -->
+        <a href="jadwal-test.html" class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:border-amber-300 transition-all flex flex-col justify-between group">
+          <div class="flex items-start justify-between">
+            <div class="w-11 h-11 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center text-xl">
+              <i class="ri-group-line"></i>
+            </div>
+            <span class="px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-100 text-amber-600 text-[10px] font-bold">Modul 1</span>
+          </div>
+          <div class="mt-6">
+            <div id="statMhsTerjadwal" class="text-3xl font-extrabold text-slate-900 group-hover:text-amber-600 transition-colors">0</div>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">MHS TERJADWAL (AKTIF)</p>
+          </div>
+        </a>
+
+        <!-- Card 4: Sesi Ujian Selesai Dinilai -->
+        <a href="rekapan.html" class="bg-polnes-main rounded-2xl p-6 shadow-sm border border-polnes-main hover:bg-polnes-dark transition-all flex flex-col justify-between relative overflow-hidden text-white">
+          <i class="ri-shield-check-fill text-[110px] text-white/15 absolute -right-3 -bottom-5 pointer-events-none"></i>
+          <div class="flex items-start justify-between relative z-10">
+            <div class="w-11 h-11 rounded-2xl bg-white/20 text-white flex items-center justify-center text-xl">
+              <i class="ri-file-list-3-line"></i>
+            </div>
+            <span class="px-2.5 py-1 rounded-lg bg-white/20 text-white text-[10px] font-bold">Modul 3</span>
+          </div>
+          <div class="mt-6 relative z-10">
+            <div id="statSelesaiDinilai" class="text-3xl font-extrabold text-white">0</div>
+            <p class="text-[10px] font-bold text-white/90 uppercase tracking-wider mt-1">SESI UJIAN SELESAI DINILAI</p>
+          </div>
+        </a>
+
+      </div>
+
+      <!-- Grafik Statistik Pelaksanaan Test -->
+      <div class="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-slate-200 space-y-6">
+        <div>
+          <p class="text-[11px] font-bold text-slate-400">Statistik Pelaksanaan Test</p>
+          <h3 class="text-base font-extrabold text-slate-900 mt-0.5">Tren Pendaftaran TOEFL & SSPECT Bulanan</h3>
+        </div>
+
+        <div class="h-[290px] w-full">
+          <canvas id="chartTrenBulanan"></canvas>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- SCRIPT SUPABASE & CHART -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./js/supabase-config.js"></script>
+  <script>
+    async function muatStatistikDashboard() {
+      let jmlAntrean = 0;
+      let jmlJadwalTerkunci = 0;
+      let jmlMhsTerjadwal = 0;
+      let jmlSelesaiDinilai = 0;
+      const trenBulanan = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+      try {
+        if (window.supabaseClient) {
+          // 1. Cek Antrean Kelas
+          const { data: antreanData } = await window.supabaseClient
+            .from('antrean_mahasiswa')
+            .select('*');
+          if (antreanData && antreanData.length > 0) {
+            const unikKelas = new Set(antreanData.map(a => a.nama_kelas || a.kelas || a.id));
+            jmlAntrean = unikKelas.size;
+          }
+
+          // 2. Cek Jadwal Terkunci & Total Mahasiswa Terjadwal dari jadwal_log
+          const { data: logData } = await window.supabaseClient
+            .from('jadwal_log')
+            .select('*');
+          if (logData && logData.length > 0) {
+            jmlJadwalTerkunci = logData.length;
+            jmlMhsTerjadwal = logData.reduce((acc, row) => {
+              const jml = parseInt(row.jml_mhs || row.jumlah_mahasiswa || row.kuota || 0, 10);
+              return acc + (isNaN(jml) ? 0 : jml);
+            }, 0);
+
+            logData.forEach(row => {
+              if (row.tanggal) {
+                const parts = String(row.tanggal).split('-');
+                if (parts.length >= 2) {
+                  const bulanIdx = parseInt(parts[1], 10) - 1;
+                  if (bulanIdx >= 0 && bulanIdx < 12) {
+                    const mhs = parseInt(row.jml_mhs || row.jumlah_mahasiswa || 1, 10) || 1;
+                    trenBulanan[bulanIdx] += mhs;
+                  }
+                }
+              }
+            });
+          }
+
+          // 3. Cek Rekapan Master yang Selesai Dinilai
+          const { data: rekapanData } = await window.supabaseClient
+            .from('arsip_master_rekapan')
+            .select('*');
+          if (rekapanData && rekapanData.length > 0) {
+            const unikKategoriKelas = new Set(rekapanData.map(r => `${r.kategori_tes || 'TOEFL'}-${r.prodi || ''}`));
+            jmlSelesaiDinilai = unikKategoriKelas.size;
+
+            rekapanData.forEach(r => {
+              const tgl = r.created_at || r.tanggal;
+              if (tgl) {
+                const d = new Date(tgl);
+                if (!isNaN(d.getTime())) {
+                  trenBulanan[d.getMonth()] += 1;
+                }
+              }
+            });
+          }
+        }
+      } catch (err) {
+        console.warn("Memuat statistik mode cadangan:", err);
+      }
+
+      document.getElementById('statAntrean').innerText = jmlAntrean;
+      document.getElementById('statJadwalTerkunci').innerText = jmlJadwalTerkunci;
+      document.getElementById('statMhsTerjadwal').innerText = jmlMhsTerjadwal;
+      document.getElementById('statSelesaiDinilai').innerText = jmlSelesaiDinilai;
+
+      renderChartTren(trenBulanan);
+    }
+
+    function renderChartTren(dataBulan) {
+      const ctx = document.getElementById('chartTrenBulanan').getContext('2d');
+      const bulanAktifIdx = new Date().getMonth();
+
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
+          datasets: [{
+            label: 'Total Peserta Ujian',
+            data: dataBulan,
+            backgroundColor: dataBulan.map((_, idx) => idx === bulanAktifIdx ? '#10C35D' : '#E2E8F0'),
+            hoverBackgroundColor: '#10C35D',
+            borderRadius: 8,
+            barThickness: 28
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#0F172A',
+              padding: 10,
+              cornerRadius: 8,
+              callbacks: {
+                label: (item) => ` ${item.raw} Peserta`
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              suggestedMax: 200,
+              ticks: {
+                stepSize: 50,
+                color: '#94A3B8',
+                font: { family: 'Plus Jakarta Sans', size: 11, weight: '600' }
+              },
+              grid: { color: '#F1F5F9', drawBorder: false },
+              border: { display: false }
+            },
+            x: {
+              ticks: {
+                color: (ctx) => ctx.index === bulanAktifIdx ? '#10C35D' : '#64748B',
+                font: (ctx) => ({
+                  family: 'Plus Jakarta Sans',
+                  size: 11,
+                  weight: ctx.index === bulanAktifIdx ? '800' : '600'
+                })
+              },
+              grid: { display: false },
+              border: { display: false }
+            }
+          }
+        }
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', muatStatistikDashboard);
+  </script>
+</body>
+</html>
