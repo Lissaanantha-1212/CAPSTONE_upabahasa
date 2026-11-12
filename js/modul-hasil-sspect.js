@@ -1,15 +1,16 @@
 /**
- * MODUL HASIL TEST SSPECT - UPA BAHASA POLNES
- * Validasi 1 file Excel, auto-mapping, bind NIM, dan simpan permanen.
+ * MODUL HASIL TEST SSPECT - UPA BAHASA POLNES (FULL VERSION UTUH + PRODI)
+ * Menangani 1 file Excel SSPECT, auto-mapping peserta, bind NIM siswa susulan,
+ * simpan permanen ke tabel HasilTes, dan auto-delete jadwal log setelah selesai.
  */
 
 let parsedSspectData = null;
 let globalSyncedSspectResults = [];
 
-const SSPECT_SESI_RANGES = {
-  "SESI 1 (08.00 - 10.30 WITA)": { startHour: 8, startMin: 0, endHour: 10, endMin: 30 },
-  "SESI 2 (10.30 - 13.00 WITA)": { startHour: 10, startMin: 30, endHour: 13, endMin: 0 },
-  "SESI 3 (14.00 - 16.30 WITA)": { startHour: 14, startMin: 0, endHour: 16, endMin: 30 }
+const SESI_RANGES_SSPECT = {
+  "SESI 1 (08.00 - 10.30 WITA)": { startHour: 8, endHour: 10 },
+  "SESI 2 (10.30 - 13.00 WITA)": { startHour: 10, endHour: 13 },
+  "SESI 3 (14.00 - 16.30 WITA)": { startHour: 14, endHour: 16 }
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -19,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-function resetSspectInput() {
+function resetSspectFileInput() {
   const el = document.getElementById('fileSspectInput');
   const lbl = document.getElementById('labelSspectFile');
   if (el) el.value = '';
@@ -30,28 +31,23 @@ function resetSspectInput() {
   parsedSspectData = null;
 }
 
-function parseSspectFileInfo(filename) {
-  const dateMatch = filename.match(/(\d{4}-\d{2}-\d{2})/);
+function parseFileInfoSspect(filename) {
+  const dateMatch = filename.match(/(\d{2}-\d{2}-\d{4})/);
   const timeMatch = filename.match(/(\d{2}-\d{2}-\d{2})(?=\.\w+$)/);
 
   let dateStr = dateMatch ? dateMatch[0] : null;
-  let timeStr = timeMatch ? timeMatch[0] : null; 
-  
+  let timeStr = timeMatch ? timeMatch[0] : null;
+
   let hour = null;
-  let minute = null;
-  if (timeStr) {
-    const timeParts = timeStr.split('-');
-    hour = parseInt(timeParts[0]);
-    minute = parseInt(timeParts[1]);
-  }
+  if (timeStr) hour = parseInt(timeStr.split('-')[0]);
 
   let dbDate = null;
   if (dateStr) {
     const parts = dateStr.split('-');
-    dbDate = `${parts[0]}-${parts[2]}-${parts[1]}`;
+    dbDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
   }
 
-  return { dateStr, dbDate, timeStr, hour, minute };
+  return { dateStr, dbDate, timeStr, hour };
 }
 
 async function handleFileSspectUpload(event) {
@@ -63,17 +59,13 @@ async function handleFileSspectUpload(event) {
   const sesiTerpilih = sesiSelect ? sesiSelect.value : '';
   const labTerpilih = labSelect ? labSelect.value : '';
   
-  const fileInfo = parseSspectFileInfo(file.name);
+  const fileInfo = parseFileInfoSspect(file.name);
 
-  const rangeSesi = SSPECT_SESI_RANGES[sesiTerpilih];
+  const rangeSesi = SESI_RANGES_SSPECT[sesiTerpilih];
   if (fileInfo.hour !== null && rangeSesi) {
-    const fileTotalMinutes = fileInfo.hour * 60 + fileInfo.minute;
-    const startTotalMinutes = rangeSesi.startHour * 60 + rangeSesi.startMin;
-    const endTotalMinutes = rangeSesi.endHour * 60 + rangeSesi.endMin;
-
-    if (fileTotalMinutes < startTotalMinutes || fileTotalMinutes > endTotalMinutes) {
-      alert(`[DITOLAK] Jam file (${fileInfo.hour}:${fileInfo.minute < 10 ? '0':''}${fileInfo.minute} WITA) di luar rentang ${sesiTerpilih}.`);
-      resetSspectInput();
+    if (fileInfo.hour < rangeSesi.startHour || fileInfo.hour > rangeSesi.endHour) {
+      alert(`[DITOLAK] Jam file (${fileInfo.hour}:xx) di luar rentang ${sesiTerpilih}.`);
+      resetSspectFileInput();
       return;
     }
   }
@@ -92,29 +84,29 @@ async function handleFileSspectUpload(event) {
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
       const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
 
-      const parsedRows = parseExcelSspectNilai(rows);
-      parsedSspectData = { file, rows: parsedRows, name: file.name, info: fileInfo };
+      const parsedRows = parseExcelNilaiSspect(rows);
+      parsedSspectData = { file: file, rows: parsedRows, name: file.name, info: fileInfo };
 
       await jalankanSspectAutoMappingEngine(labTerpilih, sesiTerpilih);
 
     } catch (err) {
-      alert(`Gagal memproses file Excel SSPECT: ` + err.message);
-      resetSspectInput();
+      alert("Gagal memproses file Excel SSPECT: " + err.message);
+      resetSspectFileInput();
     }
   };
   reader.readAsArrayBuffer(file);
 }
 
-function parseExcelSspectNilai(rows) {
+function parseExcelNilaiSspect(rows) {
   const results = [];
-  for (let r = 4; r < rows.length; r++) {
+  for (let r = 0; r < rows.length; r++) {
     const row = rows[r];
     if (!row) continue;
 
-    const idMejaVal = String(row[0] || '').trim().toUpperCase(); 
-    const scoreValRaw = String(row[3] || '').trim(); 
+    const idMejaVal = String(row[0] || "").trim().toUpperCase();
+    const scoreValRaw = String(row[3] || "").trim();
 
-    if (idMejaVal.startsWith('STUDENT')) {
+    if (idMejaVal.startsWith('STUDENT') && idMejaVal !== 'STUDENT_NAME' && idMejaVal !== 'STUDENT NAME') {
       let skorAngka = 0;
       if (scoreValRaw.includes('/')) {
         skorAngka = Number(scoreValRaw.split('/')[0].trim());
@@ -130,7 +122,7 @@ function parseExcelSspectNilai(rows) {
 }
 
 async function jalankanSspectAutoMappingEngine(lab, sesi) {
-  const tanggalUjianDb = parsedSspectData.info.dbDate || parsedSspectData.info.dateStr;
+  const tanggalUjianDb = parsedSspectData.info.dbDate;
 
   const { data: jadwalList, error: errJadwal } = await window.supabaseClient
     .from('jadwal_log')
@@ -140,7 +132,7 @@ async function jalankanSspectAutoMappingEngine(lab, sesi) {
     .eq('tanggal', tanggalUjianDb);
 
   if (errJadwal || !jadwalList || jadwalList.length === 0) {
-    alert(`[VALIDASI GAGAL] Tidak ditemukan jadwal SSPECT untuk ${lab}, ${sesi} pada tanggal ${tanggalUjianDb}.`);
+    alert(`[VALIDASI GAGAL] Tidak ditemukan jadwal Modul 1 untuk ${lab}, ${sesi} pada tanggal ${tanggalUjianDb}.`);
     return;
   }
 
@@ -152,7 +144,7 @@ async function jalankanSspectAutoMappingEngine(lab, sesi) {
     .eq('idJadwal', activeJadwal.id);
 
   if (existingLog && existingLog.length > 0) {
-    alert(`[DITOLAK] Hasil test SSPECT untuk sesi ini sudah pernah disimpan secara permanen ke database.`);
+    alert('[DITOLAK] Hasil test SSPECT untuk sesi ini sudah pernah disimpan secara permanen ke database.');
     return;
   }
 
@@ -168,14 +160,16 @@ async function jalankanSspectAutoMappingEngine(lab, sesi) {
   let idx = 1;
   globalSyncedSspectResults = [];
 
+  // MAPPING PESERTA UTAMA
   dbPesertaList.forEach(p => {
     const matchedRow = excelRows.find(x => x.id_meja === p.id_meja) || { skor: 0 };
-    
+
     globalSyncedSspectResults.push({
       no: idx++,
       idJadwal: activeJadwal.id,
       nim: p.nim,
       nama: p.nama,
+      program_studi: p.program_studi || '-', // MENGAMBIL PRODI DARI DATABASE PESERTA UJIAN
       id_meja: p.id_meja,
       jenisTes: 'SSPECT',
       sec1Listening: matchedRow.skor,
@@ -188,6 +182,7 @@ async function jalankanSspectAutoMappingEngine(lab, sesi) {
     });
   });
 
+  // MAPPING PESERTA SUSULAN
   const dbIdMejas = new Set(dbPesertaList.map(p => p.id_meja));
   const susulanRows = excelRows.filter(x => !dbIdMejas.has(x.id_meja));
 
@@ -197,6 +192,7 @@ async function jalankanSspectAutoMappingEngine(lab, sesi) {
       idJadwal: activeJadwal.id,
       nim: '',
       nama: '',
+      program_studi: '', // KOSONG SEMENTARA SEBELUM DI-BIND
       id_meja: sus.id_meja,
       jenisTes: 'SSPECT',
       sec1Listening: sus.skor,
@@ -210,6 +206,11 @@ async function jalankanSspectAutoMappingEngine(lab, sesi) {
   });
 
   renderTabelPratinjauSspect();
+
+  const statusSync = document.getElementById('infoStatusSync');
+  if (statusSync) {
+    statusSync.innerHTML = `<span class="text-polnes-main font-bold">Sinkronisasi SSPECT Berhasil!</span> ${dbPesertaList.length} peserta sesuai jadwal. <b class="text-rose-500">${susulanRows.length > 0 ? susulanRows.length + ' Siswa Susulan terdeteksi.' : 'Semua data pas dan valid.'}</b>`;
+  }
 }
 
 async function prosesBindNimSspect(idMeja) {
@@ -231,14 +232,14 @@ async function prosesBindNimSspect(idMeja) {
   try {
     let { data: dbMhs } = await window.supabaseClient
       .from('peserta_ujian')
-      .select('nim, nama, nama_kelas')
+      .select('nim, nama, nama_kelas, program_studi')
       .eq('nim', inputNIM)
       .limit(1);
 
     if (!dbMhs || dbMhs.length === 0) {
       const { data: dbAntrean } = await window.supabaseClient
         .from('antrean_mahasiswa')
-        .select('nim, nama, nama_kelas')
+        .select('nim, nama, nama_kelas, program_studi')
         .eq('nim', inputNIM)
         .limit(1);
       dbMhs = dbAntrean;
@@ -248,14 +249,16 @@ async function prosesBindNimSspect(idMeja) {
       rowTarget.nim = dbMhs[0].nim;
       rowTarget.nama = dbMhs[0].nama;
       rowTarget.nama_kelas = dbMhs[0].nama_kelas;
+      rowTarget.program_studi = dbMhs[0].program_studi || '-'; // BIND PRODI DARI DATABASE
       rowTarget.status = 'MAPPED';
       alert(`Berhasil Bind! Mahasiswa a.n ${rowTarget.nama}`);
     } else {
-      const inputManualNama = prompt(`NIM ${inputNIM} tidak ditemukan. Ketik Nama Lengkap Mahasiswa secara manual:`);
+      const inputManualNama = prompt(`NIM ${inputNIM} tidak ditemukan di database. Ketik Nama Lengkap Mahasiswa secara manual:`);
       if (inputManualNama && inputManualNama.trim() !== '') {
         rowTarget.nim = inputNIM;
         rowTarget.nama = inputManualNama.toUpperCase();
         rowTarget.nama_kelas = 'Susulan Manual';
+        rowTarget.program_studi = 'Input Manual'; // BIND MANUAL PRODI
         rowTarget.status = 'MAPPED';
         alert("Berhasil Bind dengan nama manual!");
       } else {
@@ -268,7 +271,7 @@ async function prosesBindNimSspect(idMeja) {
     renderTabelPratinjauSspect();
 
   } catch (err) {
-    alert("Gagal melakukan bind: " + err.message);
+    alert("Gagal melakukan bind SSPECT: " + err.message);
     inputEl.disabled = false;
   }
 }
@@ -277,45 +280,45 @@ function renderTabelPratinjauSspect() {
   const tbody = document.getElementById('tabelPratinjauSspectBody');
   if (!tbody) return;
 
-  const statusSync = document.getElementById('infoStatusSync');
-  const unmapped = globalSyncedSspectResults.filter(x => x.status === 'UNMAPPED').length;
-  
-  if (statusSync) {
-    statusSync.innerHTML = `<span class="text-polnes-main font-bold">Sinkronisasi Selesai!</span> Total ${globalSyncedSspectResults.length} peserta. <span class="${unmapped > 0 ? 'text-rose-500 font-bold' : 'text-polnes-main font-bold'}">${unmapped > 0 ? unmapped + ' siswa susulan belum di-Bind.' : 'Semua data pas dan valid.'}</span>`;
-  }
-
   tbody.innerHTML = globalSyncedSspectResults.map((item) => {
     let nimHtml = '';
     let namaHtml = '';
     let actionHtml = '';
 
     if (item.status === 'MAPPED') {
-      nimHtml = `<td class="px-4 py-4 text-[13px] font-bold text-slate-800 border-b border-slate-100">${item.nim}</td>`;
-      namaHtml = `<td class="px-4 py-4 text-[13px] font-medium text-slate-600 border-b border-slate-100 uppercase">${item.nama}</td>`;
+      nimHtml = `<td class="px-4 py-3 text-xs font-bold text-slate-800">${item.nim}</td>`;
+      namaHtml = `<td class="px-4 py-3 text-xs font-medium truncate max-w-[180px]">${item.nama}</td>`;
       actionHtml = `
-        <span class="bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-lg text-[11px] uppercase font-bold shadow-sm inline-flex items-center justify-center gap-1">
-          <i class="ri-link"></i> MAPPED
-        </span>`;
+        <span class="bg-emerald-100 text-emerald-700 px-2.5 py-1.5 rounded-md text-[10px] uppercase font-bold shadow-sm flex items-center justify-center w-max gap-1">
+          <i class="ri-link"></i> Mapped
+        </span>
+      `;
     } else {
       nimHtml = `
-        <td class="px-4 py-4 text-[13px] border-b border-slate-100">
-          <input type="text" id="input_nim_${item.id_meja}" placeholder="Ketik NIM..." class="px-3 py-1.5 border border-rose-300 bg-rose-50 rounded-lg text-xs w-32 focus:outline-none focus:border-rose-500 font-bold text-rose-700 placeholder-rose-300">
-        </td>`;
-      namaHtml = `<td class="px-4 py-4 text-[13px] font-semibold text-rose-500 italic border-b border-slate-100">? (Siswa Susulan)</td>`;
+        <td class="px-4 py-3 text-xs">
+          <input type="text" id="input_nim_${item.id_meja}" placeholder="Ketik NIM..." class="px-2 py-1.5 border border-rose-300 bg-rose-50 rounded-lg text-xs w-28 focus:outline-none focus:border-rose-500 font-bold text-rose-700 placeholder-rose-300">
+        </td>
+      `;
+      namaHtml = `<td class="px-4 py-3 text-xs font-semibold text-rose-500 italic">? (Siswa Susulan)</td>`;
       actionHtml = `
-        <button onclick="prosesBindNimSspect('${item.id_meja}')" class="bg-rose-500 hover:bg-rose-600 text-white px-3 py-1.5 rounded-lg text-[11px] uppercase font-bold shadow-sm inline-flex items-center justify-center gap-1 transition-all">
-          <i class="ri-lock-unlock-line"></i> BIND
-        </button>`;
+        <button onclick="prosesBindNimSspect('${item.id_meja}')" class="bg-rose-500 hover:bg-rose-600 text-white px-2.5 py-1.5 rounded-md text-[10px] uppercase font-bold shadow-sm flex items-center justify-center w-max gap-1 transition-all">
+          <i class="ri-lock-unlock-line"></i> Bind NIM
+        </button>
+      `;
     }
 
+    // KOLOM PROGRAM STUDI DITAMBAHKAN PADA TABEL SSPECT
+    const prodiHtml = `<td class="px-4 py-3 text-[11px] font-semibold text-sky-700 uppercase">${item.program_studi}</td>`;
+
     return `
-      <tr class="${item.status === 'UNMAPPED' ? 'bg-rose-50/40' : 'hover:bg-slate-50/50'} transition-colors">
-        <td class="px-4 py-4 text-[13px] font-semibold border-b border-slate-100">${item.no}</td>
+      <tr class="${item.status === 'UNMAPPED' ? 'bg-rose-50/30' : 'hover:bg-slate-50'} transition-colors">
+        <td class="px-4 py-3 text-xs font-semibold">${item.no}</td>
         ${nimHtml}
         ${namaHtml}
-        <td class="px-4 py-4 text-[13px] font-bold text-emerald-600 border-b border-slate-100 uppercase">${item.id_meja}</td>
-        <td class="px-4 py-4 text-sm text-center font-extrabold text-polnes-dark bg-emerald-50/30 border-b border-slate-100">${item.totalSkor}</td>
-        <td class="px-4 py-4 text-center border-b border-slate-100">${actionHtml}</td>
+        ${prodiHtml}
+        <td class="px-4 py-3 text-xs font-mono font-bold text-emerald-600">${item.id_meja}</td>
+        <td class="px-4 py-3 text-sm text-center font-extrabold text-polnes-dark bg-emerald-50/50">${item.totalSkor}</td>
+        <td class="px-4 py-3 text-xs text-center">${actionHtml}</td>
       </tr>
     `;
   }).join('');
@@ -333,11 +336,12 @@ async function simpanPermanenSspectKeDatabase() {
     return;
   }
 
-  if (!confirm(`Yakin ingin menyimpan hasil test SSPECT ini secara permanen ke database tabel HasilTes? Histori jadwal sesi ini juga akan dibersihkan otomatis.`)) return;
+  if (!confirm('Yakin ingin menyimpan data hasil test SSPECT ini secara permanen ke database tabel HasilTes? Histori jadwal sesi ini juga akan dibersihkan otomatis.')) return;
 
   try {
     const activeIdJadwal = globalSyncedSspectResults[0].idJadwal;
 
+    // 1. Simpan payload ke tabel "HasilTes" (DITAMBAH PRODI)
     const payload = globalSyncedSspectResults.map(item => ({
       idJadwal: item.idJadwal,
       nim: item.nim,
@@ -345,7 +349,8 @@ async function simpanPermanenSspectKeDatabase() {
       sec1Listening: item.sec1Listening,
       sec2Structure: 0,
       sec3Reading: 0,
-      totalSkor: item.totalSkor
+      totalSkor: item.totalSkor,
+      program_studi: item.program_studi // PAYLOAD PROGRAM STUDI
     }));
 
     const { error: insertErr } = await window.supabaseClient
@@ -354,11 +359,13 @@ async function simpanPermanenSspectKeDatabase() {
 
     if (insertErr) throw insertErr;
 
+    // 2. Hapus data peserta ujian terkait jadwal ini agar bersih
     await window.supabaseClient
       .from('peserta_ujian')
       .delete()
       .eq('jadwal_id', activeIdJadwal);
 
+    // 3. Hapus data histori jadwal log agar bersih otomatis dari daftar sesi
     const { error: deleteJadwalErr } = await window.supabaseClient
       .from('jadwal_log')
       .delete()
@@ -366,7 +373,7 @@ async function simpanPermanenSspectKeDatabase() {
 
     if (deleteJadwalErr) throw deleteJadwalErr;
 
-    alert("Berhasil! Nilai SSPECT tersimpan permanen dan histori jadwal sesi ini telah dibersihkan otomatis.");
+    alert("Berhasil! Data nilai SSPECT tersimpan permanen ke HasilTes dan histori jadwal sesi ini telah dibersihkan otomatis.");
     window.location.reload();
 
   } catch (err) {
