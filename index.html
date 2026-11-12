@@ -181,9 +181,9 @@
         </span>
 
         <!-- Tombol Login Staff -->
-        <button onclick="bukaModalLoginStaff()" class="ml-2 px-4 py-2 rounded-full bg-emerald-50 hover:bg-[#169C53] text-[#169C53] hover:text-white border border-emerald-200 font-bold text-xs transition-all flex items-center gap-1.5">
-          <i class="ri-shield-user-line text-sm"></i>
-          <span>Login Staff</span>
+        <button onclick="window.location.href='login.html'" class="ml-2 px-4 py-2 rounded-full bg-emerald-50 hover:bg-[#169C53] text-[#169C53] hover:text-white border border-emerald-200 font-bold text-xs transition-all flex items-center gap-1.5">
+        <i class="ri-shield-user-line text-sm"></i>
+        <span>Login Staff</span>
         </button>
       </nav>
 
@@ -197,7 +197,7 @@
     <div id="mobileMenuLayanan" class="hidden lg:hidden bg-white border-t border-slate-200 px-5 py-4 space-y-4">
       <div class="flex items-center justify-between">
         <button onclick="bukaHalaman('beranda'); document.getElementById('mobileMenuLayanan').classList.add('hidden')" class="font-bold text-sm text-[#169C53]">BERANDA</button>
-        <button onclick="bukaModalLoginStaff(); document.getElementById('mobileMenuLayanan').classList.add('hidden')" class="px-3.5 py-1.5 rounded-full bg-[#169C53] text-white font-bold text-xs flex items-center gap-1">
+        <button onclick="window.location.href='login.html'; document.getElementById('mobileMenuLayanan').classList.add('hidden')" class="px-3.5 py-1.5 rounded-full bg-[#169C53] text-white font-bold text-xs flex items-center gap-1">
           <i class="ri-shield-user-line"></i> Login Staff
         </button>
       </div>
@@ -560,40 +560,6 @@
 
     </div>
   </section>
-
-  <!-- ==================== MODAL LOGIN STAFF ==================== -->
-  <div id="modalLoginStaff" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full p-6 md:p-7 shadow-2xl border border-slate-200 space-y-5">
-      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-        <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-xl bg-emerald-50 text-[#169C53] flex items-center justify-center text-lg">
-            <i class="ri-shield-user-line"></i>
-          </div>
-          <div>
-            <h3 class="text-base font-extrabold text-slate-900">Login Portal Staff</h3>
-            <p class="text-[11px] text-slate-500">Khusus Administrator & Staff UPA Bahasa POLNES</p>
-          </div>
-        </div>
-        <button onclick="tutupModalLoginStaff()" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center">
-          <i class="ri-close-line text-lg"></i>
-        </button>
-      </div>
-
-      <form onsubmit="prosesLoginStaff(event)" class="space-y-4">
-        <div>
-          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1.5">Username / NIP Staff</label>
-          <input type="text" id="staffUsername" required placeholder="Masukkan username staff..." class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-[#169C53] outline-none">
-        </div>
-        <div>
-          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1.5">Password</label>
-          <input type="password" id="staffPassword" required placeholder="••••••••" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-[#169C53] outline-none">
-        </div>
-        <button type="submit" class="w-full py-3 rounded-xl bg-[#169C53] hover:bg-[#128244] text-white font-bold text-sm shadow-sm transition-all flex items-center justify-center gap-2">
-          <i class="ri-login-box-line"></i> Masuk ke Dashboard Staff
-        </button>
-      </form>
-    </div>
-  </div>
 
   <!-- ==================== FOOTER ==================== -->
   <footer class="bg-white border-t border-slate-200 py-6 px-4 md:px-10 lg:px-16 text-xs text-slate-500">
