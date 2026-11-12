@@ -115,9 +115,32 @@
       <div>
         <p class="text-[10px] uppercase tracking-wider font-extrabold text-slate-400">DASHBOARD / OVERVIEW</p>
       </div>
-      <div class="flex items-center gap-4">
-        <div class="w-9 h-9 rounded-full bg-polnes-light border border-polnes-main text-polnes-main flex items-center justify-center font-bold text-xs shadow-sm">ST</div>
+      <div class="relative" id="dropdownProfilWrapper">
+      <button onclick="toggleDropdownProfil(event)" class="w-9 h-9 rounded-full bg-[#169C53] text-white flex items-center justify-center font-extrabold text-xs shadow-md hover:bg-[#0E7A3F] transition-all focus:outline-none">
+        <span id="userAvatarText">ST</span>
+      </button>
+
+      <!-- Menu Pop-up Dropdown -->
+      <div id="menuDropdownProfil" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-200 py-2 z-50 text-xs">
+        <div class="px-4 py-2 border-b border-slate-100">
+          <div class="font-bold text-slate-800" id="popupNamaUser">Administrator</div>
+          <div class="text-[10px] text-slate-400 font-mono" id="popupUsername">@admin</div>
+        </div>
+        
+        <button onclick="bukaModalUbahUsername()" class="w-full text-left px-4 py-2.5 text-slate-700 hover:bg-slate-50 flex items-center gap-2 font-medium">
+          <i class="ri-user-settings-line text-sm text-[#169C53]"></i> Ubah Username
+        </button>
+        <button onclick="bukaModalUbahPassword()" class="w-full text-left px-4 py-2.5 text-slate-700 hover:bg-slate-50 flex items-center gap-2 font-medium">
+          <i class="ri-lock-password-line text-sm text-[#169C53]"></i> Ubah Kata Sandi
+        </button>
+        
+        <div class="border-t border-slate-100 my-1"></div>
+        
+        <button onclick="prosesLogoutStaff()" class="w-full text-left px-4 py-2.5 text-rose-600 hover:bg-rose-50 flex items-center gap-2 font-bold">
+          <i class="ri-logout-box-line text-sm"></i> Log Out
+        </button>
       </div>
+    </div>
     </header>
 
     <div class="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 pb-12">
