@@ -438,7 +438,7 @@ async function hapusHistoriJadwal(id) {
   }
 }
 
-// --- GENERATE BERITA ACARA PDF (FORMAT PATEN: 1 HALAMAN, ADA LOGO, TABEL PRODI & AMAN AUTO-TABLE) ---
+// --- GENERATE BERITA ACARA PDF (MENGGUNAKAN PEMANGGILAN AMAN autoTable) ---
 async function bukaPreviewPDF(jadwalId) {
   try {
     const { data: jadwalData } = await window.supabaseClient
@@ -505,29 +505,50 @@ async function bukaPreviewPDF(jadwalId) {
       ""
     ]);
 
-    // Pengecekan aman untuk fungsi autoTable di berbagai versi CDN jspdf
-    if (typeof doc.autoTable === 'function') {
-      doc.autoTable({
-        startY: startY + 10,
-        head: [["NO", "NIM", "NAMA MAHASISWA", "PRODI", "ID MEJA", "TANDA TANGAN"]],
-        body: tableRows,
-        theme: 'grid',
-        headStyles: { fillColor: [16, 195, 93], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center', fontSize: 8 },
-        columnStyles: {
-          0: { cellWidth: 10, halign: 'center' },
-          1: { cellWidth: 25, halign: 'center' },
-          2: { cellWidth: 55 },
-          3: { cellWidth: 35, fontSize: 7 },
-          4: { cellWidth: 20, halign: 'center', fontStyle: 'bold' },
-          5: { cellWidth: 35 }
-        },
-        styles: { fontSize: 8, cellPadding: 1.5 }
-      });
+    // PEMANGGILAN AMAN: Menggunakan window.jspdf.jsAutoTable jika metode doc.autoTable tidak terdeteksi langsung
+    const autoTableFn = doc.autoTable || window.jspdf.jsAutoTable || (window.autotable && window.autotable.default);
+
+    if (typeof autoTableFn === 'function') {
+      if (typeof doc.autoTable === 'function') {
+        doc.autoTable({
+          startY: startY + 10,
+          head: [["NO", "NIM", "NAMA MAHASISWA", "PRODI", "ID MEJA", "TANDA TANGAN"]],
+          body: tableRows,
+          theme: 'grid',
+          headStyles: { fillColor: [16, 195, 93], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center', fontSize: 8 },
+          columnStyles: {
+            0: { cellWidth: 10, halign: 'center' },
+            1: { cellWidth: 25, halign: 'center' },
+            2: { cellWidth: 55 },
+            3: { cellWidth: 35, fontSize: 7 },
+            4: { cellWidth: 20, halign: 'center', fontStyle: 'bold' },
+            5: { cellWidth: 35 }
+          },
+          styles: { fontSize: 8, cellPadding: 1.5 }
+        });
+      } else {
+        autoTableFn(doc, {
+          startY: startY + 10,
+          head: [["NO", "NIM", "NAMA MAHASISWA", "PRODI", "ID MEJA", "TANDA TANGAN"]],
+          body: tableRows,
+          theme: 'grid',
+          headStyles: { fillColor: [16, 195, 93], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center', fontSize: 8 },
+          columnStyles: {
+            0: { cellWidth: 10, halign: 'center' },
+            1: { cellWidth: 25, halign: 'center' },
+            2: { cellWidth: 55 },
+            3: { cellWidth: 35, fontSize: 7 },
+            4: { cellWidth: 20, halign: 'center', fontStyle: 'bold' },
+            5: { cellWidth: 35 }
+          },
+          styles: { fontSize: 8, cellPadding: 1.5 }
+        });
+      }
     } else {
-      throw new Error("Plugin jspdf-autotable belum terinisialisasi dengan benar di halaman HTML.");
+      throw new Error("Library autoTable tidak terdeteksi pada window.jspdf.");
     }
 
-    let finalY = doc.lastAutoTable.finalY + 8;
+    let finalY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 8 : startY + 50;
     
     doc.setFontSize(9);
     doc.text("Samarinda, " + new Date().toLocaleDateString('id-ID'), 140, finalY);
