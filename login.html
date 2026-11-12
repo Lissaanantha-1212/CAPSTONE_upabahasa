@@ -50,13 +50,13 @@
 
       <div class="relative z-10 my-auto py-6 space-y-4 max-w-md">
         <div class="inline-flex items-center gap-2 bg-emerald-100 text-[#169C53] px-3.5 py-1 rounded-full text-xs font-extrabold uppercase">
-          <i class="ri-shield-user-line"></i> Portal Manajemen Staff & Admin
+          <i class="ri-shield-user-line"></i> Portal Manajemen Pengguna & Admin
         </div>
         <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-snug">
           Sistem Pengelolaan Tes & Rekapan Akademik
         </h1>
         <p class="text-xs sm:text-sm text-slate-500 leading-relaxed">
-          Silakan masuk menggunakan akun staff yang terdaftar di database untuk mengelola penjadwalan ujian dan rekapan data mahasiswa.
+          Silakan masuk menggunakan akun pengguna yang terdaftar di database untuk mengelola penjadwalan ujian dan rekapan data mahasiswa.
         </p>
       </div>
 
@@ -68,7 +68,7 @@
       </div>
     </div>
 
-    <!-- Sisi Kanan: Form Login (Warna Hijau UPA Bahasa) -->
+    <!-- Sisi Kanan: Form Login -->
     <div class="lg:col-span-5 bg-[#0E7A3F] text-white p-8 sm:p-12 flex flex-col justify-center relative overflow-hidden">
       <div class="max-w-sm w-full mx-auto space-y-6 relative z-10">
         
@@ -168,7 +168,7 @@
       document.getElementById('modalRegister').classList.add('hidden');
     }
 
-    // Fungsi Registrasi ke Tabel 'staff' Supabase
+    // Fungsi Registrasi ke Tabel 'user_app' Supabase
     async function prosesRegisterUser(e) {
       e.preventDefault();
       const nama = document.getElementById('regNama').value.trim();
@@ -187,9 +187,9 @@
           return;
         }
 
-        // Cek apakah username sudah ada
+        // Cek apakah username sudah ada di tabel 'user_app'
         const { data: existing } = await window.supabaseClient
-          .from('staff')
+          .from('user_app')
           .select('*')
           .eq('username', user)
           .maybeSingle();
@@ -199,9 +199,9 @@
           return;
         }
 
-        // Simpan ke database
+        // Simpan ke database tabel 'user_app'
         const { error } = await window.supabaseClient
-          .from('staff')
+          .from('user_app')
           .insert([{ nama: nama, username: user, password: pass }]);
 
         if (error) throw error;
@@ -216,7 +216,7 @@
       }
     }
 
-    // Fungsi Login (Mengecek langsung ke tabel 'staff' Supabase)
+    // Fungsi Login (Mengecek langsung ke tabel 'user_app' Supabase)
     async function prosesLoginUser(e) {
       e.preventDefault();
       const user = document.getElementById('loginUsername').value.trim();
@@ -239,9 +239,9 @@
       try {
         if (!window.supabaseClient) throw new Error("Koneksi Supabase tidak ditemukan.");
 
-        // Query mencocokkan data dengan tabel 'staff' di Supabase
+        // Query mencocokkan data dengan tabel 'user_app' di Supabase
         const { data: userData, error } = await window.supabaseClient
-          .from('staff')
+          .from('user_app')
           .select('*')
           .eq('username', user)
           .maybeSingle();
@@ -276,7 +276,7 @@
       } catch (err) {
         alertBox.className = "p-3.5 rounded-xl text-xs font-semibold bg-rose-500/20 border border-rose-500 text-rose-200";
         alertBox.innerText = "Terjadi kesalahan sistem: " + err.message;
-        alertBox.classList.remove('hidden');
+        alertBox.classList.add('hidden');
         btnLogin.disabled = false;
         btnLogin.innerHTML = `<span>Login to System</span><i class="ri-arrow-right-line"></i>`;
       }
