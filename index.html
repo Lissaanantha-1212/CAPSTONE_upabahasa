@@ -80,7 +80,7 @@
       </button>
 
       <!-- Menu Navigasi Desktop -->
-      <nav class="hidden lg:flex items-center gap-6 text-[13.5px] font-semibold">
+      <nav class="hidden lg:flex items-center gap-7 text-[13.5px] font-semibold">
         <!-- BERANDA (Aktif) -->
         <button id="navBeranda" onclick="bukaHalaman('beranda')" class="relative py-2 text-[#169C53] font-bold transition-colors">
           BERANDA
@@ -98,13 +98,12 @@
             <span id="lineLayanan" class="hidden absolute left-0 right-0 -bottom-1 h-[2.5px] bg-[#169C53] rounded-full"></span>
           </button>
 
-          <!-- Mega Dropdown Layanan -->
-          <div id="menuDropdownLayanan" class="hidden absolute right-0 mt-3 w-[640px] bg-white rounded-2xl shadow-xl border border-slate-200 p-6 grid grid-cols-2 gap-6 z-50">
+          <!-- Mega Dropdown Layanan (Tanpa Huruf A & B) -->
+          <div id="menuDropdownLayanan" class="hidden absolute right-0 mt-3 w-[620px] bg-white rounded-2xl shadow-xl border border-slate-200 p-6 grid grid-cols-2 gap-6 z-50">
             
-            <!-- Kolom Kiri: A. Layanan Tes (Bisa Diklik) -->
+            <!-- Kolom Kiri: Layanan Tes (Bisa Diklik) -->
             <div class="space-y-3 border-r border-slate-100 pr-5">
-              <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
-                <span class="w-6 h-6 rounded-lg bg-emerald-100 text-[#169C53] flex items-center justify-center text-xs font-extrabold">A</span>
+              <div class="pb-2 border-b border-slate-100">
                 <span class="text-xs font-extrabold uppercase tracking-wider text-slate-800">Layanan Tes</span>
               </div>
 
@@ -143,13 +142,10 @@
               </div>
             </div>
 
-            <!-- Kolom Kanan: B. Layanan Non-Tes (Hanya Teks / Tidak Bisa Diklik) -->
+            <!-- Kolom Kanan: Layanan Non-Tes (Hanya Teks / Tidak Bisa Diklik) -->
             <div class="space-y-3 select-none">
               <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-                <div class="flex items-center gap-2">
-                  <span class="w-6 h-6 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center text-xs font-extrabold">B</span>
-                  <span class="text-xs font-extrabold uppercase tracking-wider text-slate-500">Layanan Non-Tes</span>
-                </div>
+                <span class="text-xs font-extrabold uppercase tracking-wider text-slate-500">Layanan Non-Tes</span>
                 <span class="text-[10px] font-semibold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md">Segera Hadir</span>
               </div>
 
@@ -182,35 +178,24 @@
         <span class="py-2 text-slate-500 flex items-center gap-1 cursor-default select-none">
           Layanan Pengguna <i class="ri-arrow-down-s-line text-base"></i>
         </span>
-
-        <!-- TOMBOL LOGIN STAFF -->
-        <a href="login.html" class="ml-2 px-5 py-2.5 rounded-full bg-[#169C53] hover:bg-[#0E7A3F] text-white text-xs font-extrabold shadow-xs transition-all flex items-center gap-1.5">
-          <i class="ri-login-box-line text-sm"></i>
-          <span>Login</span>
-        </a>
       </nav>
 
       <!-- Tombol Menu Mobile -->
-      <div class="flex items-center gap-2 lg:hidden">
-        <a href="login.html" class="px-4 py-2 rounded-full bg-[#169C53] text-white text-xs font-bold flex items-center gap-1">
-          <i class="ri-login-box-line"></i> Login
-        </a>
-        <button onclick="document.getElementById('mobileMenuLayanan').classList.toggle('hidden')" class="p-2 rounded-xl border border-slate-200 text-slate-700">
-          <i class="ri-menu-line text-xl"></i>
-        </button>
-      </div>
+      <button onclick="document.getElementById('mobileMenuLayanan').classList.toggle('hidden')" class="lg:hidden p-2 rounded-xl border border-slate-200 text-slate-700">
+        <i class="ri-menu-line text-xl"></i>
+      </button>
     </div>
 
-    <!-- Drawer Mobile -->
+    <!-- Drawer Mobile (Khusus Layanan Tes & Non-Tes) -->
     <div id="mobileMenuLayanan" class="hidden lg:hidden bg-white border-t border-slate-200 px-5 py-4 space-y-4">
       <button onclick="bukaHalaman('beranda'); document.getElementById('mobileMenuLayanan').classList.add('hidden')" class="block w-full text-left font-bold text-sm text-[#169C53]">BERANDA</button>
       <div class="space-y-2 pt-2 border-t border-slate-100">
-        <div class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">A. Layanan Tes</div>
+        <div class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Layanan Tes</div>
         <button onclick="bukaHalaman('toefl', 'sec-info-toefl'); document.getElementById('mobileMenuLayanan').classList.add('hidden')" class="block w-full text-left text-sm font-bold text-slate-800 py-1">• TOEFL Prediction (Info, Jadwal, Remedial, Cek Skor)</button>
         <button onclick="bukaHalaman('sspect'); document.getElementById('mobileMenuLayanan').classList.add('hidden')" class="block w-full text-left text-sm font-bold text-slate-800 py-1">• SSPECT (Jadwal & Peserta)</button>
       </div>
       <div class="space-y-1 pt-2 border-t border-slate-100 text-slate-400 text-xs">
-        <div class="text-[11px] font-extrabold uppercase tracking-wider">B. Layanan Non-Tes</div>
+        <div class="text-[11px] font-extrabold uppercase tracking-wider">Layanan Non-Tes</div>
         <div>• Kursus Bahasa Inggris</div>
         <div>• Kursus Bahasa Mandarin</div>
         <div>• Job Seeking Skills Training (JSST)</div>
@@ -222,19 +207,23 @@
   <section id="viewBeranda" class="hero-bg flex-1 flex items-center justify-center text-center px-4 py-20 relative">
     <div class="max-w-4xl mx-auto flex flex-col items-center space-y-6">
       
+      <!-- Badge Pill Putih -->
       <div class="inline-flex items-center gap-2 bg-white/95 px-4 py-1.5 rounded-full shadow-md">
         <span class="w-2 h-2 rounded-full bg-[#169C53]"></span>
         <span class="text-[11px] font-extrabold tracking-widest text-[#169C53] uppercase">UPA BAHASA POLNES</span>
       </div>
 
+      <!-- Judul Utama -->
       <h1 class="text-3xl sm:text-5xl md:text-[56px] font-extrabold text-white leading-[1.15] tracking-tight">
         Mengembangkan<br class="hidden sm:inline"> Kompetensi Bahasa<br class="hidden sm:inline"> untuk Masa Depan
       </h1>
 
+      <!-- Subjudul -->
       <p class="text-white/90 text-sm sm:text-base md:text-lg max-w-2xl leading-relaxed font-normal">
         Pusat layanan dan pengembangan bahasa di Politeknik Negeri Samarinda yang mendukung peningkatan kemampuan bahasa mahasiswa dan sivitas akademika.
       </p>
 
+      <!-- Tombol CTA -->
       <div class="pt-3 flex flex-wrap items-center justify-center gap-4">
         <button onclick="toggleDropdownLayanan(event)" class="px-7 py-3.5 rounded-full bg-[#169C53] hover:bg-[#128244] text-white font-bold text-sm shadow-lg transition-all flex items-center gap-2.5">
           <span>Jelajahi Layanan</span>
@@ -252,39 +241,33 @@
     </div>
   </section>
 
-  <!-- ==================== VIEW 2: LAYANAN TES - TOEFL PREDICTION ==================== -->
+  <!-- ==================== VIEW 2: LAYANAN TES - TOEFL PREDICTION (TANPA BANNER HIJAU) ==================== -->
   <section id="viewToefl" class="hidden flex-1 pb-16">
-    
-    <div class="bg-gradient-to-r from-[#0E7A3F] to-[#169C53] text-white py-12 px-4 md:px-10 lg:px-16">
-      <div class="max-w-7xl mx-auto space-y-3">
-        <div class="inline-flex items-center gap-2 bg-white/15 px-3.5 py-1 rounded-full text-[11px] font-bold tracking-wider uppercase">
-          <i class="ri-award-line"></i> LAYANAN TES • UPA BAHASA POLNES
-        </div>
-        <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight">TOEFL Prediction Test</h1>
-        <p class="text-white/90 text-xs sm:text-sm max-w-2xl leading-relaxed">
-          Informasi pelaksanaan tes TOEFL Prediction, jadwal ujian reguler & remedial, pendaftaran remedial mandiri, serta layanan pengecekan skor resmi mahasiswa Politeknik Negeri Samarinda.
-        </p>
-      </div>
-    </div>
 
+    <!-- Sub-Navigasi Cepat (Sticky di bawah Navbar) -->
     <div class="bg-white border-b border-slate-200 sticky top-20 z-20 shadow-xs">
-      <div class="max-w-7xl mx-auto px-4 md:px-10 lg:px-16 py-3 flex items-center gap-2 overflow-x-auto text-xs font-bold">
-        <a href="#sec-info-toefl" class="px-4 py-2 rounded-full bg-emerald-50 text-[#169C53] hover:bg-[#169C53] hover:text-white transition-all shrink-0">
-          1. Informasi Umum
-        </a>
-        <a href="#sec-jadwal-toefl" class="px-4 py-2 rounded-full bg-slate-100 text-slate-700 hover:bg-[#169C53] hover:text-white transition-all shrink-0">
-          2. Jadwal Tes & Remedial
-        </a>
-        <a href="#sec-daftar-remedial" class="px-4 py-2 rounded-full bg-slate-100 text-slate-700 hover:bg-[#169C53] hover:text-white transition-all shrink-0">
-          3. Pendaftaran Remedial
-        </a>
-        <a href="#sec-cek-skor" class="px-4 py-2 rounded-full bg-slate-100 text-slate-700 hover:bg-[#169C53] hover:text-white transition-all shrink-0">
-          4. Cek Skor TOEFL
-        </a>
+      <div class="max-w-7xl mx-auto px-4 md:px-10 lg:px-16 py-3 flex items-center justify-between gap-3 overflow-x-auto">
+        <div class="flex items-center gap-2 text-xs font-bold shrink-0">
+          <a href="#sec-info-toefl" class="px-4 py-2 rounded-full bg-emerald-50 text-[#169C53] hover:bg-[#169C53] hover:text-white transition-all">
+            1. Informasi Umum
+          </a>
+          <a href="#sec-jadwal-toefl" class="px-4 py-2 rounded-full bg-slate-100 text-slate-700 hover:bg-[#169C53] hover:text-white transition-all">
+            2. Jadwal Tes & Remedial
+          </a>
+          <a href="#sec-daftar-remedial" class="px-4 py-2 rounded-full bg-slate-100 text-slate-700 hover:bg-[#169C53] hover:text-white transition-all">
+            3. Pendaftaran Remedial
+          </a>
+          <a href="#sec-cek-skor" class="px-4 py-2 rounded-full bg-slate-100 text-slate-700 hover:bg-[#169C53] hover:text-white transition-all">
+            4. Cek Skor TOEFL
+          </a>
+        </div>
+        <span class="hidden md:inline-block text-[11px] font-extrabold uppercase tracking-wider text-slate-400 shrink-0">
+          LAYANAN TES • TOEFL PREDICTION
+        </span>
       </div>
     </div>
 
-    <div class="max-w-7xl mx-auto px-4 md:px-10 lg:px-16 pt-8 space-y-12">
+    <div class="max-w-7xl mx-auto px-4 md:px-10 lg:px-16 pt-8 space-y-10">
 
       <!-- BAGIAN 1: INFORMASI UMUM & MANFAAT TOEFL -->
       <div id="sec-info-toefl" class="scroll-mt-36 bg-white rounded-2xl p-6 md:p-8 shadow-xs border border-slate-200 space-y-6">
@@ -297,6 +280,7 @@
           <strong>TOEFL Prediction</strong> di UPA Bahasa Politeknik Negeri Samarinda merupakan tes standar untuk mengukur kemampuan berbahasa Inggris pasif mahasiswa dalam konteks akademik. Sertifikat hasil tes ini menjadi salah satu dokumen penting pendamping ijazah dan syarat kelulusan bagi mahasiswa program Diploma III (D3) maupun Sarjana Terapan (D4).
         </p>
 
+        <!-- 3 Kartu Manfaat -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div class="p-5 rounded-2xl bg-emerald-50/60 border border-emerald-100 space-y-2">
             <div class="w-10 h-10 rounded-xl bg-[#169C53] text-white flex items-center justify-center text-lg">
@@ -330,9 +314,10 @@
         </div>
       </div>
 
-      <!-- BAGIAN 2: JADWAL TES TOEFL & JADWAL REMEDIAL -->
+      <!-- BAGIAN 2: JADWAL TES TOEFL (DARI LOG STAFF) & JADWAL REMEDIAL -->
       <div id="sec-jadwal-toefl" class="scroll-mt-36 space-y-8">
         
+        <!-- 2A. Tabel Jadwal Tes TOEFL (Tarik dari jadwal_log) -->
         <div class="bg-white rounded-2xl p-6 md:p-8 shadow-xs border border-slate-200 space-y-4">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-4">
             <div>
@@ -366,6 +351,7 @@
           </div>
         </div>
 
+        <!-- 2B. Tabel Jadwal Remedial TOEFL -->
         <div class="bg-white rounded-2xl p-6 md:p-8 shadow-xs border border-slate-200 space-y-4">
           <div class="border-b border-slate-100 pb-4">
             <span class="text-[11px] font-extrabold uppercase tracking-wider text-amber-600">JADWAL UJIAN ULANG</span>
@@ -397,7 +383,7 @@
 
       </div>
 
-      <!-- BAGIAN 3 & 4: FORM PENDAFTARAN REMEDIAL & CEK SKOR -->
+      <!-- BAGIAN 3 & 4: FORM PENDAFTARAN REMEDIAL & CEK SKOR (GRID 2 KOLOM) -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
 
         <!-- BAGIAN 3: FORM PENDAFTARAN REMEDIAL TOEFL -->
@@ -461,7 +447,7 @@
           <div class="border-b border-slate-100 pb-4">
             <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#169C53]">HASIL EVALUASI RESMI</span>
             <h2 class="text-lg md:text-xl font-extrabold text-slate-900 mt-0.5">Cek Skor TOEFL Mahasiswa</h2>
-            <p class="text-xs text-slate-500 mt-1">Masukkan NIM Anda untuk melihat riwayat skor Latihan, TOEFL Utama, dan Remedial.</p>
+            <p class="text-xs text-slate-500 mt-1">Masukkan NIM Anda untuk melihat skor tes yang sudah tercatat di rekapan.</p>
           </div>
 
           <form onsubmit="cariSkorMahasiswa(event)" class="flex gap-2">
@@ -471,10 +457,11 @@
             </button>
           </form>
 
+          <!-- Area Hasil Pencarian Skor -->
           <div id="hasilCekSkorContainer" class="pt-1">
             <div class="p-6 rounded-2xl bg-slate-50 border border-dashed border-slate-200 text-center space-y-2">
               <i class="ri-file-search-line text-3xl text-slate-300"></i>
-              <p class="text-xs text-slate-500">Hasil riwayat skor TOEFL Anda akan muncul di sini setelah pencarian NIM.</p>
+              <p class="text-xs text-slate-500">Hasil skor tes Anda akan muncul di sini setelah pencarian NIM.</p>
             </div>
           </div>
         </div>
@@ -483,32 +470,29 @@
     </div>
   </section>
 
-  <!-- ==================== VIEW 3: LAYANAN TES - SSPECT ==================== -->
+  <!-- ==================== VIEW 3: LAYANAN TES - SSPECT (TANPA BANNER HIJAU) ==================== -->
   <section id="viewSspect" class="hidden flex-1 pb-16">
-    
-    <div class="bg-gradient-to-r from-slate-900 via-emerald-950 to-[#0E7A3F] text-white py-12 px-4 md:px-10 lg:px-16">
-      <div class="max-w-7xl mx-auto space-y-3">
-        <div class="inline-flex items-center gap-2 bg-white/15 px-3.5 py-1 rounded-full text-[11px] font-bold tracking-wider uppercase">
-          <i class="ri-calendar-event-line"></i> LAYANAN TES • UPA BAHASA POLNES
+
+    <!-- Sub-Header Ringkas SSPECT -->
+    <div class="bg-white border-b border-slate-200">
+      <div class="max-w-7xl mx-auto px-4 md:px-10 lg:px-16 py-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#169C53]">LAYANAN TES • UPA BAHASA POLNES</span>
+          <h1 class="text-xl md:text-2xl font-extrabold text-slate-900 mt-0.5">Jadwal & Daftar Peserta Tes SSPECT</h1>
         </div>
-        <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight">Jadwal & Daftar Peserta Tes SSPECT</h1>
-        <p class="text-white/85 text-xs sm:text-sm max-w-2xl leading-relaxed">
-          Informasi jadwal pelaksanaan <em>Samarinda State Polytechnic English Competence Test</em> (SSPECT) beserta daftar NIM, Nama Mahasiswa, dan Program Studi peserta terjadwal.
-        </p>
+        <button onclick="muatDataSspect()" class="self-start sm:self-auto px-4 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-[#169C53] text-xs font-bold flex items-center gap-1.5 transition-all">
+          <i class="ri-refresh-line"></i> Segarkan Data SSPECT
+        </button>
       </div>
     </div>
 
     <div class="max-w-7xl mx-auto px-4 md:px-10 lg:px-16 pt-8 space-y-8">
 
+      <!-- Tabel 1: Ringkasan Jadwal SSPECT dari jadwal_log -->
       <div class="bg-white rounded-2xl p-6 md:p-8 shadow-xs border border-slate-200 space-y-4">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-4">
-          <div>
-            <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#169C53]">JADWAL SESI UJIAN</span>
-            <h2 class="text-lg md:text-xl font-extrabold text-slate-900 mt-0.5">Jadwal Pelaksanaan SSPECT</h2>
-          </div>
-          <button onclick="muatDataSspect()" class="self-start sm:self-auto px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-all">
-            <i class="ri-refresh-line"></i> Segarkan Data
-          </button>
+        <div class="border-b border-slate-100 pb-4">
+          <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#169C53]">JADWAL SESI UJIAN</span>
+          <h2 class="text-lg md:text-xl font-extrabold text-slate-900 mt-0.5">Jadwal Pelaksanaan SSPECT</h2>
         </div>
 
         <div class="overflow-x-auto">
@@ -533,6 +517,7 @@
         </div>
       </div>
 
+      <!-- Tabel 2: Daftar Peserta Terjadwal SSPECT (NIM, Nama, Prodi, Kelas, Tanggal) -->
       <div class="bg-white rounded-2xl p-6 md:p-8 shadow-xs border border-slate-200 space-y-4">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
           <div>
@@ -634,6 +619,7 @@
         lineLayanan.classList.remove('hidden');
 
         muatJadwalToefl();
+        muatJadwalRemedial();
 
         if (targetSectionId) {
           setTimeout(() => {
@@ -664,6 +650,7 @@
       return `${parts[2]} ${bulan[bIdx] || parts[1]} ${parts[0]}`;
     }
 
+    // ==================== 1. MUAT JADWAL TOEFL & REMEDIAL DARI JADWAL_LOG ====================
     async function muatJadwalToefl() {
       const tbody = document.getElementById('tbodyJadwalToefl');
       try {
@@ -674,12 +661,18 @@
 
         if (error) throw error;
 
-        const jadwalToefl = (data || []).filter(j =>
-          String(j.jenis_tes || '').toUpperCase().includes('TOEFL')
-        );
+        const jadwalToefl = (data || []).filter(j => {
+          const jenis = String(j.jenis_tes || '').toUpperCase();
+          return jenis.includes('TOEFL') && !jenis.includes('REMEDIAL');
+        });
 
         if (jadwalToefl.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="7" class="px-5 py-8 text-center text-slate-400 italic">Belum ada jadwal tes TOEFL reguler yang aktif saat ini.</td></tr>`;
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="7" class="px-5 py-8 text-center text-slate-400 italic">
+                Belum ada jadwal tes TOEFL reguler yang aktif saat ini.
+              </td>
+            </tr>`;
           return;
         }
 
@@ -700,10 +693,43 @@
         `).join('');
 
       } catch (err) {
+        console.error(err);
         tbody.innerHTML = `<tr><td colspan="7" class="px-5 py-8 text-center text-rose-500 font-semibold">Gagal memuat jadwal TOEFL: ${err.message}</td></tr>`;
       }
     }
 
+    async function muatJadwalRemedial() {
+      const tbody = document.getElementById('tbodyJadwalRemedial');
+      try {
+        const { data } = await window.supabaseClient
+          .from('jadwal_log')
+          .select('*')
+          .order('tanggal', { ascending: true });
+
+        const jadwalRem = (data || []).filter(j =>
+          String(j.jenis_tes || '').toUpperCase().includes('REMEDIAL')
+        );
+
+        if (jadwalRem.length === 0) return;
+
+        tbody.innerHTML = jadwalRem.map((j, idx) => `
+          <tr class="hover:bg-slate-50 transition-colors">
+            <td class="px-4 py-3.5 text-center font-bold text-slate-500">${idx + 1}</td>
+            <td class="px-4 py-3.5 font-extrabold text-slate-900">${j.jenis_tes || j.nama_kelas || 'REMEDIAL'}</td>
+            <td class="px-4 py-3.5 font-medium">${formatTanggalIndo(j.tanggal)}</td>
+            <td class="px-4 py-3.5 text-sky-700 font-semibold">${j.sesi || '-'}</td>
+            <td class="px-4 py-3.5 font-bold text-[#169C53]">${j.ruang_lab || j.lab || '-'}</td>
+            <td class="px-4 py-3.5 text-center">
+              <span class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 text-[10px] font-extrabold uppercase">
+                ${j.status || 'TERJADWAL'}
+              </span>
+            </td>
+          </tr>
+        `).join('');
+      } catch (_) {}
+    }
+
+    // ==================== 2. AUTO-FILL & SUBMIT PENDAFTARAN REMEDIAL ====================
     async function autoIsiMahasiswaRemedial() {
       const nimInput = document.getElementById('remNim').value.trim();
       if (!nimInput) {
@@ -758,21 +784,23 @@
       btn.innerHTML = `<i class="ri-loader-4-line animate-spin"></i> Mengirim Pendaftaran...`;
 
       try {
+        const payload = {
+          nim: nim,
+          nama: nama,
+          prodi: prodi,
+          kelas: kelas,
+          jenis_remedial: jenisRemedial,
+          no_wa: noWa,
+          status: 'MENUNGGU JADWAL'
+        };
+
         const { error } = await window.supabaseClient
           .from('PendaftaranRemedial')
-          .insert([{
-            nim: nim,
-            nama: nama,
-            prodi: prodi,
-            kelas: kelas,
-            jenis_remedial: jenisRemedial,
-            no_wa: noWa,
-            status: 'MENUNGGU JADWAL'
-          }]);
+          .insert([payload]);
 
         if (error) throw error;
 
-        alert(`Pendaftaran ${jenisRemedial} atas nama ${nama} (${nim}) berhasil dikirim!`);
+        alert(`Pendaftaran ${jenisRemedial} atas nama ${nama} (${nim}) berhasil dikirim dan masuk ke antrean Jadwal Remedial!`);
         document.getElementById('formDaftarRemedial').reset();
 
       } catch (err) {
@@ -783,6 +811,7 @@
       }
     }
 
+    // ==================== 3. CEK SKOR TOEFL MAHASISWA (HANYA TAMPILKAN SKOR YANG ADA) ====================
     async function cariSkorMahasiswa(e) {
       e.preventDefault();
       const nimCari = document.getElementById('inputCariNimSkor').value.trim();
@@ -806,22 +835,49 @@
           container.innerHTML = `
             <div class="p-5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs space-y-1">
               <div class="font-extrabold text-sm">Data Skor Tidak Ditemukan</div>
-              <p>NIM <strong>${nimCari}</strong> belum memiliki catatan skor TOEFL di database rekapan UPA Bahasa.</p>
+              <p>NIM <strong>${nimCari}</strong> belum memiliki catatan skor di database rekapan UPA Bahasa.</p>
             </div>`;
           return;
         }
 
         const mhsInfo = data[0];
         const skorMap = {
-          sspect: '-', latihanD3: '-', latihanD4: '-', toeflD3: '-', toeflD4: '-', remedial1: '-', remedial2: '-', remedial3: '-'
+          sspect: null,
+          latihanD3: null,
+          latihanD4: null,
+          toeflD3: null,
+          toeflD4: null,
+          remedial1: null,
+          remedial2: null,
+          remedial3: null
+        };
+
+        const isValidScore = (val) => {
+          if (val === undefined || val === null) return false;
+          const s = String(val).trim();
+          return s !== '' && s !== '-' && s !== '0' && s.toLowerCase() !== 'null';
         };
 
         for (const row of data) {
+          // 1. Cek dari kolom langsung kategori_tes & skor_total
+          if (row.kategori_tes && isValidScore(row.skor_total)) {
+            const kat = String(row.kategori_tes).toUpperCase().trim();
+            if (kat.includes('SSPECT')) skorMap.sspect = row.skor_total;
+            else if (kat.includes('LATIHAN D3')) skorMap.latihanD3 = row.skor_total;
+            else if (kat.includes('LATIHAN D4')) skorMap.latihanD4 = row.skor_total;
+            else if (kat === 'TOEFL D3') skorMap.toeflD3 = row.skor_total;
+            else if (kat === 'TOEFL D4') skorMap.toeflD4 = row.skor_total;
+            else if (kat === 'REMEDIAL 1') skorMap.remedial1 = row.skor_total;
+            else if (kat === 'REMEDIAL 2') skorMap.remedial2 = row.skor_total;
+            else if (kat === 'REMEDIAL 3') skorMap.remedial3 = row.skor_total;
+          }
+
+          // 2. Cek dari objek riwayat_json
           if (row.riwayat_json) {
             try {
               const parsed = typeof row.riwayat_json === 'string' ? JSON.parse(row.riwayat_json) : row.riwayat_json;
               for (const k of Object.keys(skorMap)) {
-                if (parsed[k] !== undefined && parsed[k] !== null && String(parsed[k]).trim() !== '' && String(parsed[k]).trim() !== '-') {
+                if (isValidScore(parsed[k])) {
                   skorMap[k] = parsed[k];
                 }
               }
@@ -829,11 +885,31 @@
           }
         }
 
-        const kandidatSkorResmi = [skorMap.toeflD3, skorMap.toeflD4, skorMap.remedial1, skorMap.remedial2, skorMap.remedial3]
-          .map(v => parseInt(v, 10))
-          .filter(n => !isNaN(n));
-        const skorTertinggi = kandidatSkorResmi.length > 0 ? Math.max(...kandidatSkorResmi) : 0;
-        const isLulus = skorTertinggi >= 400;
+        // Susun HANYA skor yang benar-benar ada nilainya
+        const daftarSkorTersedia = [];
+        if (isValidScore(skorMap.sspect)) daftarSkorTersedia.push({ label: 'SSPECT', nilai: skorMap.sspect, utama: false });
+        if (isValidScore(skorMap.latihanD3)) daftarSkorTersedia.push({ label: 'TOEFL LATIHAN D3', nilai: skorMap.latihanD3, utama: false });
+        if (isValidScore(skorMap.latihanD4)) daftarSkorTersedia.push({ label: 'TOEFL LATIHAN D4', nilai: skorMap.latihanD4, utama: false });
+        if (isValidScore(skorMap.toeflD3)) daftarSkorTersedia.push({ label: 'TOEFL D3', nilai: skorMap.toeflD3, utama: true });
+        if (isValidScore(skorMap.toeflD4)) daftarSkorTersedia.push({ label: 'TOEFL D4', nilai: skorMap.toeflD4, utama: true });
+        if (isValidScore(skorMap.remedial1)) daftarSkorTersedia.push({ label: 'REMEDIAL 1', nilai: skorMap.remedial1, utama: true });
+        if (isValidScore(skorMap.remedial2)) daftarSkorTersedia.push({ label: 'REMEDIAL 2', nilai: skorMap.remedial2, utama: true });
+        if (isValidScore(skorMap.remedial3)) daftarSkorTersedia.push({ label: 'REMEDIAL 3', nilai: skorMap.remedial3, utama: true });
+
+        const gridColsClass = daftarSkorTersedia.length === 1
+          ? 'grid-cols-1'
+          : daftarSkorTersedia.length === 2
+            ? 'grid-cols-2'
+            : 'grid-cols-2 sm:grid-cols-3';
+
+        const cardsHtml = daftarSkorTersedia.length > 0
+          ? daftarSkorTersedia.map(item => `
+              <div class="p-4 rounded-xl bg-white border ${item.utama ? 'border-emerald-200' : 'border-slate-200'} text-center">
+                <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">${item.label}</div>
+                <div class="text-2xl font-extrabold ${item.utama ? 'text-[#169C53]' : 'text-slate-900'} mt-1">${item.nilai}</div>
+              </div>
+            `).join('')
+          : `<div class="p-4 rounded-xl bg-white border border-slate-200 text-center text-xs text-slate-500">Belum ada nilai ujian yang tercatat.</div>`;
 
         container.innerHTML = `
           <div class="rounded-2xl border border-slate-200 bg-slate-50/70 p-5 space-y-4">
@@ -847,45 +923,16 @@
               </span>
             </div>
 
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-center">
-              <div class="p-3 rounded-xl bg-white border border-slate-200">
-                <div class="text-[10px] font-bold text-slate-400 uppercase">SSPECT</div>
-                <div class="text-base font-extrabold text-slate-800 mt-0.5">${skorMap.sspect}</div>
-              </div>
-              <div class="p-3 rounded-xl bg-white border border-slate-200">
-                <div class="text-[10px] font-bold text-slate-400 uppercase">LAT. D3 / D4</div>
-                <div class="text-base font-extrabold text-slate-800 mt-0.5">${skorMap.latihanD3 !== '-' ? skorMap.latihanD3 : skorMap.latihanD4}</div>
-              </div>
-              <div class="p-3 rounded-xl bg-white border border-slate-200">
-                <div class="text-[10px] font-bold text-slate-400 uppercase">TOEFL D3 / D4</div>
-                <div class="text-base font-extrabold text-[#169C53] mt-0.5">${skorMap.toeflD3 !== '-' ? skorMap.toeflD3 : skorMap.toeflD4}</div>
-              </div>
-              <div class="p-3 rounded-xl bg-white border border-slate-200">
-                <div class="text-[10px] font-bold text-slate-400 uppercase">REMEDIAL 1</div>
-                <div class="text-base font-extrabold text-slate-800 mt-0.5">${skorMap.remedial1}</div>
-              </div>
-              <div class="p-3 rounded-xl bg-white border border-slate-200">
-                <div class="text-[10px] font-bold text-slate-400 uppercase">REMEDIAL 2</div>
-                <div class="text-base font-extrabold text-slate-800 mt-0.5">${skorMap.remedial2}</div>
-              </div>
-              <div class="p-3 rounded-xl bg-white border border-slate-200">
-                <div class="text-[10px] font-bold text-slate-400 uppercase">REMEDIAL 3</div>
-                <div class="text-base font-extrabold text-slate-800 mt-0.5">${skorMap.remedial3}</div>
-              </div>
+            <div class="grid ${gridColsClass} gap-3">
+              ${cardsHtml}
             </div>
 
-            ${isLulus ? `
-              <div class="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-[#169C53] text-xs font-bold text-center">
-                Status: Memenuhi Ambang Batas Sertifikasi (Skor Tertinggi: ${skorTertinggi})
-              </div>
-            ` : `
-              <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex flex-col sm:flex-row items-center justify-between gap-2">
-                <span class="font-semibold">Status: Belum memenuhi ambang batas sertifikasi.</span>
-                <button type="button" onclick="salinKeFormRemedial('${mhsInfo.nim}', '${(mhsInfo.nama || '').replace(/'/g, "\\'")}', '${(mhsInfo.prodi || '').replace(/'/g, "\\'")}')" class="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-[11px] shrink-0">
-                  Daftar Remedial Sekarang
-                </button>
-              </div>
-            `}
+            <div class="p-3.5 rounded-xl bg-white border border-slate-200 text-slate-600 text-xs flex flex-col sm:flex-row items-center justify-between gap-2">
+              <span>Perlu mengikuti ujian ulang TOEFL?</span>
+              <button type="button" onclick="salinKeFormRemedial('${mhsInfo.nim}', '${(mhsInfo.nama || '').replace(/'/g, "\\'")}', '${(mhsInfo.prodi || '').replace(/'/g, "\\'")}')" class="px-3.5 py-1.5 rounded-lg bg-[#169C53] hover:bg-[#128244] text-white font-bold text-[11px] shrink-0 transition-all">
+                Daftar Remedial Sekarang
+              </button>
+            </div>
           </div>
         `;
 
@@ -904,6 +951,7 @@
       document.getElementById('sec-daftar-remedial').scrollIntoView({ behavior: 'smooth' });
     }
 
+    // ==================== 4. MUAT JADWAL & PESERTA SSPECT ====================
     async function muatDataSspect() {
       const tbodyJadwal = document.getElementById('tbodyJadwalSspect');
       const tbodyPeserta = document.getElementById('tbodyPesertaSspect');
@@ -990,6 +1038,7 @@
         renderTabelPesertaSspect(gabunganPeserta);
 
       } catch (err) {
+        console.error(err);
         tbodyJadwal.innerHTML = `<tr><td colspan="7" class="px-5 py-8 text-center text-rose-500 font-semibold">Gagal memuat data SSPECT: ${err.message}</td></tr>`;
       }
     }
