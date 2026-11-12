@@ -647,51 +647,27 @@
         navLayanan.classList.add('text-[#169C53]', 'font-bold');
         lineLayanan.classList.remove('hidden');
 
-        async function muatJadwalToefl() {
-    const tbody = document.getElementById('tbodyJadwalToefl');
-    try {
-      if (!window.supabaseClient) {
-        tbody.innerHTML = `<tr><td colspan="7" class="px-5 py-8 text-center text-rose-500 font-semibold">Koneksi Supabase belum terpasang.</td></tr>`;
-        return;
+        muatJadwalToefl();
+        muatJadwalRemedial();
+
+        if (targetSectionId) {
+          setTimeout(() => {
+            const el = document.getElementById(targetSectionId);
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+          }, 80);
+        } else {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      } else if (namaHalaman === 'sspect') {
+        vSspect.classList.remove('hidden');
+        navBeranda.classList.remove('text-[#169C53]', 'font-bold');
+        lineBeranda.classList.add('hidden');
+        navLayanan.classList.add('text-[#169C53]', 'font-bold');
+        lineLayanan.classList.remove('hidden');
+
+        muatDataSspect();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
-
-      const { data, error } = await window.supabaseClient
-        .from('jadwal_log') 
-        .select('*')
-        .order('id', { ascending: true });
-
-      if (error) throw error;
-
-      if (!data || data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="px-5 py-8 text-center text-slate-400 italic">Belum ada data peserta TOEFL di database.</td></tr>`;
-        return;
-      }
-
-      let html = '';
-      data.forEach((item, index) => {
-        html += `
-          <tr class="hover:bg-slate-50/80 transition-colors">
-            <td class="px-4 py-4 font-bold text-slate-400">${index + 1}</td>
-            <td class="px-4 py-4 font-mono font-bold text-slate-900">${item.nim || '-'}</td>
-            <td class="px-4 py-4 font-extrabold text-[#169C53]">${item.nama_mahasiswa || item.nama || '-'}</td>
-            <td class="px-4 py-4 text-slate-600">${item.program_studi || 'D3 - Teknologi Informasi'}</td>
-            <td class="px-4 py-4 font-bold text-slate-800">${item.kelas || '-'}</td>
-            <td class="px-4 py-4 text-slate-600">
-              <div class="font-bold text-slate-900">${item.tanggal_ujian || '28 Oktober 2026'}</div>
-              <div class="text-[11px] text-slate-400">${item.sesi_waktu || item.sesi || 'SESI 1 (08.00 - 10.30 WITA)'}</div>
-            </td>
-            <td class="px-4 py-4 text-center">
-              <span class="px-3 py-1 rounded-lg bg-emerald-50 text-[#169C53] font-extrabold text-[11px] border border-emerald-200">
-                ${item.ruang_lab || 'Lab A'}
-              </span>
-            </td>
-          </tr>
-        `;
-      });
-      tbody.innerHTML = html;
-
-    }
-  }
     }
 
     function formatTanggalIndo(tglStr) {
