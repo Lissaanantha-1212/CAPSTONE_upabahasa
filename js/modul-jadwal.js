@@ -70,7 +70,7 @@ async function handleExcelUpload(e) {
 
   const namaKelasInput = document.getElementById('namaKelasInput').value.trim();
   const selectProdi = document.getElementById('selectProdi');
-  const prodiInput = selectProdi ? selectProdi.value : ''; // Ambil data Prodi
+  const prodiInput = selectProdi ? selectProdi.value : '';
 
   if (!namaKelasInput) {
     alert("Harap isi 'Nama Kelas Baru' terlebih dahulu sebelum memilih file Excel!");
@@ -112,7 +112,7 @@ async function handleExcelUpload(e) {
             nim: nim,
             nama: nama.toUpperCase(),
             nama_kelas: namaKelasInput.toUpperCase(),
-            program_studi: prodiInput // Simpan Prodi ke array
+            program_studi: prodiInput
           });
         }
       }
@@ -126,7 +126,7 @@ async function handleExcelUpload(e) {
         nim: m.nim,
         nama: m.nama,
         nama_kelas: m.nama_kelas,
-        program_studi: m.program_studi // Insert Prodi ke DB
+        program_studi: m.program_studi
       }));
 
       const { error } = await window.supabaseClient
@@ -264,7 +264,7 @@ async function kunciSesiUjianKeSupabase() {
   const jenisTes = document.getElementById('selectJenisTes').value;
   const tanggal = document.getElementById('inputTanggalUjian').value;
   const sesi = document.getElementById('selectSesi').value;
-  const ruangLabDipilih = document.getElementById('selectLab').value; // 'Lab A' atau 'Lab B'
+  const ruangLabDipilih = document.getElementById('selectLab').value;
 
   if (!tanggal) {
     alert("Harap tentukan tanggal ujian terlebih dahulu!");
@@ -275,14 +275,12 @@ async function kunciSesiUjianKeSupabase() {
   const mahasiswaTerpilih = uploadedMahasiswaList.filter(m => selectedIds.includes(m.id));
   const jumlahDipilih = mahasiswaTerpilih.length;
 
-  // 1. Validasi Kapasitas Maksimal Per Lab (Maks 30)
   if (jumlahDipilih > 30) {
     alert(`[DITOLAK] Kapasitas ${ruangLabDipilih} maksimal adalah 30 mahasiswa! Anda memilih ${jumlahDipilih} mahasiswa.`);
     return;
   }
 
   try {
-    // 2. Ambil data sesi yang sudah terkunci pada Tanggal & Sesi tersebut di database
     const { data: sesiAktifList, error: checkErr } = await window.supabaseClient
       .from('jadwal_log')
       .select('*')
@@ -291,15 +289,12 @@ async function kunciSesiUjianKeSupabase() {
 
     if (checkErr) throw checkErr;
 
-    // Cek apakah Lab yang dipilih sudah persis digunakan
     const labSudahDipakai = sesiAktifList.find(s => s.ruang_lab === ruangLabDipilih);
     if (labSudahDipakai) {
       alert(`[DITOLAK] ${ruangLabDipilih} pada tanggal ${tanggal} (${sesi}) sudah digunakan oleh kelas "${labSudahDipakai.nama_kelas}"!`);
       return;
     }
 
-    // Cek kondisi pasangan Lab (Lab A & Lab B)
-    // Aturan: Boleh di sesi yang sama asal tidak sama-sama 30 orang (pasangan lab harus dibawah 30 jika salah satunya 30)
     const labLain = sesiAktifList.find(s => s.ruang_lab !== ruangLabDipilih);
     if (labLain) {
       if (labLain.jumlah_mhs === 30 && jumlahDipilih === 30) {
@@ -314,7 +309,6 @@ async function kunciSesiUjianKeSupabase() {
       return;
     }
 
-    // 3. Simpan ke database jadwal_log
     const { data: jadwalData, error: jadwalErr } = await window.supabaseClient
       .from('jadwal_log')
       .insert([{
@@ -331,13 +325,12 @@ async function kunciSesiUjianKeSupabase() {
     if (jadwalErr) throw jadwalErr;
     const jadwalId = jadwalData[0].id;
 
-    // 4. Simpan ke peserta_ujian (Tambahkan prodi di sini)
     const pesertaPayload = mahasiswaTerpilih.map((m, idx) => ({
       jadwal_id: jadwalId,
       nim: m.nim,
       nama: m.nama,
       nama_kelas: m.nama_kelas,
-      program_studi: m.program_studi, // Teruskan Prodi ke Peserta Ujian
+      program_studi: m.program_studi,
       id_meja: `STUDENT${String(idx + 1).padStart(2, '0')}`
     }));
 
@@ -347,7 +340,6 @@ async function kunciSesiUjianKeSupabase() {
 
     if (pesertaErr) throw pesertaErr;
 
-    // 5. Hapus dari antrean
     const { error: deleteErr } = await window.supabaseClient
       .from('antrean_mahasiswa')
       .delete()
@@ -446,7 +438,7 @@ async function hapusHistoriJadwal(id) {
   }
 }
 
-// --- GENERATE BERITA ACARA PDF (FORMAT PATEN: 1 HALAMAN, ADA LOGO, TABEL PRODI) ---
+// --- GENERATE BERITA ACARA PDF (FORMAT PATEN: 1 HALAMAN, ADA LOGO, TABEL PRODI & AMAN AUTO-TABLE) ---
 async function bukaPreviewPDF(jadwalId) {
   try {
     const { data: jadwalData } = await window.supabaseClient
@@ -504,32 +496,36 @@ async function bukaPreviewPDF(jadwalId) {
     doc.text(`Waktu Sesi     : ${jadwalData.sesi}`, 20, startY + 5);
     doc.text(`Kelas Peserta  : ${jadwalData.nama_kelas}`, 120, startY + 5);
 
-    // Tabel PDF (Ditambahkan Program Studi)
     const tableRows = pesertaData.map((p, index) => [
       index + 1,
       p.nim,
       p.nama,
-      p.program_studi || '-', // Menampilkan Prodi di PDF
+      p.program_studi || '-',
       p.id_meja,
       ""
     ]);
 
-    doc.autoTable({
-      startY: startY + 10,
-      head: [["NO", "NIM", "NAMA MAHASISWA", "PRODI", "ID MEJA", "TANDA TANGAN"]],
-      body: tableRows,
-      theme: 'grid',
-      headStyles: { fillColor: [16, 195, 93], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center', fontSize: 8 },
-      columnStyles: {
-        0: { cellWidth: 10, halign: 'center' },
-        1: { cellWidth: 25, halign: 'center' },
-        2: { cellWidth: 55 },
-        3: { cellWidth: 35, fontSize: 7 }, // Kolom Prodi
-        4: { cellWidth: 20, halign: 'center', fontStyle: 'bold' },
-        5: { cellWidth: 35 } // Kolom Tanda Tangan
-      },
-      styles: { fontSize: 8, cellPadding: 1.5 }
-    });
+    // Pengecekan aman untuk fungsi autoTable di berbagai versi CDN jspdf
+    if (typeof doc.autoTable === 'function') {
+      doc.autoTable({
+        startY: startY + 10,
+        head: [["NO", "NIM", "NAMA MAHASISWA", "PRODI", "ID MEJA", "TANDA TANGAN"]],
+        body: tableRows,
+        theme: 'grid',
+        headStyles: { fillColor: [16, 195, 93], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center', fontSize: 8 },
+        columnStyles: {
+          0: { cellWidth: 10, halign: 'center' },
+          1: { cellWidth: 25, halign: 'center' },
+          2: { cellWidth: 55 },
+          3: { cellWidth: 35, fontSize: 7 },
+          4: { cellWidth: 20, halign: 'center', fontStyle: 'bold' },
+          5: { cellWidth: 35 }
+        },
+        styles: { fontSize: 8, cellPadding: 1.5 }
+      });
+    } else {
+      throw new Error("Plugin jspdf-autotable belum terinisialisasi dengan benar di halaman HTML.");
+    }
 
     let finalY = doc.lastAutoTable.finalY + 8;
     
