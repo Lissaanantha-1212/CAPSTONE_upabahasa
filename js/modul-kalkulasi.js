@@ -1,6 +1,6 @@
 /**
  * MODUL 4: KALKULASI & PUBLIKASI SCORE - UPA BAHASA POLNES (FULL VERSION UTUH)
- * Menampilkan pilihan antrean dengan Nama Kelas yang jelas dan mudah dibaca staff.
+ * Menampilkan pilihan antrean berdasarkan Nama Kelas dan Jenis Tes dengan stabil.
  */
 
 let globalDataAntrean = [];
@@ -39,10 +39,10 @@ async function loadAntreanSesi() {
   if (!select) return;
 
   try {
-    // 1. Ambil data dari HasilTes (ambil juga namaKelas jika tersimpan di tabel HasilTes)
+    // 1. Ambil data idJadwal & jenisTes dari HasilTes
     const { data: listHasil, error } = await window.supabaseClient
       .from('HasilTes')
-      .select('idJadwal, jenisTes, namaKelas, status');
+      .select('idJadwal, jenisTes, status');
 
     if (error) throw error;
 
@@ -53,25 +53,24 @@ async function loadAntreanSesi() {
       return;
     }
 
-    // Buat daftar unik berdasarkan idJadwal
-    const mapBatch = new Map();
-    belumPublish.forEach(item => {
-      if (!mapBatch.has(item.idJadwal)) {
-        mapBatch.set(item.idJadwal, {
+    // Filter unik batch ID
+    const uniqueBatches = [];
+    const map = new Map();
+    for (const item of belumPublish) {
+      if (!map.has(item.idJadwal)) {
+        map.set(item.idJadwal, true);
+        uniqueBatches.push({
           idJadwal: item.idJadwal,
-          jenisTes: item.jenisTes,
-          namaKelas: item.namaKelas || ''
+          jenisTes: item.jenisTes
         });
       }
-    });
+    }
 
-    const uniqueBatches = Array.from(mapBatch.values());
+    // 2. Ambil detail nama kelas dari tabel jadwal_log
     const uniqueIds = uniqueBatches.map(b => b.idJadwal);
-
-    // 2. Ambil pelengkap dari jadwal_log untuk memastikan nama kelas 100% akurat
     const { data: jadwalList } = await window.supabaseClient
       .from('jadwal_log')
-      .select('*')
+      .select('id, nama_kelas, ruang_lab, sesi, tanggal')
       .in('id', uniqueIds);
 
     const jadwalMap = new Map();
@@ -81,16 +80,12 @@ async function loadAntreanSesi() {
 
     // TAMPILAN DROPDOWN DENGAN NAMA KELAS YANG JELAS
     select.innerHTML = '<option value="">-- Pilih Kelas & Sesi Ujian --</option>' + uniqueBatches.map(b => {
-      const detailJadwal = jadwalMap.get(b.idJadwal) || {};
-      const namaKls = detailJadwal.nama_kelas || detailJadwal.kelas || b.namaKelas || `Sesi ID ${b.idJadwal}`;
-      const jenis = (b.jenisTes || detailJadwal.jenis_tes || 'TOEFL').toUpperCase();
-      const lab = detailJadwal.ruang_lab || '';
-      const sesi = detailJadwal.sesi || '';
-      const tgl = detailJadwal.tanggal || '';
+      const jInfo = jadwalMap.get(b.idJadwal) || {};
+      const namaKelas = jInfo.nama_kelas || `Sesi ID ${b.idJadwal}`;
+      const jenis = b.jenisTes || 'TOEFL';
+      const labInfo = jInfo.ruang_lab ? ` (${jInfo.ruang_lab} | ${jInfo.sesi})` : '';
 
-      const infoTambahan = lab ? ` (${lab} | ${sesi} | Tgl: ${tgl})` : '';
-
-      return `<option value="${b.idJadwal}">Kelas: ${namaKls} — ${jenis}${infoTambahan}</option>`;
+      return `<option value="${b.idJadwal}">Kelas: ${namaKelas} — ${jenis.toUpperCase()}${labInfo}</option>`;
     }).join('');
 
   } catch (err) {
