@@ -34,6 +34,7 @@
     </div>
     
     <div class="p-4 space-y-1 flex-1">
+      <!-- DIPERBAIKI: Mengarah ke index.html agar tidak 404 error -->
       <a href="index.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
         <i class="ri-layout-grid-line text-lg text-slate-500"></i> Dashboard
       </a>
@@ -128,10 +129,10 @@
           <!-- Input Nama Kelas -->
           <div>
             <label class="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">NAMA KELAS BARU (CONTOH: 2 PDOK B)</label>
-            <input type="text" id="inputNamaKelas" placeholder="Ketik nama kelas..." class="w-full px-4 py-3 border border-slate-200 rounded-xl text-[13px] font-semibold text-slate-700 focus:outline-none focus:border-polnes-main focus:ring-1 focus:ring-polnes-main bg-white">
+            <input type="text" id="namaKelasInput" placeholder="Ketik nama kelas..." class="w-full px-4 py-3 border border-slate-200 rounded-xl text-[13px] font-semibold text-slate-700 focus:outline-none focus:border-polnes-main focus:ring-1 focus:ring-polnes-main bg-white">
           </div>
           
-          <!-- Dropdown Program Studi (Lengkap) -->
+          <!-- Dropdown Program Studi (Lengkap 26 Prodi) -->
           <div>
             <label class="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">PILIH PROGRAM STUDI</label>
             <select id="selectProdi" class="w-full px-4 py-3 border border-slate-200 rounded-xl text-[13px] font-semibold text-slate-700 focus:outline-none focus:border-polnes-main focus:ring-1 focus:ring-polnes-main bg-white">
@@ -180,7 +181,7 @@
               </optgroup>
               <optgroup label="TEKNIK ELEKTRO">
                 <option value="D3 - TEKNIK LISTRIK">D3 - TEKNIK LISTRIK</option>
-                <option value="D4 - TEKNI LISTRIK">D4 - TEKNI LISTRIK</option>
+                <option value="D4 - TEKNOLOGI REKAYASA PEMBANGKIT ENERGI">D4 - TEKNOLOGI REKAYASA PEMBANGKIT ENERGI</option>
               </optgroup>
             </select>
           </div>
@@ -188,61 +189,95 @@
           <!-- Input File Excel -->
           <div>
             <label class="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">FILE EXCEL (.XLSX / .XLS)</label>
-            <input type="file" id="fileExcelMhs" accept=".xlsx, .xls" class="hidden">
-            <button onclick="document.getElementById('fileExcelMhs').click()" class="w-full px-4 py-3 border border-slate-200 bg-slate-50 rounded-xl text-[13px] font-semibold text-slate-500 hover:bg-slate-100 transition-all flex items-center justify-between">
-              <span id="labelFileExcel" class="truncate">Klik untuk Pilih File Excel...</span>
+            <input type="file" id="excelFileInput" accept=".xlsx, .xls" class="hidden">
+            <button onclick="handleSelectFileClick()" class="w-full px-4 py-3 border border-slate-200 bg-slate-50 rounded-xl text-[13px] font-semibold text-slate-500 hover:bg-slate-100 transition-all flex items-center justify-between">
+              <span id="fileNameText" class="truncate">Klik untuk Pilih File Excel...</span>
               <i class="ri-upload-cloud-line text-lg"></i>
             </button>
           </div>
         </div>
       </div>
 
-      <!-- Pengaturan Sesi & Tabel Antrean -->
-      <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+      <!-- Pengaturan Sesi & Filter Kelas & Tabel Antrean -->
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h3 class="text-[15px] font-bold text-slate-800">Pengaturan Sesi & Centang Mahasiswa Terjadwal</h3>
-            <p id="infoCount" class="text-xs text-slate-500 mt-1">Memuat data antrean...</p>
+            <p id="antreanStatusText" class="text-xs text-slate-500 mt-1">Memuat data antrean...</p>
           </div>
           <div class="flex items-center gap-2 flex-wrap">
             <select id="selectJenisTes" class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold text-slate-700 outline-none focus:border-polnes-main">
               <option value="TOEFL">TOEFL</option>
               <option value="SSPECT">SSPECT</option>
             </select>
-            <input type="date" id="inputTanggal" class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold text-slate-700 outline-none focus:border-polnes-main">
+            <input type="date" id="inputTanggalUjian" class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold text-slate-700 outline-none focus:border-polnes-main">
             <select id="selectSesi" class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold text-slate-700 outline-none focus:border-polnes-main">
-              <option value="SESI 1 (08.00 - 10.30 WITA)">SESI 1 (08.00 - 10.30 WITA)</option>
-              <option value="SESI 2 (10.30 - 13.00 WITA)">SESI 2 (10.30 - 13.00 WITA)</option>
-              <option value="SESI 3 (14.00 - 16.30 WITA)">SESI 3 (14.00 - 16.30 WITA)</option>
+              <option value="SESI 1 (08.00 - 10.00 WITA)">SESI 1 (08.00 - 10.00 WITA)</option>
+              <option value="SESI 2 (10.00 - 12.00 WITA)">SESI 2 (10.00 - 12.00 WITA)</option>
+              <option value="SESI 3 (14.00 - 16.00 WITA)">SESI 3 (14.00 - 16.00 WITA)</option>
             </select>
             <select id="selectLab" class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold text-slate-700 outline-none focus:border-polnes-main">
-              <option value="Lab Komputer Bahasa A">Lab A (Kapasitas 30)</option>
-              <option value="Lab Komputer Bahasa B">Lab B (Kapasitas 30)</option>
+              <option value="Lab A">Lab A (Kapasitas 30)</option>
+              <option value="Lab B">Lab B (Kapasitas 30)</option>
             </select>
-            <button onclick="hapusAntreanTerpilih()" class="px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-lg text-sm font-bold shadow-sm flex items-center gap-1.5 transition-all">
+            <button onclick="hapusAntreanSupabase()" class="px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-lg text-sm font-bold shadow-sm flex items-center gap-1.5 transition-all">
               <i class="ri-delete-bin-line"></i> Hapus Antrean
             </button>
-            <button onclick="simpanAntreanKeDatabase()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold shadow-sm flex items-center gap-1.5 transition-all">
+            <button onclick="kunciSesiUjianKeSupabase()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold shadow-sm flex items-center gap-1.5 transition-all">
               <i class="ri-lock-fill"></i> Kunci Sesi Ujian
             </button>
           </div>
+        </div>
+
+        <!-- Tombol Filter Kelas Dinamis -->
+        <div id="filterKelasContainer" class="flex items-center gap-2 flex-wrap"></div>
+
+        <div class="overflow-x-auto rounded-xl border border-slate-100">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 text-slate-500 text-[11px] border-b border-slate-200 uppercase tracking-wider">
+                <th class="px-4 py-3.5 font-bold border-r border-slate-100 text-center"><input type="checkbox" onchange="toggleSelectAllMhs(this)" checked class="rounded text-polnes-main cursor-pointer"></th>
+                <th class="px-4 py-3.5 font-bold border-r border-slate-100">NO</th>
+                <th class="px-4 py-3.5 font-bold border-r border-slate-100">NIM</th>
+                <th class="px-4 py-3.5 font-bold border-r border-slate-100">NAMA MAHASISWA</th>
+                <th class="px-4 py-3.5 font-bold border-r border-slate-100">NAMA KELAS</th>
+                <th class="px-4 py-3.5 font-bold border-r border-slate-100">PROGRAM STUDI</th>
+                <th class="px-4 py-3.5 font-bold">ID MEJA (OTOMATIS)</th>
+              </tr>
+            </thead>
+            <tbody id="tabelAntreanMhsBody" class="text-sm text-slate-700 divide-y divide-slate-100">
+              <tr><td colspan="7" class="px-4 py-8 text-center text-slate-400 text-xs italic">Memuat data antrean dari server...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- KOTAK TABEL HISTORI JADWAL SESI & PREVIEW PDF -->
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        <div class="mb-6">
+          <h3 class="text-[15px] font-bold text-slate-800">Histori Jadwal Sesi Ujian Terkunci</h3>
+          <p class="text-xs text-slate-500 mt-1">Daftar sesi ujian yang telah dikunci beserta opsi cetak Berita Acara PDF.</p>
         </div>
 
         <div class="overflow-x-auto rounded-xl border border-slate-100">
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="bg-slate-50 text-slate-500 text-[11px] border-b border-slate-200 uppercase tracking-wider">
-                <th class="px-5 py-4 font-bold border-r border-slate-100"><input type="checkbox" id="checkAll"></th>
-                <th class="px-5 py-4 font-bold border-r border-slate-100">NO</th>
-                <th class="px-5 py-4 font-bold border-r border-slate-100">NIM</th>
-                <th class="px-5 py-4 font-bold border-r border-slate-100">NAMA MAHASISWA</th>
-                <th class="px-5 py-4 font-bold border-r border-slate-100">NAMA KELAS</th>
-                <th class="px-5 py-4 font-bold border-r border-slate-100">PROGRAM STUDI</th>
-                <th class="px-5 py-4 font-bold">ID MEJA (OTOMATIS)</th>
+                <th class="px-4 py-3.5 font-bold border-r border-slate-100">NO</th>
+                <th class="px-4 py-3.5 font-bold border-r border-slate-100">JENIS TES</th>
+                <th class="px-4 py-3.5 font-bold border-r border-slate-100">KELAS</th>
+                <th class="px-4 py-3.5 font-bold border-r border-slate-100">TANGGAL</th>
+                <th class="px-4 py-3.5 font-bold border-r border-slate-100">SESI</th>
+                <th class="px-4 py-3.5 font-bold border-r border-slate-100">RUANG LAB</th>
+                <th class="px-4 py-3.5 font-bold border-r border-slate-100 text-center">JML MHS</th>
+                <th class="px-4 py-3.5 font-bold border-r border-slate-100 text-center">STATUS</th>
+                <th class="px-4 py-3.5 font-bold text-center">AKSI / PDF</th>
               </tr>
             </thead>
-            <tbody id="tabelAntreanBody" class="text-sm text-slate-700 divide-y divide-slate-100">
-              <tr><td colspan="7" class="px-5 py-8 text-center text-slate-400 text-sm italic">Memuat data antrean dari server...</td></tr>
+            <tbody id="tabelHistoriJadwalBody" class="text-sm text-slate-700 divide-y divide-slate-100">
+              <tr>
+                <td colspan="9" class="px-4 py-6 text-center text-slate-400 text-xs italic">Memuat riwayat jadwal...</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -251,6 +286,34 @@
     </div>
   </main>
 
+  <!-- MODAL PREVIEW BERITA ACARA PDF -->
+  <div id="pdfPreviewModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl w-full max-w-4xl h-[90vh] flex flex-col shadow-2xl overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <h3 class="text-sm font-extrabold text-slate-800 flex items-center gap-2">
+          <i class="ri-file-pdf-line text-rose-500 text-lg"></i> Pratinjau Berita Acara & Daftar Hadir Ujian
+        </h3>
+        <div class="flex items-center gap-2">
+          <button id="btnActionPrint" class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-bold transition-all flex items-center gap-1">
+            <i class="ri-printer-line"></i> Cetak
+          </button>
+          <button id="btnActionDownload" class="px-3 py-1.5 bg-polnes-dark hover:bg-green-800 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1">
+            <i class="ri-download-line"></i> Unduh PDF
+          </button>
+          <button onclick="tutupPreviewPDF()" class="w-8 h-8 rounded-lg bg-slate-200 hover:bg-rose-500 hover:text-white text-slate-600 flex items-center justify-center transition-all font-bold">
+            <i class="ri-close-line text-lg"></i>
+          </button>
+        </div>
+      </div>
+      <div class="flex-1 bg-slate-100 p-4">
+        <iframe id="pdfPreviewIframe" class="w-full h-full rounded-xl border border-slate-300 bg-white shadow-inner"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- CDN JS (jsPDF & autoTable) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/plugin.jspdf.autotable.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./js/supabase-config.js"></script>
   <script src="./js/modul-jadwal.js"></script>
