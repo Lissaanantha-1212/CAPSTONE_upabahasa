@@ -1,5 +1,5 @@
 /**
- * MODUL PENJADWALAN - UPA BAHASA POLNES (FULL VERSION UTUH + PRODI)
+ * MODUL PENJADWALAN - UPA BAHASA POLNES (FULL VERSION UTUH + PRODI & PDF 1 HALAMAN)
  * Menangani Upload Excel, Antrean, Filter Kelas, Validasi Kapasitas Lab (Maks 30),
  * Validasi Pasangan Lab A & Lab B (Tidak Boleh Sama-Sama 30), Kunci Sesi, Histori, & PDF Paten.
  */
@@ -438,7 +438,7 @@ async function hapusHistoriJadwal(id) {
   }
 }
 
-// --- GENERATE BERITA ACARA PDF (MENGGUNAKAN PEMANGGILAN AMAN autoTable) ---
+// --- GENERATE BERITA ACARA PDF (DIATUR PAS 1 HALAMAN PENUH UNTUK 30 PESERTA) ---
 async function bukaPreviewPDF(jadwalId) {
   try {
     const { data: jadwalData } = await window.supabaseClient
@@ -461,40 +461,43 @@ async function bukaPreviewPDF(jadwalId) {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('p', 'mm', 'a4');
 
+    // Header KOP Instansi yang Compact (Hemat Ruang)
     try {
-      doc.addImage('./img/polnes.png', 'PNG', 15, 10, 18, 18);
+      doc.addImage('./img/polnes.png', 'PNG', 15, 8, 16, 16);
     } catch(err) {}
 
     doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.text("KEMENTERIAN PENDIDIKAN, KEBUDAYAAN, RISET, DAN TEKNOLOGI", 105, 10, { align: "center" });
     doc.setFontSize(11);
-    doc.text("KEMENTERIAN PENDIDIKAN, KEBUDAYAAN, RISET, DAN TEKNOLOGI", 105, 12, { align: "center" });
-    doc.setFontSize(12);
-    doc.text("POLITEKNIK NEGERI SAMARINDA", 105, 17, { align: "center" });
+    doc.text("POLITEKNIK NEGERI SAMARINDA", 105, 14, { align: "center" });
     
-    doc.setFontSize(10);
-    doc.text("UNIT PENGELOLA AKADEMIK (UPA) BAHASA", 105, 22, { align: "center" });
+    doc.setFontSize(9);
+    doc.text("UNIT PENGELOLA AKADEMIK (UPA) BAHASA", 105, 18, { align: "center" });
     
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(8);
-    doc.text("Jl. Cipto Mangunkusumo Kampus Gunung Lipan Samarinda 75131", 105, 26, { align: "center" });
+    doc.setFontSize(7.5);
+    doc.text("Jl. Cipto Mangunkusumo Kampus Gunung Lipan Samarinda 75131", 105, 22, { align: "center" });
     
-    doc.setLineWidth(0.4);
-    doc.line(15, 29, 195, 29);
+    doc.setLineWidth(0.3);
+    doc.line(15, 24, 195, 24);
 
+    // Judul Berita Acara
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    doc.text("BERITA ACARA & DAFTAR HADIR PELAKSANAAN UJIAN", 105, 35, { align: "center" });
-    doc.setFontSize(9);
-    doc.text(`JENIS TES: ${jadwalData.jenis_tes.toUpperCase()}`, 105, 40, { align: "center" });
+    doc.setFontSize(9.5);
+    doc.text("BERITA ACARA & DAFTAR HADIR PELAKSANAAN UJIAN", 105, 29, { align: "center" });
+    doc.setFontSize(8.5);
+    doc.text(`JENIS TES: ${jadwalData.jenis_tes.toUpperCase()}`, 105, 33, { align: "center" });
 
+    // Informasi Sesi Ujian (2 Kolom Rapat)
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
-    let startY = 46;
+    doc.setFontSize(8.5);
+    let startY = 38;
     doc.text(`Hari / Tanggal : ${jadwalData.tanggal}`, 20, startY);
     doc.text(`Ruang Lab      : ${jadwalData.ruang_lab}`, 120, startY);
     
-    doc.text(`Waktu Sesi     : ${jadwalData.sesi}`, 20, startY + 5);
-    doc.text(`Kelas Peserta  : ${jadwalData.nama_kelas}`, 120, startY + 5);
+    doc.text(`Waktu Sesi     : ${jadwalData.sesi}`, 20, startY + 4.5);
+    doc.text(`Kelas Peserta  : ${jadwalData.nama_kelas}`, 120, startY + 4.5);
 
     const tableRows = pesertaData.map((p, index) => [
       index + 1,
@@ -505,57 +508,49 @@ async function bukaPreviewPDF(jadwalId) {
       ""
     ]);
 
-    // PEMANGGILAN AMAN: Menggunakan window.jspdf.jsAutoTable jika metode doc.autoTable tidak terdeteksi langsung
-    const autoTableFn = doc.autoTable || window.jspdf.jsAutoTable || (window.autotable && window.autotable.default);
+    // TABEL PESERTA DIATUR AGAR PAS 1 HALAMAN (Padding & Font Disesuaikan)
+    const autoTableFn = doc.autoTable || window.jspdf.jsAutoTable;
 
     if (typeof autoTableFn === 'function') {
-      if (typeof doc.autoTable === 'function') {
-        doc.autoTable({
-          startY: startY + 10,
-          head: [["NO", "NIM", "NAMA MAHASISWA", "PRODI", "ID MEJA", "TANDA TANGAN"]],
-          body: tableRows,
-          theme: 'grid',
-          headStyles: { fillColor: [16, 195, 93], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center', fontSize: 8 },
-          columnStyles: {
-            0: { cellWidth: 10, halign: 'center' },
-            1: { cellWidth: 25, halign: 'center' },
-            2: { cellWidth: 55 },
-            3: { cellWidth: 35, fontSize: 7 },
-            4: { cellWidth: 20, halign: 'center', fontStyle: 'bold' },
-            5: { cellWidth: 35 }
-          },
-          styles: { fontSize: 8, cellPadding: 1.5 }
-        });
-      } else {
-        autoTableFn(doc, {
-          startY: startY + 10,
-          head: [["NO", "NIM", "NAMA MAHASISWA", "PRODI", "ID MEJA", "TANDA TANGAN"]],
-          body: tableRows,
-          theme: 'grid',
-          headStyles: { fillColor: [16, 195, 93], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center', fontSize: 8 },
-          columnStyles: {
-            0: { cellWidth: 10, halign: 'center' },
-            1: { cellWidth: 25, halign: 'center' },
-            2: { cellWidth: 55 },
-            3: { cellWidth: 35, fontSize: 7 },
-            4: { cellWidth: 20, halign: 'center', fontStyle: 'bold' },
-            5: { cellWidth: 35 }
-          },
-          styles: { fontSize: 8, cellPadding: 1.5 }
-        });
-      }
+      doc.autoTable({
+        startY: startY + 8,
+        head: [["NO", "NIM", "NAMA MAHASISWA", "PRODI", "ID MEJA", "TANDA TANGAN"]],
+        body: tableRows,
+        theme: 'grid',
+        headStyles: { 
+          fillColor: [16, 195, 93], 
+          textColor: [255, 255, 255], 
+          fontStyle: 'bold', 
+          halign: 'center', 
+          fontSize: 7.5,
+          cellPadding: 1.2
+        },
+        columnStyles: {
+          0: { cellWidth: 8, halign: 'center' },
+          1: { cellWidth: 24, halign: 'center' },
+          2: { cellWidth: 52 },
+          3: { cellWidth: 42, fontSize: 6.5 },
+          4: { cellWidth: 18, halign: 'center', fontStyle: 'bold' },
+          5: { cellWidth: 36 }
+        },
+        styles: { 
+          fontSize: 7.5, 
+          cellPadding: 0.9 // Padding diperkecil agar pas 1 halaman penuh
+        }
+      });
     } else {
-      throw new Error("Library autoTable tidak terdeteksi pada window.jspdf.");
+      throw new Error("Library autoTable tidak terdeteksi.");
     }
 
-    let finalY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 8 : startY + 50;
+    // Bagian Tanda Tangan Pengawas di Bawah Tabel (Hemat Ruang)
+    let finalY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 4 : startY + 45;
     
-    doc.setFontSize(9);
+    doc.setFontSize(8.5);
     doc.text("Samarinda, " + new Date().toLocaleDateString('id-ID'), 140, finalY);
-    doc.text("Pengawas Ujian,", 140, finalY + 4);
+    doc.text("Pengawas Ujian,", 140, finalY + 3.5);
     
     doc.setFont("helvetica", "bold");
-    doc.text("(_________________________)", 130, finalY + 22);
+    doc.text("(_________________________)", 130, finalY + 16);
 
     const pdfBlob = doc.output('blob');
     const pdfUrl = URL.createObjectURL(pdfBlob);
