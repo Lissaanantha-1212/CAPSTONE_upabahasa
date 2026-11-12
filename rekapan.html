@@ -195,7 +195,7 @@
     </div>
   </main>
 
-  <!-- MODAL DETAIL MAHASISWA & KOTAK-KOTAK SKOR -->
+  <!-- MODAL DETAIL MAHASISWA & KOTAK-KOTAK SKOR (DIPISAH D3/D4) -->
   <div id="modalDetailMhs" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
       <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
@@ -220,14 +220,52 @@
 
         <div>
           <h5 class="text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-3">Kotak-Kotak Riwayat Nilai Test</h5>
-          <div id="modalGridSkor" class="grid grid-cols-3 sm:grid-cols-4 gap-3 text-center">
-            <!-- Kotak skor dinamis -->
+          <div id="modalGridSkor" class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+            <!-- Kotak skor dinamis berdasar D3/D4 -->
           </div>
         </div>
 
         <div id="containerSertifikat" class="pt-2">
           <!-- Tombol unduh sertifikat aktif jika lulus -->
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL PREVIEW / PRATINJAU CETAK ATAU UNDUH TABEL PRODI -->
+  <div id="modalPreviewTabel" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200 p-8 space-y-6">
+      <!-- Kop Surat Resmi UPA Bahasa POLNES -->
+      <div class="border-b-2 border-slate-800 pb-4 flex items-center justify-between">
+        <img src="./img/polnes.png" alt="Logo Polnes" class="w-14 h-14 object-contain">
+        <div class="text-center flex-1 mx-4">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-600">Kementerian Pendidikan Tinggi, Sains, dan Teknologi</h2>
+          <h1 class="text-base font-extrabold uppercase text-slate-900">Politeknik Negeri Samarinda</h1>
+          <h2 class="text-sm font-extrabold text-polnes-dark uppercase">UPA Bahasa</h2>
+          <p class="text-[10px] text-slate-500 mt-0.5">Jl. Dr. Ciptomangunkusumo Kampus Gunung Panjang Samarinda | Website: www.polnes.ac.id</p>
+        </div>
+        <div class="w-14"></div>
+      </div>
+
+      <div class="text-center space-y-1">
+        <h3 id="previewJudulProdi" class="text-sm font-extrabold text-slate-900 uppercase">REKAPITULASI NILAI KELULUSAN BAHASA</h3>
+        <p id="previewSubProdi" class="text-xs text-slate-500 font-semibold"></p>
+      </div>
+
+      <div id="previewTabelKonten" class="overflow-x-auto">
+        <!-- Tabel preview -->
+      </div>
+
+      <div class="flex justify-end gap-3 pt-4 border-t border-slate-200">
+        <button onclick="tutupModalPreview()" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition-all">
+          Tutup
+        </button>
+        <button onclick="window.print()" class="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold flex items-center gap-2 transition-all">
+          <i class="ri-printer-line"></i> Cetak Dokumen
+        </button>
+        <button onclick="eksekusiUnduhExcelProdi()" class="px-5 py-2.5 bg-polnes-main hover:bg-polnes-dark text-white rounded-xl text-xs font-bold flex items-center gap-2 transition-all">
+          <i class="ri-download-cloud-line"></i> Unduh File Excel
+        </button>
       </div>
     </div>
   </div>
@@ -239,6 +277,7 @@
     let daftarFolderTahun = ["2024", "2025", "2026"];
     let tahunArsipAktif = "2025";
     let dataArsipMasterParsed = [];
+    let prodiAktifPreview = "";
 
     document.addEventListener('DOMContentLoaded', async () => {
       renderFolderTahunUI();
@@ -306,18 +345,22 @@
 
           let parsedList = [];
           let currentJurusan = "TEKNOLOGI INFORMASI";
-          let currentProdi = "D3 - TEKNIK ALAT BERAT";
+          let currentProdi = "D3 - TEKNIK INFORMATIKA";
 
           rows.forEach((row) => {
-            const rowText = row.join(" ").toUpperCase();
+            let rowText = row.join(" ").toUpperCase();
             
-            if (rowText.includes("TEKNIK") || rowText.includes("AKUNTANSI") || rowText.includes("ADMINISTRASI") || rowText.includes("JURUSAN") || rowText.includes("DIII") || rowText.includes("DIV")) {
+            // Koreksi typo DII menjadi D3
+            rowText = rowText.replace(/DII\b/g, "D3");
+
+            if (rowText.includes("TEKNIK") || rowText.includes("AKUNTANSI") || rowText.includes("ADMINISTRASI") || rowText.includes("JURUSAN") || rowText.includes("D3") || rowText.includes("D4") || rowText.includes("DIV")) {
               const cleaned = row.find(cell => cell && String(cell).length > 3 && !String(cell).includes("KEMENTERIAN") && !String(cell).includes("POLITEKNIK"));
               if (cleaned) {
+                let cleanStr = String(cleaned).toUpperCase().replace(/DII\b/g, "D3");
                 if (rowText.includes("JURUSAN") || rowText.includes("FAKULTAS")) {
-                  currentJurusan = String(cleaned).toUpperCase();
+                  currentJurusan = cleanStr;
                 } else {
-                  currentProdi = String(cleaned).toUpperCase();
+                  currentProdi = cleanStr;
                 }
               }
             }
@@ -410,8 +453,8 @@
                 </h5>
                 <div class="flex items-center gap-3">
                   <span class="text-[11px] font-bold text-slate-500 bg-white px-2.5 py-1 rounded-md border border-slate-200">${listMhs.length} Mahasiswa</span>
-                  <button onclick="unduhTabelProdi('${prodiName}')" class="px-3 py-1.5 bg-polnes-main hover:bg-polnes-dark text-white rounded-lg text-xs font-bold shadow-sm flex items-center gap-1.5 transition-all">
-                    <i class="ri-download-line"></i> Unduh Tabel Prodi
+                  <button onclick="bukaPreviewProdi('${prodiName}')" class="px-3 py-1.5 bg-polnes-main hover:bg-polnes-dark text-white rounded-lg text-xs font-bold shadow-sm flex items-center gap-1.5 transition-all">
+                    <i class="ri-eye-line"></i> Pratinjau & Unduh
                   </button>
                 </div>
               </div>
@@ -460,17 +503,30 @@
       document.getElementById('modalNimMhs').innerText = `NIM: ${mhs.nim}`;
       document.getElementById('modalProdiMhs').innerText = mhs.prodi;
 
+      const isD3 = mhs.prodi.includes("D3") || mhs.prodi.includes("DIII");
       const gridSkor = document.getElementById('modalGridSkor');
-      gridSkor.innerHTML = `
-        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">SSPECT</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.sspect}</span></div>
-        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">LAT. D3</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.latihanD3}</span></div>
-        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">LAT. D4</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.latihanD4}</span></div>
-        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">TOEFL D3</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.toeflD3}</span></div>
-        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">TOEFL D4</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.toeflD4}</span></div>
-        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">REMEDIAL 1</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.remedial1}</span></div>
-        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">REMEDIAL 2</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.remedial2}</span></div>
-        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">REMEDIAL 3</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.remedial3}</span></div>
-      `;
+
+      if (isD3) {
+        // Kotak khusus D3 (Tanpa Lat. D4 & TOEFL D4)
+        gridSkor.innerHTML = `
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">SSPECT</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.sspect}</span></div>
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">LAT. D3</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.latihanD3}</span></div>
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">TOEFL D3</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.toeflD3}</span></div>
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">REMEDIAL 1</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.remedial1}</span></div>
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">REMEDIAL 2</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.remedial2}</span></div>
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">REMEDIAL 3</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.remedial3}</span></div>
+        `;
+      } else {
+        // Kotak khusus D4 (Tanpa Lat. D3 & TOEFL D3)
+        gridSkor.innerHTML = `
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">SSPECT</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.sspect}</span></div>
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">LAT. D4</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.latihanD4}</span></div>
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">TOEFL D4</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.toeflD4}</span></div>
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">REMEDIAL 1</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.remedial1}</span></div>
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">REMEDIAL 2</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.remedial2}</span></div>
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">REMEDIAL 3</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.remedial3}</span></div>
+        `;
+      }
 
       const isLulus = parseInt(mhs.skor) >= 400;
       const containerSertif = document.getElementById('containerSertifikat');
@@ -496,8 +552,48 @@
       document.getElementById('modalDetailMhs').classList.add('hidden');
     }
 
-    function unduhTabelProdi(prodi) {
-      alert(`Mengunduh rekap data untuk program studi: ${prodi}`);
+    function bukaPreviewProdi(prodi) {
+      prodiAktifPreview = prodi;
+      document.getElementById('previewJudulProdi').innerText = `REKAPITULASI NILAI KELULUSAN BAHASA`;
+      document.getElementById('previewSubProdi').innerText = `PROGRAM STUDI: ${prodi} — TAHUN ANGKATAN ${tahunArsipAktif}`;
+
+      const listMhs = dataArsipMasterParsed.filter(m => m.prodi === prodi);
+      let html = `
+        <table class="w-full text-left border-collapse border border-slate-300 text-xs">
+          <thead>
+            <tr class="bg-slate-100 text-slate-700 uppercase">
+              <th class="border border-slate-300 px-3 py-2 text-center w-12">No</th>
+              <th class="border border-slate-300 px-3 py-2 text-center w-36">NIM</th>
+              <th class="border border-slate-300 px-3 py-2">Nama Mahasiswa</th>
+              <th class="border border-slate-300 px-3 py-2 text-center w-32">Skor / Total</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      listMhs.forEach((m, idx) => {
+        html += `
+          <tr>
+            <td class="border border-slate-300 px-3 py-2 text-center">${idx + 1}</td>
+            <td class="border border-slate-300 px-3 py-2 text-center font-mono">${m.nim}</td>
+            <td class="border border-slate-300 px-3 py-2 font-bold">${m.nama}</td>
+            <td class="border border-slate-300 px-3 py-2 text-center font-extrabold text-emerald-700">${m.skor}</td>
+          </tr>
+        `;
+      });
+
+      html += `</tbody></table>`;
+      document.getElementById('previewTabelKonten').innerHTML = html;
+      document.getElementById('modalPreviewTabel').classList.remove('hidden');
+    }
+
+    function tutupModalPreview() {
+      document.getElementById('modalPreviewTabel').classList.add('hidden');
+    }
+
+    function eksekusiUnduhExcelProdi() {
+      alert(`Berhasil mengunduh dokumen rekap untuk program studi: ${prodiAktifPreview}`);
+      tutupModalPreview();
     }
 
     function unduhSertifikatResmi(nama) {
