@@ -122,29 +122,25 @@
       <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-6">
         <div>
           <h3 class="text-base font-bold text-slate-800">Modul 3: Upload Nilai TOEFL & Auto-Mapping Engine</h3>
-          <p class="text-xs text-slate-500 mt-1">Validasi ketat 3 file Section (Listening, Structure, Reading), sinkronisasi data peserta dengan nomor meja.</p>
+          <p class="text-xs text-slate-500 mt-1">Validasi ketat 3 file Section (Listening, Structure, Reading), sinkronisasi data peserta dengan nomor meja secara otomatis.</p>
         </div>
 
-        <!-- Parameter Acuan Sesi Ujian (Disamakan dengan modul penjadwalan) -->
-        <div class="bg-slate-50 rounded-xl p-5 border border-slate-200 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Parameter Acuan Sesi Ujian (2 Kolom Bersih Tanpa Input Tanggal Manual) -->
+        <div class="bg-slate-50 rounded-xl p-5 border border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label class="block text-[10px] font-bold text-slate-500 mb-1.5 uppercase tracking-wider">PILIH RUANG LAB UJIAN</label>
-            <select id="selectLabToefl" class="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-semibold text-slate-700 outline-none focus:border-polnes-main">
+            <label class="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">PILIH RUANG LAB UJIAN</label>
+            <select id="selectLabToefl" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-[13px] font-semibold text-slate-700 outline-none focus:border-polnes-main">
               <option value="Lab A">Lab A</option>
               <option value="Lab B">Lab B</option>
             </select>
           </div>
           <div>
-            <label class="block text-[10px] font-bold text-slate-500 mb-1.5 uppercase tracking-wider">PILIH SESI & WAKTU</label>
-            <select id="selectSesiToefl" class="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-semibold text-slate-700 outline-none focus:border-polnes-main">
+            <label class="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">PILIH SESI & WAKTU</label>
+            <select id="selectSesiToefl" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-[13px] font-semibold text-slate-700 outline-none focus:border-polnes-main">
               <option value="SESI 1 (08.00 - 10.00 WITA)">SESI 1 (08.00 - 10.00 WITA)</option>
               <option value="SESI 2 (10.00 - 12.00 WITA)">SESI 2 (10.00 - 12.00 WITA)</option>
               <option value="SESI 3 (14.00 - 16.00 WITA)">SESI 3 (14.00 - 16.00 WITA)</option>
             </select>
-          </div>
-          <div>
-            <label class="block text-[10px] font-bold text-slate-500 mb-1.5 uppercase tracking-wider">TANGGAL UJIAN</label>
-            <input type="date" id="inputTanggalToefl" class="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-semibold text-slate-700 outline-none focus:border-polnes-main">
           </div>
         </div>
 
@@ -154,30 +150,30 @@
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             
             <!-- Section 1 -->
-            <div class="border-2 border-dashed border-slate-200 hover:border-polnes-main rounded-xl p-4 text-center bg-slate-50/50 transition-all flex flex-col items-center justify-center">
-              <input type="file" id="fileSec1" accept=".xlsx, .xls" class="hidden" onchange="handleFileSection(1, this)">
-              <button onclick="document.getElementById('fileSec1').click()" class="w-full py-2 px-3 bg-polnes-main hover:bg-polnes-dark text-white rounded-lg text-xs font-bold shadow-sm flex items-center justify-center gap-1.5 transition-all mb-2">
+            <div class="border-2 border-dashed border-slate-200 hover:border-polnes-main rounded-xl p-5 text-center bg-slate-50/50 transition-all flex flex-col items-center justify-center">
+              <input type="file" id="fileSec1" accept=".xlsx, .xls" class="hidden">
+              <button onclick="document.getElementById('fileSec1').click()" class="w-full py-2.5 px-3 bg-polnes-main hover:bg-polnes-dark text-white rounded-xl text-xs font-bold shadow-sm flex items-center justify-center gap-1.5 transition-all mb-2">
                 <i class="ri-upload-cloud-line text-sm"></i> Unggah Excel Sec. 1
               </button>
-              <span id="labelSec1" class="text-[11px] text-slate-400 truncate w-full">Belum ada file dipilih</span>
+              <span id="labelSec1" class="text-[11px] text-slate-400 truncate w-full font-medium">Belum ada file dipilih</span>
             </div>
 
             <!-- Section 2 -->
-            <div class="border-2 border-dashed border-slate-200 hover:border-purple-500 rounded-xl p-4 text-center bg-slate-50/50 transition-all flex flex-col items-center justify-center">
-              <input type="file" id="fileSec2" accept=".xlsx, .xls" class="hidden" onchange="handleFileSection(2, this)">
-              <button onclick="document.getElementById('fileSec2').click()" class="w-full py-2 px-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold shadow-sm flex items-center justify-center gap-1.5 transition-all mb-2">
+            <div class="border-2 border-dashed border-slate-200 hover:border-purple-500 rounded-xl p-5 text-center bg-slate-50/50 transition-all flex flex-col items-center justify-center">
+              <input type="file" id="fileSec2" accept=".xlsx, .xls" class="hidden">
+              <button onclick="document.getElementById('fileSec2').click()" class="w-full py-2.5 px-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center justify-center gap-1.5 transition-all mb-2">
                 <i class="ri-upload-cloud-line text-sm"></i> Unggah Excel Sec. 2
               </button>
-              <span id="labelSec2" class="text-[11px] text-slate-400 truncate w-full">Belum ada file dipilih</span>
+              <span id="labelSec2" class="text-[11px] text-slate-400 truncate w-full font-medium">Belum ada file dipilih</span>
             </div>
 
             <!-- Section 3 -->
-            <div class="border-2 border-dashed border-slate-200 hover:border-amber-500 rounded-xl p-4 text-center bg-slate-50/50 transition-all flex flex-col items-center justify-center">
-              <input type="file" id="fileSec3" accept=".xlsx, .xls" class="hidden" onchange="handleFileSection(3, this)">
-              <button onclick="document.getElementById('fileSec3').click()" class="w-full py-2 px-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold shadow-sm flex items-center justify-center gap-1.5 transition-all mb-2">
+            <div class="border-2 border-dashed border-slate-200 hover:border-amber-500 rounded-xl p-5 text-center bg-slate-50/50 transition-all flex flex-col items-center justify-center">
+              <input type="file" id="fileSec3" accept=".xlsx, .xls" class="hidden">
+              <button onclick="document.getElementById('fileSec3').click()" class="w-full py-2.5 px-3 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center justify-center gap-1.5 transition-all mb-2">
                 <i class="ri-upload-cloud-line text-sm"></i> Unggah Excel Sec. 3
               </button>
-              <span id="labelSec3" class="text-[11px] text-slate-400 truncate w-full">Belum ada file dipilih</span>
+              <span id="labelSec3" class="text-[11px] text-slate-400 truncate w-full font-medium">Belum ada file dipilih</span>
             </div>
 
           </div>
@@ -187,10 +183,10 @@
 
       <!-- Pratinjau Sinkronisasi Nilai -->
       <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
-        <div class="flex justify-between items-center">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h3 class="text-base font-bold text-slate-800">Pratinjau Hasil Sinkronisasi Nilai</h3>
-            <p class="text-xs text-slate-500 mt-0.5">Silakan unggah ketiga file section di atas untuk melakukan auto-mapping.</p>
+            <p id="infoStatusSync" class="text-xs text-slate-500 mt-0.5">Silakan unggah ketiga file section di atas untuk melakukan auto-mapping.</p>
           </div>
           <button onclick="simpanPermanenKeDatabase()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-2 transition-all">
             <i class="ri-save-line text-sm"></i> Simpan Permanen ke Database
@@ -201,18 +197,19 @@
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="bg-slate-50 text-slate-500 text-[11px] border-b border-slate-200 uppercase tracking-wider">
-                <th class="px-4 py-3 font-bold border-r border-slate-100 text-center">NO</th>
-                <th class="px-4 py-3 font-bold border-r border-slate-100">NIM</th>
-                <th class="px-4 py-3 font-bold border-r border-slate-100">NAMA MAHASISWA</th>
-                <th class="px-4 py-3 font-bold border-r border-slate-100">PROGRAM STUDI</th>
-                <th class="px-4 py-3 font-bold border-r border-slate-100 text-center">SEC 1</th>
-                <th class="px-4 py-3 font-bold border-r border-slate-100 text-center">SEC 2</th>
-                <th class="px-4 py-3 font-bold border-r border-slate-100 text-center">SEC 3</th>
-                <th class="px-4 py-3 font-bold text-center">TOTAL SKOR</th>
+                <th class="px-4 py-3.5 font-bold border-r border-slate-100 text-center">NO</th>
+                <th class="px-4 py-3.5 font-bold border-r border-slate-100">NIM</th>
+                <th class="px-4 py-3.5 font-bold border-r border-slate-100">NAMA MAHASISWA</th>
+                <th class="px-4 py-3.5 font-bold border-r border-slate-100">PROGRAM STUDI</th>
+                <th class="px-4 py-3.5 font-bold border-r border-slate-100 text-center">SEC 1</th>
+                <th class="px-4 py-3.5 font-bold border-r border-slate-100 text-center">SEC 2</th>
+                <th class="px-4 py-3.5 font-bold border-r border-slate-100 text-center">SEC 3</th>
+                <th class="px-4 py-3.5 font-bold text-center">TOTAL SKOR</th>
+                <th class="px-4 py-3.5 font-bold text-center">AKSI / BIND</th>
               </tr>
             </thead>
-            <tbody id="tabelPreviewToeflBody" class="text-sm text-slate-700 divide-y divide-slate-100">
-              <tr><td colspan="8" class="px-4 py-8 text-center text-slate-400 text-xs italic">Belum ada file yang diunggah atau disinkronisasi.</td></tr>
+            <tbody id="tabelPratinjauBody" class="text-sm text-slate-700 divide-y divide-slate-100">
+              <tr><td colspan="9" class="px-4 py-8 text-center text-slate-400 text-xs italic">Belum ada file yang diunggah atau disinkronisasi.</td></tr>
             </tbody>
           </table>
         </div>
@@ -223,6 +220,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./js/supabase-config.js"></script>
-  <script src="./js/modul-toefl.js"></script>
+  <script src="./js/modul-hasil-toefl.js"></script>
 </body>
 </html>
