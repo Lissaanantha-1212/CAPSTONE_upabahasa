@@ -1,6 +1,6 @@
 /**
  * MODUL 4: KALKULASI & PUBLIKASI SCORE - UPA BAHASA POLNES (FULL VERSION UTUH)
- * Memuat antrean berdasarkan data HasilTes dan mencocokkannya ke jadwal_log dengan aman.
+ * Menampilkan pilihan antrean murni berdasarkan Nama Kelas Asli & Jenis Tes.
  */
 
 let globalDataAntrean = [];
@@ -46,7 +46,6 @@ async function loadAntreanSesi() {
 
     if (error) throw error;
 
-    // Filter yang belum dipublished
     const belumPublish = (listHasil || []).filter(item => item.status !== 'PUBLISHED');
 
     if (belumPublish.length === 0) {
@@ -64,18 +63,23 @@ async function loadAntreanSesi() {
 
     if (jadwalErr) throw jadwalErr;
 
-    // Jika jadwal_log tidak ditemukan, buat fallback dari idJadwal langsung agar tetap tampil
     if (!jadwalList || jadwalList.length === 0) {
       select.innerHTML = '<option value="">-- Pilih Kelas & Sesi Ujian --</option>' + uniqueIds.map(id => 
-        `<option value="${id}">ID Jadwal: ${id} (Data Kelas)</option>`
+        `<option value="${id}">ID Jadwal: ${id}</option>`
       ).join('');
       return;
     }
 
-    // TAMPILAN DROPDOWN: Nama Kelas di depan dengan info lengkap
-    select.innerHTML = '<option value="">-- Pilih Kelas & Sesi Ujian --</option>' + jadwalList.map(j => 
-      `<option value="${j.id}">Kelas: ${j.nama_kelas} — ${j.jenis_tes.toUpperCase()} (${j.ruang_lab} | ${j.sesi} | Tgl: ${j.tanggal})</option>`
-    ).join('');
+    // TAMPILAN DROPDOWN MENGGUNAKAN NAMA KELAS ASLI DARI DATABASE
+    select.innerHTML = '<option value="">-- Pilih Kelas & Sesi Ujian --</option>' + jadwalList.map(j => {
+      const namaKelas = j.nama_kelas || j.kelas || 'KELAS';
+      const jenisTes = (j.jenis_tes || 'TOEFL').toUpperCase();
+      const lab = j.ruang_lab || '-';
+      const sesi = j.sesi || '-';
+      const tgl = j.tanggal || '-';
+
+      return `<option value="${j.id}">Kelas: ${namaKelas} — ${jenisTes} (${lab} | ${sesi} | Tgl: ${tgl})</option>`;
+    }).join('');
 
   } catch (err) {
     select.innerHTML = '<option value="">Gagal memuat data antrean</option>';
