@@ -1,7 +1,6 @@
 /**
  * MODUL 4: KALKULASI & PUBLIKASI SCORE - UPA BAHASA POLNES (FULL VERSION UTUH)
- * Menampilkan pilihan sesi berdasarkan Nama Kelas dan Jenis Tes,
- * kalkulasi konversi live, dan Publish dengan validasi status.
+ * Menampilkan pilihan antrean murni berdasarkan Nama Kelas & Jenis Tes.
  */
 
 let globalDataAntrean = [];
@@ -28,7 +27,7 @@ function hitungKonversiDetail(jumlahBenar, sectionType) {
     if (sectionType === 2) return TABEL_KONVERSI_TOEFL[scoreNum].s;
     if (sectionType === 3) return TABEL_KONVERSI_TOEFL[scoreNum].r;
   }
-  return Math.max(30, scoreNum + 20); // Fallback nilai dasar
+  return Math.max(30, scoreNum + 20);
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -40,23 +39,24 @@ async function loadAntreanSesi() {
   if (!select) return;
 
   try {
-    // 1. Ambil data idJadwal yang belum dipublish dari HasilTes
+    // Ambil semua data dari HasilTes yang belum dipublish (atau status kosong/selain PUBLISHED)
     const { data: listHasil, error } = await window.supabaseClient
       .from('HasilTes')
-      .select('idJadwal, jenisTes, status')
-      .neq('status', 'PUBLISHED');
+      .select('idJadwal, jenisTes, status');
 
     if (error) throw error;
 
-    if (!listHasil || listHasil.length === 0) {
+    // Filter yang belum PUBLISHED di sisi JavaScript agar lebih aman dari data null/undefined
+    const belumPublish = (listHasil || []).filter(item => item.status !== 'PUBLISHED');
+
+    if (belumPublish.length === 0) {
       select.innerHTML = '<option value="">Semua data telah ter-Publish (Tidak ada antrean)</option>';
       return;
     }
 
-    // Ambil unique idJadwal
-    const uniqueIds = [...new Set(listHasil.map(item => item.idJadwal))];
+    const uniqueIds = [...new Set(belumPublish.map(item => item.idJadwal))];
 
-    // 2. Ambil detail dari jadwal_log untuk mendapatkan Nama Kelas dan detail lainnya
+    // Ambil detail jadwal dari tabel jadwal_log
     const { data: jadwalList, error: jadwalErr } = await window.supabaseClient
       .from('jadwal_log')
       .select('*')
@@ -64,8 +64,8 @@ async function loadAntreanSesi() {
 
     if (jadwalErr) throw jadwalErr;
 
-    // Tampilan dropdown: Nama Kelas di depan, Jenis Tes di belakang
-    select.innerHTML = '<option value="">-- Pilih Kelas & Sesi Ujian --</option>' + (jadwalList || []).map(j => 
+    // TAMPILAN UTAMA MURNI NAMA KELAS & JENIS TES
+    select.innerHTML = '<option value="">-- Pilih Kelas & Jenis Tes --</option>' + (jadwalList || []).map(j => 
       `<option value="${j.id}">Kelas: ${j.nama_kelas} — ${j.jenis_tes.toUpperCase()} (${j.ruang_lab} | ${j.sesi} | Tgl: ${j.tanggal})</option>`
     ).join('');
 
@@ -81,7 +81,7 @@ async function muatDataKalkulasi() {
   
   const idj = select.value;
   if (!idj) {
-    alert("Pilih kelas dan sesi ujian terlebih dahulu.");
+    alert("Pilih kelas dan jenis tes terlebih dahulu.");
     return;
   }
   
