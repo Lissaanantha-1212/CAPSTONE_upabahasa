@@ -1,6 +1,6 @@
 /**
- * MODUL PENJADWALAN - UPA BAHASA POLNES (FULL VERSION UTUH)
- * Menangani Upload Excel, Antrean, Filter Kelas, Validasi Kapasitas Lab (Maks 30), 
+ * MODUL PENJADWALAN - UPA BAHASA POLNES (FULL VERSION UTUH + PRODI)
+ * Menangani Upload Excel, Antrean, Filter Kelas, Validasi Kapasitas Lab (Maks 30),
  * Validasi Pasangan Lab A & Lab B (Tidak Boleh Sama-Sama 30), Kunci Sesi, Histori, & PDF Paten.
  */
 
@@ -69,8 +69,17 @@ async function handleExcelUpload(e) {
   if (!file) return;
 
   const namaKelasInput = document.getElementById('namaKelasInput').value.trim();
+  const selectProdi = document.getElementById('selectProdi');
+  const prodiInput = selectProdi ? selectProdi.value : ''; // Ambil data Prodi
+
   if (!namaKelasInput) {
     alert("Harap isi 'Nama Kelas Baru' terlebih dahulu sebelum memilih file Excel!");
+    e.target.value = '';
+    return;
+  }
+  
+  if (!prodiInput) {
+    alert("Harap pilih 'Program Studi' terlebih dahulu sebelum memilih file Excel!");
     e.target.value = '';
     return;
   }
@@ -94,7 +103,7 @@ async function handleExcelUpload(e) {
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
         if (!row || row.length < 2) continue;
-        
+
         const nim = String(row[1] || row[0] || '').trim();
         const nama = String(row[2] || row[1] || '').trim();
 
@@ -102,7 +111,8 @@ async function handleExcelUpload(e) {
           parsedMhs.push({
             nim: nim,
             nama: nama.toUpperCase(),
-            nama_kelas: namaKelasInput
+            nama_kelas: namaKelasInput.toUpperCase(),
+            program_studi: prodiInput // Simpan Prodi ke array
           });
         }
       }
@@ -115,7 +125,8 @@ async function handleExcelUpload(e) {
       const payload = parsedMhs.map(m => ({
         nim: m.nim,
         nama: m.nama,
-        nama_kelas: m.nama_kelas
+        nama_kelas: m.nama_kelas,
+        program_studi: m.program_studi // Insert Prodi ke DB
       }));
 
       const { error } = await window.supabaseClient
@@ -126,6 +137,7 @@ async function handleExcelUpload(e) {
 
       alert(`Berhasil! ${parsedMhs.length} mahasiswa dari kelas "${namaKelasInput}" ditambahkan ke antrean.`);
       document.getElementById('namaKelasInput').value = '';
+      if(selectProdi) selectProdi.value = '';
       e.target.value = '';
       if (fileNameText) {
         fileNameText.innerText = 'Klik untuk Pilih File Excel...';
@@ -151,7 +163,7 @@ async function loadAntreanDariSupabase() {
     if (error) throw error;
 
     uploadedMahasiswaList = data || [];
-    
+
     const kelasSet = [...new Set(uploadedMahasiswaList.map(m => m.nama_kelas))];
     if (!kelasSet.includes(selectedKelasFilter) && kelasSet.length > 0) {
       selectedKelasFilter = kelasSet[0];
@@ -210,7 +222,7 @@ function renderTabelAntrean() {
   }
 
   if (filteredList.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" class="px-4 py-8 text-center text-slate-400 text-xs italic">Belum ada data mahasiswa dalam antrean. Silakan upload file Excel di atas.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" class="px-4 py-8 text-center text-slate-400 text-xs italic">Belum ada data mahasiswa dalam antrean. Silakan upload file Excel di atas.</td></tr>`;
     return;
   }
 
@@ -227,11 +239,12 @@ function renderTabelAntrean() {
         <td class="px-4 py-3 text-xs font-bold text-slate-800">${mhs.nim}</td>
         <td class="px-4 py-3 text-xs font-medium">${mhs.nama}</td>
         <td class="px-4 py-3 text-xs font-semibold text-slate-600">${mhs.nama_kelas}</td>
+        <td class="px-4 py-3 text-[11px] font-bold text-sky-700 uppercase">${mhs.program_studi || '-'}</td>
         <td class="px-4 py-3 text-xs font-mono font-bold text-emerald-600">${autoMeja}</td>
       </tr>
     `;
   });
-
+  
   tbody.innerHTML = tableHtml;
 }
 
@@ -285,11 +298,10 @@ async function kunciSesiUjianKeSupabase() {
       return;
     }
 
-    // Cek kondisi pasangan lab (Lab A & Lab B)
+    // Cek kondisi pasangan Lab (Lab A & Lab B)
     // Aturan: Boleh di sesi yang sama asal tidak sama-sama 30 orang (pasangan lab harus dibawah 30 jika salah satunya 30)
     const labLain = sesiAktifList.find(s => s.ruang_lab !== ruangLabDipilih);
     if (labLain) {
-      // Jika lab pasangan sudah terisi 30, dan lab yang mau dimasuki ini juga 30 -> Ditolak!
       if (labLain.jumlah_mhs === 30 && jumlahDipilih === 30) {
         alert(`[DITOLAK] Aturan UPA Bahasa: Lab pasangan (${labLain.ruang_lab}) sudah berisi 30 mahasiswa penuh. Lab ${ruangLabDipilih} tidak boleh sama-sama 30 orang penuh di sesi yang sama! Silakan kurangi jumlah mahasiswa di bawah 30.`);
         return;
@@ -319,12 +331,13 @@ async function kunciSesiUjianKeSupabase() {
     if (jadwalErr) throw jadwalErr;
     const jadwalId = jadwalData[0].id;
 
-    // 4. Simpan ke peserta_ujian
+    // 4. Simpan ke peserta_ujian (Tambahkan prodi di sini)
     const pesertaPayload = mahasiswaTerpilih.map((m, idx) => ({
       jadwal_id: jadwalId,
       nim: m.nim,
       nama: m.nama,
       nama_kelas: m.nama_kelas,
+      program_studi: m.program_studi, // Teruskan Prodi ke Peserta Ujian
       id_meja: `STUDENT${String(idx + 1).padStart(2, '0')}`
     }));
 
@@ -388,19 +401,19 @@ async function loadHistoriJadwalDariSupabase() {
     }
 
     tbody.innerHTML = data.map((item, idx) => `
-      <tr class="hover:bg-slate-50 transition-colors">
-        <td class="px-4 py-3 text-xs font-semibold">${idx + 1}</td>
-        <td class="px-4 py-3 text-xs font-bold text-polnes-dark">${item.jenis_tes}</td>
-        <td class="px-4 py-3 text-xs font-semibold text-slate-700">${item.nama_kelas}</td>
-        <td class="px-4 py-3 text-xs text-slate-600">${item.tanggal}</td>
-        <td class="px-4 py-3 text-xs font-medium text-sky-700">${item.sesi}</td>
-        <td class="px-4 py-3 text-xs font-bold text-emerald-600">${item.ruang_lab}</td>
-        <td class="px-4 py-3 text-xs text-center font-bold">${item.jumlah_mhs}</td>
-        <td class="px-4 py-3 text-xs">
+      <tr class="hover:bg-slate-50 transition-colors border-b border-slate-100">
+        <td class="px-4 py-3 text-xs font-semibold border-r border-slate-100">${idx + 1}</td>
+        <td class="px-4 py-3 text-xs font-bold text-polnes-dark border-r border-slate-100">${item.jenis_tes}</td>
+        <td class="px-4 py-3 text-xs font-semibold text-slate-700 border-r border-slate-100">${item.nama_kelas}</td>
+        <td class="px-4 py-3 text-xs text-slate-600 border-r border-slate-100">${item.tanggal}</td>
+        <td class="px-4 py-3 text-xs font-medium text-sky-700 border-r border-slate-100">${item.sesi}</td>
+        <td class="px-4 py-3 text-xs font-bold text-emerald-600 border-r border-slate-100">${item.ruang_lab}</td>
+        <td class="px-4 py-3 text-xs text-center font-bold border-r border-slate-100">${item.jumlah_mhs}</td>
+        <td class="px-4 py-3 text-xs border-r border-slate-100 text-center">
           <span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase">${item.status}</span>
         </td>
         <td class="px-4 py-3 text-xs">
-          <div class="flex items-center gap-1.5">
+          <div class="flex items-center justify-center gap-1.5">
             <button onclick="bukaPreviewPDF(${item.id})" class="px-2.5 py-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-lg text-[10px] font-bold transition-all shadow-sm flex items-center gap-1">
               <i class="ri-file-pdf-line"></i> PDF
             </button>
@@ -419,11 +432,13 @@ async function loadHistoriJadwalDariSupabase() {
 
 async function hapusHistoriJadwal(id) {
   if (!confirm("Hapus histori sesi ini? Peserta di dalam sesi ini juga akan dihapus.")) return;
+
   try {
     await window.supabaseClient.from('peserta_ujian').delete().eq('jadwal_id', id);
     const { error } = await window.supabaseClient.from('jadwal_log').delete().eq('id', id);
+
     if (error) throw error;
-    
+
     await loadHistoriJadwalDariSupabase();
     alert("Histori berhasil dihapus.");
   } catch (err) {
@@ -431,7 +446,7 @@ async function hapusHistoriJadwal(id) {
   }
 }
 
-// --- GENERATE BERITA ACARA PDF (FORMAT PATEN: 1 HALAMAN, ADA LOGO) ---
+// --- GENERATE BERITA ACARA PDF (FORMAT PATEN: 1 HALAMAN, ADA LOGO, TABEL PRODI) ---
 async function bukaPreviewPDF(jadwalId) {
   try {
     const { data: jadwalData } = await window.supabaseClient
@@ -484,31 +499,34 @@ async function bukaPreviewPDF(jadwalId) {
     doc.setFontSize(9);
     let startY = 46;
     doc.text(`Hari / Tanggal : ${jadwalData.tanggal}`, 20, startY);
-    doc.text(`Ruang Lab : ${jadwalData.ruang_lab}`, 120, startY);
+    doc.text(`Ruang Lab      : ${jadwalData.ruang_lab}`, 120, startY);
     
     doc.text(`Waktu Sesi     : ${jadwalData.sesi}`, 20, startY + 5);
-    doc.text(`Kelas Peserta : ${jadwalData.nama_kelas}`, 120, startY + 5);
+    doc.text(`Kelas Peserta  : ${jadwalData.nama_kelas}`, 120, startY + 5);
 
+    // Tabel PDF (Ditambahkan Program Studi)
     const tableRows = pesertaData.map((p, index) => [
       index + 1,
       p.nim,
       p.nama,
+      p.program_studi || '-', // Menampilkan Prodi di PDF
       p.id_meja,
       ""
     ]);
 
     doc.autoTable({
       startY: startY + 10,
-      head: [["NO", "NIM", "NAMA MAHASISWA", "ID MEJA", "TANDA TANGAN"]],
+      head: [["NO", "NIM", "NAMA MAHASISWA", "PRODI", "ID MEJA", "TANDA TANGAN"]],
       body: tableRows,
       theme: 'grid',
       headStyles: { fillColor: [16, 195, 93], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center', fontSize: 8 },
       columnStyles: {
         0: { cellWidth: 10, halign: 'center' },
-        1: { cellWidth: 32, halign: 'center' },
-        2: { cellWidth: 75 },
-        3: { cellWidth: 23, halign: 'center', fontStyle: 'bold' },
-        4: { cellWidth: 40 }
+        1: { cellWidth: 25, halign: 'center' },
+        2: { cellWidth: 55 },
+        3: { cellWidth: 35, fontSize: 7 }, // Kolom Prodi
+        4: { cellWidth: 20, halign: 'center', fontStyle: 'bold' },
+        5: { cellWidth: 35 } // Kolom Tanda Tangan
       },
       styles: { fontSize: 8, cellPadding: 1.5 }
     });
@@ -520,14 +538,14 @@ async function bukaPreviewPDF(jadwalId) {
     doc.text("Pengawas Ujian,", 140, finalY + 4);
     
     doc.setFont("helvetica", "bold");
-    doc.text("( __________________________ )", 130, finalY + 22);
+    doc.text("(_________________________)", 130, finalY + 22);
 
     const pdfBlob = doc.output('blob');
     const pdfUrl = URL.createObjectURL(pdfBlob);
 
     const iframe = document.getElementById('pdfPreviewIframe');
     const modal = document.getElementById('pdfPreviewModal');
-    
+
     if (iframe && modal) {
       iframe.src = pdfUrl;
       modal.classList.remove('hidden');

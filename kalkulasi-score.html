@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kalkulasi Score - UPA Bahasa POLNES</title>
+  
+  <!-- Tailwind CSS & RemixIcon -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            polnes: {
+              main: '#10C35D',
+              dark: '#0B8A42',
+              light: '#E8F8EF'
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-50 font-sans antialiased text-slate-800 h-screen overflow-hidden flex">
+
+  <!-- SIDEBAR NAVIGATION -->
+  <aside class="w-[260px] bg-white border-r border-slate-200 flex flex-col flex-shrink-0 h-full overflow-y-auto z-20">
+    <div class="p-6 flex items-center gap-3 border-b border-slate-100 sticky top-0 bg-white z-10">
+      <img src="./img/polnes.png" alt="Logo Polnes" class="w-8 h-8 object-contain">
+      <span class="font-extrabold text-slate-900 tracking-wide text-sm">UPA BAHASA</span>
+    </div>
+    
+    <div class="p-4 space-y-1 flex-1">
+      <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
+        <i class="ri-layout-grid-line text-lg text-slate-500"></i> Dashboard
+      </a>
+      
+      <div class="pt-4 pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider px-4">LAYANAN TEST</div>
+      
+      <a href="jadwal-test.html" class="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
+        <div class="flex items-center gap-3"><i class="ri-calendar-line text-lg text-slate-500"></i> Penjadwalan</div>
+        <i class="ri-arrow-down-s-line text-slate-400"></i>
+      </a>
+
+      <!-- Menu Hasil Test (Tidak Aktif) -->
+      <div class="space-y-1">
+        <div onclick="document.getElementById('subHasilTest').classList.toggle('hidden')" class="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-slate-50 text-slate-600 font-medium text-[13px] cursor-pointer transition-all">
+          <div class="flex items-center gap-3"><i class="ri-file-upload-line text-lg text-slate-500"></i> Hasil Test</div>
+          <i class="ri-arrow-down-s-line text-slate-400"></i>
+        </div>
+        <div id="subHasilTest" class="pl-7 space-y-1 pt-1 pb-1 hidden">
+          <a href="toefl.html" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 transition-all font-medium text-[13px]">
+            <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div> TOEFL
+          </a>
+          <a href="sspect.html" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 transition-all font-medium text-[13px]">
+            <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div> SSPECT
+          </a>
+        </div>
+      </div>
+
+      <!-- Menu Kalkulasi Score (AKTIF) -->
+      <a href="kalkulasi-score.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-polnes-light text-polnes-main font-bold border-l-2 border-polnes-main shadow-sm transition-all text-[13px]">
+        <i class="ri-calculator-line text-lg text-polnes-main"></i> Kalkulasi Score
+      </a>
+
+      <a href="rekapan.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
+        <i class="ri-bar-chart-box-line text-lg text-slate-500"></i> Rekapan
+      </a>
+      <a href="pusat-informasi.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
+        <i class="ri-information-line text-lg text-slate-500"></i> Pusat Informasi
+      </a>
+
+      <div class="pt-4 pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider px-4">MANAJEMEN KONTEN</div>
+      <a href="konten-utama.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
+        <i class="ri-article-line text-lg text-slate-500"></i> Konten Utama
+      </a>
+      <a href="layanan-tambahan.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
+        <i class="ri-heart-pulse-line text-lg text-slate-500"></i> Layanan Tambahan
+      </a>
+      <a href="pembelajaran.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
+        <i class="ri-book-open-line text-lg text-slate-500"></i> Pembelajaran
+      </a>
+      <a href="pengaduan.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
+        <i class="ri-message-2-line text-lg text-slate-500"></i> Pengaduan
+      </a>
+      <a href="survei.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
+        <i class="ri-clipboard-line text-lg text-slate-500"></i> Survei
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT AREA -->
+  <main class="flex-1 h-full overflow-y-auto flex flex-col bg-slate-50 relative">
+    
+    <header class="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between sticky top-0 z-10 shrink-0">
+      <div>
+        <p class="text-[10px] uppercase tracking-wider font-extrabold text-slate-400">LAYANAN TEST / KALKULASI SCORE</p>
+      </div>
+      <div class="flex items-center gap-4">
+         <div class="w-9 h-9 rounded-full bg-polnes-light border border-polnes-main text-polnes-main flex items-center justify-center font-bold text-xs shadow-sm">ST</div>
+      </div>
+    </header>
+
+    <div class="p-8 max-w-7xl mx-auto space-y-6 w-full pb-12">
+
+      <div class="space-y-1 mb-2">
+        <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Modul 4: Kalkulasi & Publikasi Score</h1>
+        <p class="text-sm text-slate-500">Pilih antrean hasil tes untuk dikalkulasi nilai konversinya dan dipublish ke web utama.</p>
+      </div>
+
+      <!-- KONTROL ANTREAN PUBLISH -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+        <h3 class="text-[13px] font-bold text-slate-800 flex items-center gap-2 mb-4">
+          <i class="ri-list-check-2 text-polnes-main text-base"></i> Antrean Hasil Test Belum Terpublikasi
+        </h3>
+        <div class="flex flex-col md:flex-row items-end gap-4">
+          <div class="flex-1 w-full">
+            <label class="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">PILIH BATCH SESI UJIAN</label>
+            <select id="selectAntreanSesi" class="w-full px-4 py-3 border border-slate-200 rounded-xl text-[13px] font-semibold text-slate-700 focus:outline-none focus:border-polnes-main focus:ring-1 focus:ring-polnes-main bg-white">
+              <option value="">Memuat data antrean...</option>
+            </select>
+          </div>
+          <button onclick="muatDataKalkulasi()" class="px-6 py-3 bg-polnes-dark hover:bg-green-800 text-white rounded-xl text-[13px] font-bold shadow-sm transition-all flex items-center gap-2 w-full md:w-auto h-[46px]">
+            <i class="ri-refresh-line text-lg"></i> Proses Kalkulasi
+          </button>
+        </div>
+      </div>
+
+      <!-- TABEL DETAIL KALKULASI -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+          <div>
+            <h3 class="text-[15px] font-bold text-slate-800">Detail Kalkulasi Score Konversi</h3>
+            <p class="text-xs text-slate-500 mt-1">Sistem menampilkan <b class="text-sky-600">Jumlah Benar ➔ Skor Konversi</b>.</p>
+          </div>
+          <button onclick="publishKeWebUtama()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center gap-2 w-max">
+            <i class="ri-global-line text-base"></i> Publish ke Web Utama
+          </button>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-slate-100">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 text-slate-500 text-[11px] border-b border-slate-200 uppercase tracking-wider">
+                <th class="px-4 py-4 font-bold border-r border-slate-100">NO</th>
+                <th class="px-4 py-4 font-bold border-r border-slate-100">NIM</th>
+                <th class="px-4 py-4 font-bold border-r border-slate-100">JENIS TES</th>
+                <th class="px-4 py-3 font-bold text-center border-r border-slate-100 leading-tight">LISTENING<br><span class="text-[9px] text-sky-500">BENAR ➔ KONVERSI</span></th>
+                <th class="px-4 py-3 font-bold text-center border-r border-slate-100 leading-tight">STRUCTURE<br><span class="text-[9px] text-purple-500">BENAR ➔ KONVERSI</span></th>
+                <th class="px-4 py-3 font-bold text-center border-r border-slate-100 leading-tight">READING<br><span class="text-[9px] text-amber-500">BENAR ➔ KONVERSI</span></th>
+                <th class="px-4 py-4 font-bold text-center bg-emerald-50">TOTAL SKOR</th>
+              </tr>
+            </thead>
+            <tbody id="tabelKalkulasiBody">
+              <tr>
+                <td colspan="7" class="px-5 py-10 text-center text-slate-400 text-sm italic">
+                  Silakan pilih antrean batch sesi di atas lalu klik "Proses Kalkulasi".
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./js/supabase-config.js"></script>
+  <script src="./js/modul-kalkulasi.js"></script>
+</body>
+</html>

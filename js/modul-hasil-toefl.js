@@ -1,6 +1,6 @@
 /**
- * MODUL HASIL TEST TOEFL - UPA BAHASA POLNES (FULL VERSION UTUH)
- * Menangani 3 file section, konversi skor TOEFL ITP, auto-mapping peserta, 
+ * MODUL HASIL TEST TOEFL - UPA BAHASA POLNES (FULL VERSION UTUH + PRODI)
+ * Menangani 3 file section, konversi skor TOEFL ITP, auto-mapping peserta,
  * bind NIM siswa susulan, simpan permanen ke tabel HasilTes, dan auto-delete jadwal log setelah selesai.
  */
 
@@ -10,9 +10,9 @@ let parsedSec3Data = null;
 let globalSyncedResults = [];
 
 const SESI_RANGES = {
-  "SESI 1 (08.00 - 10.00 WITA)": { startHour: 8, endHour: 10 },
-  "SESI 2 (10.00 - 12.00 WITA)": { startHour: 10, endHour: 12 },
-  "SESI 3 (14.00 - 16.00 WITA)": { startHour: 14, endHour: 16 }
+  "SESI 1 (08.00 - 10.30 WITA)": { startHour: 8, endHour: 10 },
+  "SESI 2 (10.30 - 13.00 WITA)": { startHour: 10, endHour: 13 },
+  "SESI 3 (14.00 - 16.30 WITA)": { startHour: 14, endHour: 16 }
 };
 
 const TABEL_KONVERSI_TOEFL = {
@@ -90,9 +90,9 @@ function parseFileInfo(filename) {
   const sectionMatch = filename.match(/SECTION\s+(\d)/i);
 
   let dateStr = dateMatch ? dateMatch[0] : null;
-  let timeStr = timeMatch ? timeMatch[0] : null; 
+  let timeStr = timeMatch ? timeMatch[0] : null;
   let secNum = sectionMatch ? parseInt(sectionMatch[1]) : null;
-  
+
   let hour = null;
   if (timeStr) hour = parseInt(timeStr.split('-')[0]);
 
@@ -113,6 +113,7 @@ async function handleFileSection(event, sectionNum) {
   const labSelect = document.getElementById('selectLabToefl');
   const sesiTerpilih = sesiSelect ? sesiSelect.value : '';
   const labTerpilih = labSelect ? labSelect.value : '';
+  
   const fileInfo = parseFileInfo(file.name);
 
   if (fileInfo.secNum !== sectionNum) {
@@ -123,7 +124,7 @@ async function handleFileSection(event, sectionNum) {
 
   const rangeSesi = SESI_RANGES[sesiTerpilih];
   if (fileInfo.hour !== null && rangeSesi) {
-    if (fileInfo.hour < rangeSesi.startHour || fileInfo.hour >= rangeSesi.endHour) {
+    if (fileInfo.hour < rangeSesi.startHour || fileInfo.hour > rangeSesi.endHour) {
       alert(`[DITOLAK] Jam file (${fileInfo.hour}:xx) di luar rentang ${sesiTerpilih}.`);
       resetFileInput(sectionNum);
       return;
@@ -136,7 +137,7 @@ async function handleFileSection(event, sectionNum) {
   else if (parsedSec3Data) referenceDate = parsedSec3Data.info.dateStr;
 
   if (referenceDate && fileInfo.dateStr && fileInfo.dateStr !== referenceDate) {
-    alert(`[DITOLAK] Tanggal antar file section tidak konsisten.`);
+    alert("[DITOLAK] Tanggal antar file section tidak konsisten.");
     resetFileInput(sectionNum);
     return;
   }
@@ -156,7 +157,7 @@ async function handleFileSection(event, sectionNum) {
       const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
 
       const parsedRows = parseExcelNilai(rows);
-      const sectionData = { file, rows: parsedRows, name: file.name, info: fileInfo };
+      const sectionData = { file: file, rows: parsedRows, name: file.name, info: fileInfo };
 
       if (sectionNum === 1) parsedSec1Data = sectionData;
       if (sectionNum === 2) parsedSec2Data = sectionData;
@@ -167,7 +168,7 @@ async function handleFileSection(event, sectionNum) {
       }
 
     } catch (err) {
-      alert(`Gagal memproses file Excel: ` + err.message);
+      alert("Gagal memproses file Excel: " + err.message);
       resetFileInput(sectionNum);
     }
   };
@@ -180,8 +181,8 @@ function parseExcelNilai(rows) {
     const row = rows[r];
     if (!row) continue;
 
-    const idMejaVal = String(row[0] || '').trim().toUpperCase(); 
-    const scoreValRaw = String(row[3] || '').trim(); 
+    const idMejaVal = String(row[0] || "").trim().toUpperCase();
+    const scoreValRaw = String(row[3] || "").trim();
 
     if (idMejaVal.startsWith('STUDENT') && idMejaVal !== 'STUDENT_NAME' && idMejaVal !== 'STUDENT NAME') {
       let skorAngka = 0;
@@ -221,7 +222,7 @@ async function jalankanAutoMappingEngine(lab, sesi) {
     .eq('idJadwal', activeJadwal.id);
 
   if (existingLog && existingLog.length > 0) {
-    alert(`[DITOLAK] Hasil test untuk sesi ini sudah pernah disimpan secara permanen ke database.`);
+    alert('[DITOLAK] Hasil test untuk sesi ini sudah pernah disimpan secara permanen ke database.');
     return;
   }
 
@@ -237,6 +238,7 @@ async function jalankanAutoMappingEngine(lab, sesi) {
   let idx = 1;
   globalSyncedResults = [];
 
+  // MAPPING PESERTA UTAMA
   dbPesertaList.forEach(p => {
     const s1Raw = (excelRows.find(x => x.id_meja === p.id_meja) || { skor: 0 }).skor;
     const s2Raw = (parsedSec2Data.rows.find(x => x.id_meja === p.id_meja) || { skor: 0 }).skor;
@@ -252,6 +254,7 @@ async function jalankanAutoMappingEngine(lab, sesi) {
       idJadwal: activeJadwal.id,
       nim: p.nim,
       nama: p.nama,
+      program_studi: p.program_studi || '-', // MENYIMPAN PRODI DARI DATABASE PESERTA UJIAN
       id_meja: p.id_meja,
       jenisTes: 'TOEFL',
       sec1Listening: s1Raw,
@@ -264,6 +267,7 @@ async function jalankanAutoMappingEngine(lab, sesi) {
     });
   });
 
+  // MAPPING PESERTA SUSULAN
   const dbIdMejas = new Set(dbPesertaList.map(p => p.id_meja));
   const susulanRows = excelRows.filter(x => !dbIdMejas.has(x.id_meja));
 
@@ -282,6 +286,7 @@ async function jalankanAutoMappingEngine(lab, sesi) {
       idJadwal: activeJadwal.id,
       nim: '',
       nama: '',
+      program_studi: '', // KOSONG SEMENTARA UNTUK SUSULAN, AKAN DIISI SAAT BIND
       id_meja: sus.id_meja,
       jenisTes: 'TOEFL',
       sec1Listening: s1Raw,
@@ -295,7 +300,7 @@ async function jalankanAutoMappingEngine(lab, sesi) {
   });
 
   renderTabelPratinjau();
-  
+
   const statusSync = document.getElementById('infoStatusSync');
   if (statusSync) {
     statusSync.innerHTML = `<span class="text-polnes-main font-bold">Sinkronisasi Berhasil!</span> ${dbPesertaList.length} peserta sesuai jadwal. <b class="text-rose-500">${susulanRows.length > 0 ? susulanRows.length + ' Siswa Susulan terdeteksi.' : 'Semua data pas dan valid.'}</b>`;
@@ -321,14 +326,14 @@ async function prosesBindNim(idMeja) {
   try {
     let { data: dbMhs } = await window.supabaseClient
       .from('peserta_ujian')
-      .select('nim, nama, nama_kelas')
+      .select('nim, nama, nama_kelas, program_studi') // TAMBAHKAN PROGRAM STUDI
       .eq('nim', inputNIM)
       .limit(1);
 
     if (!dbMhs || dbMhs.length === 0) {
       const { data: dbAntrean } = await window.supabaseClient
         .from('antrean_mahasiswa')
-        .select('nim, nama, nama_kelas')
+        .select('nim, nama, nama_kelas, program_studi') // TAMBAHKAN PROGRAM STUDI
         .eq('nim', inputNIM)
         .limit(1);
       dbMhs = dbAntrean;
@@ -338,6 +343,7 @@ async function prosesBindNim(idMeja) {
       rowTarget.nim = dbMhs[0].nim;
       rowTarget.nama = dbMhs[0].nama;
       rowTarget.nama_kelas = dbMhs[0].nama_kelas;
+      rowTarget.program_studi = dbMhs[0].program_studi || '-'; // BIND PROGRAM STUDI DARI DATABASE
       rowTarget.status = 'MAPPED';
       alert(`Berhasil Bind! Mahasiswa a.n ${rowTarget.nama}`);
     } else {
@@ -346,6 +352,7 @@ async function prosesBindNim(idMeja) {
         rowTarget.nim = inputNIM;
         rowTarget.nama = inputManualNama.toUpperCase();
         rowTarget.nama_kelas = 'Susulan Manual';
+        rowTarget.program_studi = 'Input Manual'; // BIND MANUAL PRODI
         rowTarget.status = 'MAPPED';
         alert("Berhasil Bind dengan nama manual!");
       } else {
@@ -378,24 +385,31 @@ function renderTabelPratinjau() {
       actionHtml = `
         <span class="bg-emerald-100 text-emerald-700 px-2.5 py-1.5 rounded-md text-[10px] uppercase font-bold shadow-sm flex items-center justify-center w-max gap-1">
           <i class="ri-link"></i> Mapped
-        </span>`;
+        </span>
+      `;
     } else {
       nimHtml = `
         <td class="px-4 py-3 text-xs">
           <input type="text" id="input_nim_${item.id_meja}" placeholder="Ketik NIM..." class="px-2 py-1.5 border border-rose-300 bg-rose-50 rounded-lg text-xs w-28 focus:outline-none focus:border-rose-500 font-bold text-rose-700 placeholder-rose-300">
-        </td>`;
+        </td>
+      `;
       namaHtml = `<td class="px-4 py-3 text-xs font-semibold text-rose-500 italic">? (Siswa Susulan)</td>`;
       actionHtml = `
         <button onclick="prosesBindNim('${item.id_meja}')" class="bg-rose-500 hover:bg-rose-600 text-white px-2.5 py-1.5 rounded-md text-[10px] uppercase font-bold shadow-sm flex items-center justify-center w-max gap-1 transition-all">
           <i class="ri-lock-unlock-line"></i> Bind NIM
-        </button>`;
+        </button>
+      `;
     }
+
+    // KOLOM PROGRAM STUDI DITAMBAHKAN DI SINI
+    const prodiHtml = `<td class="px-4 py-3 text-[11px] font-semibold text-sky-700 uppercase">${item.program_studi}</td>`;
 
     return `
       <tr class="${item.status === 'UNMAPPED' ? 'bg-rose-50/30' : 'hover:bg-slate-50'} transition-colors">
         <td class="px-4 py-3 text-xs font-semibold">${item.no}</td>
         ${nimHtml}
         ${namaHtml}
+        ${prodiHtml}
         <td class="px-4 py-3 text-xs font-mono font-bold text-emerald-600">${item.id_meja}</td>
         <td class="px-4 py-3 text-xs text-center font-semibold text-sky-600">${item.sec1Listening}</td>
         <td class="px-4 py-3 text-xs text-center font-semibold text-purple-600">${item.sec2Structure}</td>
@@ -419,12 +433,12 @@ async function simpanPermanenKeDatabase() {
     return;
   }
 
-  if (!confirm(`Yakin ingin menyimpan data hasil test ini secara permanen ke database tabel HasilTes? Histori jadwal sesi ini juga akan dibersihkan otomatis.`)) return;
+  if (!confirm('Yakin ingin menyimpan data hasil test ini secara permanen ke database tabel HasilTes? Histori jadwal sesi ini juga akan dibersihkan otomatis.')) return;
 
   try {
     const activeIdJadwal = globalSyncedResults[0].idJadwal;
 
-    // 1. Simpan payload ke tabel "HasilTes"
+    // 1. Simpan payload ke tabel "HasilTes" (DITAMBAH PRODI)
     const payload = globalSyncedResults.map(item => ({
       idJadwal: item.idJadwal,
       nim: item.nim,
@@ -432,7 +446,8 @@ async function simpanPermanenKeDatabase() {
       sec1Listening: item.sec1Listening,
       sec2Structure: item.sec2Structure,
       sec3Reading: item.sec3Reading,
-      totalSkor: item.totalSkor
+      totalSkor: item.totalSkor,
+      program_studi: item.program_studi // PAYLOAD PROGRAM STUDI
     }));
 
     const { error: insertErr } = await window.supabaseClient
