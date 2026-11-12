@@ -26,7 +26,7 @@
 </head>
 <body class="bg-slate-50 font-sans text-slate-800 antialiased flex h-screen overflow-hidden">
 
-  <!-- ==================== SIDEBAR (DIKEMBALIKAN KE AWAL) ==================== -->
+  <!-- ==================== SIDEBAR KONSISTEN ==================== -->
   <aside class="w-[260px] bg-white border-r border-slate-200 flex flex-col flex-shrink-0 h-full overflow-y-auto z-20">
     <div class="p-6 flex items-center gap-3 border-b border-slate-100 sticky top-0 bg-white z-10">
       <img src="./img/polnes.png" alt="Logo Polnes" class="w-8 h-8 object-contain">
@@ -123,20 +123,20 @@
       <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-6">
         <div>
           <h3 class="text-base font-bold text-slate-800">Modul 3: Upload Nilai TOEFL & Auto-Mapping Engine</h3>
-          <p class="text-xs text-slate-500 mt-0.5">Membaca murni Excel (STUDENT01, dst), auto-mapping ke database peserta, dan hapus jadwal otomatis.</p>
+          <p class="text-xs text-slate-500 mt-0.5">Validasi rentang jam, pencocokan jadwal (Tanggal, Lab, Sesi) dari database, dan pemetaan nomor meja peserta.</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">PILIH RUANG LAB UJIAN</label>
-            <select id="selectLabToefl" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-[13px] font-semibold text-slate-700 outline-none focus:border-polnes-main">
+            <select id="selectLabToefl" onchange="cekUlangSinkronisasi()" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-[13px] font-semibold text-slate-700 outline-none focus:border-polnes-main">
               <option value="Lab A">Lab A</option>
               <option value="Lab B">Lab B</option>
             </select>
           </div>
           <div>
             <label class="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">PILIH SESI & WAKTU</label>
-            <select id="selectSesiToefl" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-[13px] font-semibold text-slate-700 outline-none focus:border-polnes-main">
+            <select id="selectSesiToefl" onchange="cekUlangSinkronisasi()" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-[13px] font-semibold text-slate-700 outline-none focus:border-polnes-main">
               <option value="SESI 1 (08.00 - 10.00 WITA)">SESI 1 (08.00 - 10.00 WITA)</option>
               <option value="SESI 2 (10.00 - 12.00 WITA)">SESI 2 (10.00 - 12.00 WITA)</option>
               <option value="SESI 3 (14.00 - 16.00 WITA)">SESI 3 (14.00 - 16.00 WITA)</option>
@@ -170,12 +170,22 @@
             <p id="labelSec3" class="text-[11px] text-slate-500 mt-2 truncate">Belum ada file dipilih</p>
           </div>
         </div>
+
+        <!-- Info Hasil Pencocokan Jadwal -->
+        <div id="infoJadwalMatched" class="hidden p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between text-xs">
+          <div class="flex items-center gap-2.5 text-emerald-800 font-semibold">
+            <i class="ri-checkbox-circle-fill text-lg text-emerald-600"></i>
+            <span id="textJadwalMatched">Jadwal cocok ditemukan.</span>
+          </div>
+          <span id="badgePesertaJadwal" class="px-2.5 py-1 bg-white border border-emerald-200 rounded-lg font-bold text-emerald-700">0 Terjadwal</span>
+        </div>
       </div>
 
       <!-- Tombol Aksi Target Rekapan -->
       <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
           <h4 class="text-xs font-bold text-slate-700 uppercase">Target Kategori Rekapan Master</h4>
+          <p class="text-[11px] text-slate-500">Pilih kategori tujuan agar nilai masuk ke kotak yang tepat di halaman Rekapan.</p>
         </div>
         
         <div class="flex items-center gap-3 w-full sm:w-auto">
@@ -205,10 +215,11 @@
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="bg-slate-50 text-slate-500 text-[11px] border-b border-slate-200 uppercase tracking-wider">
-                <th class="px-4 py-3 font-bold border-r border-slate-200 text-center w-12">No</th>
+                <th class="px-4 py-3 font-bold border-r border-slate-200 text-center w-16">No</th>
+                <th class="px-4 py-3 font-bold border-r border-slate-200 text-center w-24">No. Meja</th>
                 <th class="px-4 py-3 font-bold border-r border-slate-200 w-32 text-center">NIM</th>
                 <th class="px-4 py-3 font-bold border-r border-slate-200">Nama Mahasiswa</th>
-                <th class="px-4 py-3 font-bold border-r border-slate-200">Program Studi</th>
+                <th class="px-4 py-3 font-bold border-r border-slate-200">Program Studi / Kelas</th>
                 <th class="px-4 py-3 font-bold border-r border-slate-200 text-center w-16">S. 1</th>
                 <th class="px-4 py-3 font-bold border-r border-slate-200 text-center w-16">S. 2</th>
                 <th class="px-4 py-3 font-bold border-r border-slate-200 text-center w-16">S. 3</th>
@@ -218,7 +229,7 @@
             </thead>
             <tbody id="tabelPreviewToefl" class="divide-y divide-slate-100 text-sm text-slate-700">
               <tr>
-                <td colspan="9" class="px-5 py-10 text-center text-slate-400 text-sm italic">Menunggu file Excel. Sistem akan memetakan STUDENT01, STUDENT02 ke absen database.</td>
+                <td colspan="10" class="px-5 py-10 text-center text-slate-400 text-sm italic">Unggah 3 file Excel Section untuk mencocokkan jadwal & menampilkan peserta.</td>
               </tr>
             </tbody>
           </table>
@@ -228,7 +239,7 @@
     </div>
   </main>
 
-  <!-- SCRIPT SUPABASE & LOGIKA AUTO-MAPPING BARU -->
+  <!-- SCRIPT SUPABASE & LOGIKA AUTO-MAPPING -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./js/supabase-config.js"></script>
   <script>
@@ -248,7 +259,7 @@
       const tglMatch = fileName.match(/(\d{2}-\d{2}-\d{4})/);
       const jamMatch = fileName.match(/(\d{2}-\d{2}-\d{2})/g);
 
-      let fileTanggal = tglMatch ? tglMatch[1] : ""; 
+      let fileTanggal = tglMatch ? tglMatch[1] : "";
       let fileJamStr = jamMatch ? jamMatch[jamMatch.length - 1].replace(/-/g, ':') : "";
 
       const reader = new FileReader();
@@ -258,115 +269,259 @@
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
 
+        // Cadangan ambil tanggal & jam dari sel D2 Excel jika nama file diubah
+        if ((!fileTanggal || !fileJamStr) && rows[1] && rows[1][3]) {
+          const d2 = String(rows[1][3]).trim(); // contoh: "2026/10/29 10:42:14"
+          const m = d2.match(/(\d{4})[\/\-](\d{2})[\/\-](\d{2})\s+(\d{2}:\d{2}:\d{2})/);
+          if (m) {
+            if (!fileTanggal) fileTanggal = `${m[3]}-${m[2]}-${m[1]}`;
+            if (!fileJamStr) fileJamStr = m[4];
+          }
+        }
+
         if (secNum === 1) fileSec1Info = { data: rows, jam: fileJamStr, tanggal: fileTanggal };
         if (secNum === 2) fileSec2Info = { data: rows, jam: fileJamStr, tanggal: fileTanggal };
         if (secNum === 3) fileSec3Info = { data: rows, jam: fileJamStr, tanggal: fileTanggal };
 
-        if (fileSec1Info.data && fileSec2Info.data && fileSec3Info.data) {
-          validasiDanSinkronisasiToefl();
-        }
+        cekUlangSinkronisasi();
       };
       reader.readAsArrayBuffer(file);
     }
 
-    function extractPureScore(cellValue) {
-      if (!cellValue) return 0;
-      let str = String(cellValue).trim();
-      if (str.includes('/')) {
-        let parts = str.split('/');
-        return parseInt(parts[0].trim()) || 0;
+    function cekUlangSinkronisasi() {
+      if (fileSec1Info.data && fileSec2Info.data && fileSec3Info.data) {
+        validasiDanSinkronisasiToefl();
       }
-      return parseInt(str) || 0;
     }
 
+    function extractPureScore(cellValue) {
+      if (!cellValue && cellValue !== 0) return 0;
+      const str = String(cellValue).trim();
+      if (str.includes('/')) {
+        return parseInt(str.split('/')[0].trim(), 10) || 0;
+      }
+      return parseInt(str, 10) || 0;
+    }
+
+    // HANYA membaca STUDENT01, STUDENT02, dst. (mengabaikan header "Number of students" & "Student name")
     function extractStudentRow(rows) {
-      let students = [];
+      const students = [];
       for (let i = 0; i < rows.length; i++) {
-        let r = rows[i];
-        let studentNameColIdx = r.findIndex(c => String(c).toUpperCase().includes("STUDENT"));
+        const r = rows[i];
+        const studentColIdx = r.findIndex(c => /^STUDENT\s*0*(\d+)$/i.test(String(c).trim()));
         
-        if (studentNameColIdx !== -1) {
-          let studentId = String(r[studentNameColIdx]).trim();
-          let scoreColIdx = r.findIndex(c => String(c).includes('/'));
+        if (studentColIdx !== -1) {
+          const rawId = String(r[studentColIdx]).trim().toUpperCase();
+          const numMatch = rawId.match(/^STUDENT\s*0*(\d+)$/i);
+          const seatNumber = numMatch ? parseInt(numMatch[1], 10) : (students.length + 1);
+
           let score = 0;
+          const scoreColIdx = r.findIndex(c => String(c).includes('/'));
           if (scoreColIdx !== -1) {
-             score = extractPureScore(r[scoreColIdx]);
+            score = extractPureScore(r[scoreColIdx]);
           } else {
-             for(let k = r.length-1; k > studentNameColIdx; k--){
-                if(!isNaN(parseInt(r[k]))) { score = parseInt(r[k]); break; }
-             }
+            for (let k = r.length - 1; k > studentColIdx; k--) {
+              if (!isNaN(parseInt(r[k], 10))) {
+                score = parseInt(r[k], 10);
+                break;
+              }
+            }
           }
-          students.push({ id: studentId, score: score });
+          students.push({ id: rawId, seat: seatNumber, score: score });
         }
       }
       return students;
     }
 
-    function validasiDanSinkronisasiToefl() {
-      const selectedSesi = document.getElementById('selectSesiToefl').value; 
-      let tglFile = fileSec1Info.tanggal;
+    function deteksiSesiDariJam(jamStr) {
+      if (!jamStr) return null;
+      const [hours, minutes] = jamStr.split(':').map(Number);
+      if (isNaN(hours) || isNaN(minutes)) return null;
+      const totalMinutes = hours * 60 + minutes;
 
-      let formattedDate = tglFile;
-      if (tglFile.includes('-')) {
-        let p = tglFile.split('-');
-        if (p[0].length === 2) formattedDate = `${p[2]}-${p[1]}-${p[0]}`; // YYYY-MM-DD
-      }
-
-      tarikDataAutoMapping(formattedDate, document.getElementById('selectLabToefl').value, selectedSesi);
+      // Sesi 1: 08.00 - 10.00 | Sesi 2: 10.00 - 12.00 | Sesi 3: 14.00 - 16.00
+      if (totalMinutes >= 480 && totalMinutes < 600) return "SESI 1";
+      if (totalMinutes >= 600 && totalMinutes < 720) return "SESI 2";
+      if (totalMinutes >= 840 && totalMinutes < 960) return "SESI 3";
+      return "DILUAR_SESI";
     }
 
-    async function tarikDataAutoMapping(tanggal, lab, sesi) {
+    function validasiDanSinkronisasiToefl() {
+      const selectedSesiFull = document.getElementById('selectSesiToefl').value;
+      const selectedSesiKode = selectedSesiFull.split('(')[0].trim(); // "SESI 1" / "SESI 2" / "SESI 3"
+      const selectedLab = document.getElementById('selectLabToefl').value;
+
+      // 1. Validasi rentang jam untuk ketiga section
+      const filesCheck = [
+        { label: "Section 1", jam: fileSec1Info.jam },
+        { label: "Section 2", jam: fileSec2Info.jam },
+        { label: "Section 3", jam: fileSec3Info.jam }
+      ];
+
+      for (const f of filesCheck) {
+        if (!f.jam) {
+          alert(`Format stempel jam pada ${f.label} tidak ditemukan.`);
+          return;
+        }
+        const detected = deteksiSesiDariJam(f.jam);
+        if (detected !== selectedSesiKode) {
+          resetPreview(`Ditolak: Jam ${f.label} (${f.jam}) tidak masuk rentang ${selectedSesiFull}.`);
+          alert(`DITOLAK: File ${f.label} tercatat pukul ${f.jam} (${detected === 'DILUAR_SESI' ? 'di luar jam sesi resmi' : detected}), tidak sesuai dengan ${selectedSesiFull} yang Anda pilih!`);
+          return;
+        }
+      }
+
+      // 2. Normalisasi tanggal DD-MM-YYYY -> YYYY-MM-DD
+      let formattedDate = fileSec1Info.tanggal;
+      if (formattedDate.includes('-')) {
+        const p = formattedDate.split('-');
+        if (p[0].length === 2) formattedDate = `${p[2]}-${p[1]}-${p[0]}`;
+      }
+
+      if (!formattedDate) {
+        alert("Tanggal ujian tidak terbaca dari nama file maupun isi Excel.");
+        return;
+      }
+
+      tarikDataJadwalDanPeserta(formattedDate, selectedLab, selectedSesiKode);
+    }
+
+    function resetPreview(pesan) {
+      window.previewDataGlobal = [];
+      window.activeJadwalLogId = null;
+      document.getElementById('infoJadwalMatched').classList.add('hidden');
+      document.getElementById('badgeJumlahMhs').innerText = "0 Peserta";
+      document.getElementById('tabelPreviewToefl').innerHTML = `<tr><td colspan="10" class="px-5 py-10 text-center text-rose-500 text-sm font-bold">${pesan}</td></tr>`;
+    }
+
+    async function tarikDataJadwalDanPeserta(tanggal, lab, sesiKode) {
       try {
-        let sec1Students = extractStudentRow(fileSec1Info.data);
-        let sec2Students = extractStudentRow(fileSec2Info.data);
-        let sec3Students = extractStudentRow(fileSec3Info.data);
+        const sec1Students = extractStudentRow(fileSec1Info.data);
+        const sec2Students = extractStudentRow(fileSec2Info.data);
+        const sec3Students = extractStudentRow(fileSec3Info.data);
 
         if (sec1Students.length === 0) {
-          alert("Gagal membaca struktur Excel. Pastikan ada nama STUDENT01, dst.");
+          resetPreview("Tidak ditemukan baris STUDENT01, STUDENT02, dst. di dalam file Excel.");
           return;
         }
 
-        const { data: logData } = await window.supabaseClient
+        // 1. Cari jadwal yang cocok di tabel jadwal_log berdasarkan Tanggal + Lab + Sesi
+        const { data: logData, error: logErr } = await window.supabaseClient
           .from('jadwal_log')
           .select('*')
           .eq('tanggal', tanggal);
 
-        let kelasInfo = "PROGRAM STUDI UMUM";
-        
-        if (logData && logData.length > 0) {
-          let matchedJadwal = logData.find(j => String(j.sesi).includes(sesi.split(' ')[0]));
-          if (!matchedJadwal) matchedJadwal = logData[0];
-          
-          window.activeJadwalLogId = matchedJadwal.id;
-          kelasInfo = matchedJadwal.nama_kelas || "4 PPM B";
-        } else {
-          console.warn("Jadwal Log Kosong untuk tanggal ini. Menggunakan pemetaan offline.");
+        if (logErr) throw logErr;
+
+        const matchedJadwal = (logData || []).find(j => {
+          const jLab = String(j.ruang_lab || j.lab || j.ruangan || "").trim().toLowerCase();
+          const jSesi = String(j.sesi || "").trim().toUpperCase();
+          return jLab === lab.toLowerCase() && jSesi.includes(sesiKode);
+        });
+
+        if (!matchedJadwal) {
+          resetPreview(`Tidak ada jadwal terkunci di database pada tanggal ${tanggal}, ${lab}, ${sesiKode}.`);
+          alert(`Jadwal tidak ditemukan di database untuk Tanggal ${tanggal}, ${lab}, ${sesiKode}. Pastikan jadwal sudah terkunci di halaman Penjadwalan.`);
+          return;
         }
 
-        let dbMahasiswa = [
-           { nim: "24610101", nama: "AHMAD FAUZI" },
-           { nim: "24610102", nama: "SITI NURHALIZA" },
-           { nim: "24610103", nama: "GUNTUR RAMADHAN" }
-        ];
+        window.activeJadwalLogId = matchedJadwal.id;
+        const namaKelas = matchedJadwal.nama_kelas || matchedJadwal.kelas || "-";
 
-        let parsedPeserta = [];
+        // 2. Tarik daftar peserta terjadwal dari database (peserta_ujian / PesertaJadwal / Mahasiswa)
+        let dbPeserta = [];
+
+        // Cek jika jadwal_log menyimpan JSON peserta langsung
+        const rawJsonField = matchedJadwal.peserta_json || matchedJadwal.daftar_peserta || matchedJadwal.peserta;
+        if (rawJsonField) {
+          try {
+            const parsed = typeof rawJsonField === 'string' ? JSON.parse(rawJsonField) : rawJsonField;
+            if (Array.isArray(parsed)) dbPeserta = parsed;
+          } catch (_) {}
+        }
+
+        // Cek tabel peserta_ujian berdasarkan jadwal_id / id_jadwal
+        if (dbPeserta.length === 0) {
+          const { data: puData } = await window.supabaseClient
+            .from('peserta_ujian')
+            .select('*');
+
+          if (puData && puData.length > 0) {
+            dbPeserta = puData.filter(p =>
+              String(p.jadwal_id || p.id_jadwal || p.log_id || "") === String(matchedJadwal.id) ||
+              (String(p.tanggal || "") === tanggal &&
+               String(p.ruang_lab || p.lab || "").toLowerCase() === lab.toLowerCase() &&
+               String(p.sesi || "").toUpperCase().includes(sesiKode))
+            );
+          }
+        }
+
+        // Cek tabel PesertaJadwal jika masih kosong
+        if (dbPeserta.length === 0) {
+          const { data: pjData } = await window.supabaseClient
+            .from('PesertaJadwal')
+            .select('*');
+
+          if (pjData && pjData.length > 0) {
+            dbPeserta = pjData.filter(p =>
+              String(p.jadwal_id || p.id_jadwal || p.log_id || "") === String(matchedJadwal.id)
+            );
+          }
+        }
+
+        // Jika peserta diambil dari master kelas (tabel Mahasiswa berdasarkan nama_kelas)
+        if (dbPeserta.length === 0 && namaKelas !== "-") {
+          const { data: mhsData } = await window.supabaseClient
+            .from('Mahasiswa')
+            .select('*');
+
+          if (mhsData && mhsData.length > 0) {
+            dbPeserta = mhsData.filter(m =>
+              String(m.kelas || m.nama_kelas || "").trim().toUpperCase() === namaKelas.trim().toUpperCase()
+            );
+          }
+        }
+
+        // Urutkan peserta terjadwal berdasarkan nomor_meja (atau id / nim) agar cocok dengan STUDENT01, STUDENT02, ...
+        dbPeserta.sort((a, b) => {
+          const mejaA = parseInt(a.nomor_meja || a.no_meja || a.meja || 0, 10);
+          const mejaB = parseInt(b.nomor_meja || b.no_meja || b.meja || 0, 10);
+          if (mejaA && mejaB) return mejaA - mejaB;
+          return String(a.id || a.nim || "").localeCompare(String(b.id || b.nim || ""));
+        });
+
+        // Tampilkan banner info jadwal yang berhasil ditarik
+        document.getElementById('infoJadwalMatched').classList.remove('hidden');
+        document.getElementById('textJadwalMatched').innerText =
+          `Jadwal Cocok: ${matchedJadwal.jenis_tes || 'TOEFL'} • Kelas ${namaKelas} • ${lab} • ${tanggal} • ${matchedJadwal.sesi}`;
+        document.getElementById('badgePesertaJadwal').innerText = `${dbPeserta.length} Terjadwal di DB`;
+
+        // 3. Pasangkan STUDENT01, STUDENT02, ... dengan peserta terjadwal (tanpa data buatan)
+        const parsedPeserta = [];
 
         for (let i = 0; i < sec1Students.length; i++) {
-          let s1 = sec1Students[i];
-          let s2 = sec2Students.find(x => x.id === s1.id) || { score: 40 };
-          let s3 = sec3Students.find(x => x.id === s1.id) || { score: 40 };
+          const s1 = sec1Students[i];
+          const s2 = sec2Students.find(x => x.id === s1.id) || sec2Students[i] || { score: 0 };
+          const s3 = sec3Students.find(x => x.id === s1.id) || sec3Students[i] || { score: 0 };
 
-          let totalSkor = Math.round(((s1.score + s2.score + s3.score) * 10 / 3));
-          
-          let dbData = dbMahasiswa[i]; 
-          let mappedNim = dbData ? dbData.nim : "";
-          let mappedNama = dbData ? dbData.nama : `<span class="text-rose-600 italic">Peserta Extra (${s1.id})</span>`;
+          const totalSkor = Math.round(((s1.score + s2.score + s3.score) * 10) / 3);
+
+          // Cari berdasarkan nomor_meja === s1.seat, atau urutan indeks i
+          const mhsDb = dbPeserta.find(p => parseInt(p.nomor_meja || p.no_meja || p.meja || 0, 10) === s1.seat) || dbPeserta[i];
+
+          const mappedNim = mhsDb ? String(mhsDb.nim || "").trim() : "";
+          const mappedNama = mhsDb ? String(mhsDb.nama || mhsDb.nama_mahasiswa || "").trim().toUpperCase() : "";
+          const mappedProdi = mhsDb ? String(mhsDb.prodi || mhsDb.program_studi || namaKelas).trim().toUpperCase() : namaKelas;
+          const mappedMeja = mhsDb && (mhsDb.nomor_meja || mhsDb.no_meja || mhsDb.meja)
+            ? (mhsDb.nomor_meja || mhsDb.no_meja || mhsDb.meja)
+            : s1.seat;
 
           parsedPeserta.push({
-            id_excel: s1.id, 
+            id_excel: s1.id,
+            nomor_meja: mappedMeja,
             nim: mappedNim,
             nama: mappedNama,
-            prodi: kelasInfo,
+            prodi: mappedProdi,
             sec1: s1.score,
             sec2: s2.score,
             sec3: s3.score,
@@ -375,12 +530,12 @@
         }
 
         window.previewDataGlobal = parsedPeserta;
-        document.getElementById('badgeJumlahMhs').innerText = `${parsedPeserta.length} Peserta (Terbaca di Excel)`;
+        document.getElementById('badgeJumlahMhs').innerText = `${parsedPeserta.length} Peserta (Excel) / ${dbPeserta.length} Jadwal`;
         renderTabelPreview(parsedPeserta);
 
       } catch (err) {
-        alert("Terjadi kesalahan teknis auto-mapping.");
         console.error(err);
+        alert("Gagal menarik data jadwal dari Supabase: " + err.message);
       }
     }
 
@@ -389,16 +544,19 @@
       
       tbody.innerHTML = list.map((m, idx) => `
         <tr class="hover:bg-slate-50 transition-colors" id="row-${idx}">
-          <td class="px-4 py-3 text-center text-xs border-r">${idx + 1} <br><span class="text-[9px] text-slate-400">${m.id_excel}</span></td>
+          <td class="px-4 py-3 text-center text-xs border-r">${idx + 1}<br><span class="text-[9px] text-slate-400 font-mono">${m.id_excel}</span></td>
+          <td class="px-4 py-3 text-center text-xs border-r font-bold text-slate-600">Meja ${String(m.nomor_meja).padStart(2, '0')}</td>
           <td class="px-4 py-3 text-center font-mono text-xs border-r font-bold" id="nim-${idx}">${m.nim || '-'}</td>
-          <td class="px-4 py-3 text-xs font-bold border-r text-polnes-dark" id="nama-${idx}">${m.nama}</td>
-          <td class="px-4 py-3 text-xs border-r uppercase">${m.prodi}</td>
+          <td class="px-4 py-3 text-xs font-bold border-r ${m.nama ? 'text-polnes-dark' : 'text-rose-600 italic'}" id="nama-${idx}">
+            ${m.nama || `Peserta Extra (${m.id_excel}) — Belum Terdaftar di Jadwal`}
+          </td>
+          <td class="px-4 py-3 text-xs border-r uppercase" id="prodi-${idx}">${m.prodi}</td>
           <td class="px-4 py-3 text-center text-xs border-r">${m.sec1}</td>
           <td class="px-4 py-3 text-center text-xs border-r">${m.sec2}</td>
           <td class="px-4 py-3 text-center text-xs border-r">${m.sec3}</td>
           <td class="px-4 py-3 text-center text-xs font-extrabold text-emerald-600 bg-emerald-50/40 border-r">${m.totalSkor}</td>
           <td class="px-4 py-3 text-center">
-             <button onclick="bindNimOtomatis(${idx}, '${m.id_excel}')" class="px-3 py-1.5 ${m.nim ? 'bg-slate-200 text-slate-500' : 'bg-rose-500 hover:bg-rose-600 text-white shadow-sm'} text-[10px] font-bold rounded-lg flex items-center justify-center gap-1 mx-auto transition-all">
+             <button onclick="bindNimOtomatis(${idx}, '${m.id_excel}')" class="px-3 py-1.5 ${m.nim ? 'bg-slate-200 hover:bg-slate-300 text-slate-600' : 'bg-rose-500 hover:bg-rose-600 text-white shadow-sm'} text-[10px] font-bold rounded-lg flex items-center justify-center gap-1 mx-auto transition-all">
                 <i class="ri-link"></i> ${m.nim ? 'UBAH BIND' : 'BIND NIM'}
              </button>
           </td>
@@ -406,30 +564,56 @@
       `).join('');
     }
 
-    function bindNimOtomatis(index, excelId) {
-      const bindTargetNim = prompt(`Masukkan NIM mahasiswa untuk di-bind ke data ${excelId}:`);
-      if(bindTargetNim && bindTargetNim.trim() !== "") {
-         const bindTargetNama = prompt(`Masukkan NAMA LENGKAP untuk NIM ${bindTargetNim}:`);
-         if(bindTargetNama) {
-            window.previewDataGlobal[index].nim = bindTargetNim.trim();
-            window.previewDataGlobal[index].nama = bindTargetNama.toUpperCase();
-            document.getElementById(`nim-${index}`).innerText = bindTargetNim.trim();
-            document.getElementById(`nama-${index}`).innerHTML = bindTargetNama.toUpperCase();
-            alert(`Sukses! ${excelId} telah ditautkan ke ${bindTargetNama}.`);
-         }
+    async function bindNimOtomatis(index, excelId) {
+      const bindTargetNim = prompt(`Masukkan NIM mahasiswa untuk di-bind ke ${excelId}:`);
+      if (!bindTargetNim || bindTargetNim.trim() === "") return;
+
+      const nimClean = bindTargetNim.trim();
+      let foundNama = "";
+      let foundProdi = window.previewDataGlobal[index].prodi;
+
+      // Cari otomatis di tabel Mahasiswa Supabase berdasarkan NIM
+      try {
+        const { data: mhs } = await window.supabaseClient
+          .from('Mahasiswa')
+          .select('*')
+          .eq('nim', nimClean)
+          .maybeSingle();
+
+        if (mhs) {
+          foundNama = String(mhs.nama || mhs.nama_mahasiswa || "").trim().toUpperCase();
+          foundProdi = String(mhs.prodi || mhs.program_studi || mhs.kelas || foundProdi).trim().toUpperCase();
+        }
+      } catch (_) {}
+
+      if (!foundNama) {
+        const inputNama = prompt(`NIM ${nimClean} tidak ditemukan otomatis di master Mahasiswa. Masukkan NAMA LENGKAP:`);
+        if (!inputNama || inputNama.trim() === "") return;
+        foundNama = inputNama.trim().toUpperCase();
       }
+
+      window.previewDataGlobal[index].nim = nimClean;
+      window.previewDataGlobal[index].nama = foundNama;
+      window.previewDataGlobal[index].prodi = foundProdi;
+      renderTabelPreview(window.previewDataGlobal);
+      alert(`Sukses! ${excelId} berhasil di-bind ke ${foundNama} (${nimClean}).`);
     }
 
     async function simpanKeArsipMasterDariToefl() {
       const kategoriPilihan = document.getElementById('selectKategoriTargetToefl').value;
 
-      let unbinded = window.previewDataGlobal.filter(m => !m.nim);
-      if (unbinded.length > 0) {
-         alert(`Terdapat ${unbinded.length} peserta yang belum memiliki NIM (harus di-Bind). Silakan lengkapi dulu.`);
-         return;
+      if (!window.previewDataGlobal || window.previewDataGlobal.length === 0) {
+        alert("Belum ada data nilai valid untuk disimpan.");
+        return;
       }
 
-      if (!confirm(`Simpan permanen ${window.previewDataGlobal.length} data ke Rekapan Master kategori: ${kategoriPilihan}? (Jadwal log akan terhapus otomatis)`)) {
+      const unbinded = window.previewDataGlobal.filter(m => !m.nim);
+      if (unbinded.length > 0) {
+        alert(`Terdapat ${unbinded.length} peserta yang belum memiliki NIM. Gunakan tombol BIND NIM terlebih dahulu.`);
+        return;
+      }
+
+      if (!confirm(`Simpan permanen ${window.previewDataGlobal.length} data ke Rekapan Master kategori: ${kategoriPilihan}? (Jadwal di log akan dihapus otomatis)`)) {
         return;
       }
 
@@ -438,9 +622,12 @@
           let keyMap = 'toeflD3';
           if (kategoriPilihan === 'TOEFL D4') keyMap = 'toeflD4';
           else if (kategoriPilihan === 'TOEFL LATIHAN D3') keyMap = 'latihanD3';
+          else if (kategoriPilihan === 'TOEFL LATIHAN D4') keyMap = 'latihanD4';
           else if (kategoriPilihan === 'REMEDIAL 1') keyMap = 'remedial1';
+          else if (kategoriPilihan === 'REMEDIAL 2') keyMap = 'remedial2';
+          else if (kategoriPilihan === 'REMEDIAL 3') keyMap = 'remedial3';
 
-          let riwayatObj = {
+          const riwayatObj = {
             sspect: '-', latihanD3: '-', latihanD4: '-', toeflD3: '-', toeflD4: '-', remedial1: '-', remedial2: '-', remedial3: '-'
           };
           riwayatObj[keyMap] = m.totalSkor;
@@ -462,16 +649,17 @@
           .insert(payload);
         if (errInsert) throw errInsert;
 
+        // Hapus jadwal terkait dari tabel jadwal_log setelah skor berhasil disimpan
         if (window.activeJadwalLogId) {
-           const { error: errDel } = await window.supabaseClient
-             .from('jadwal_log')
-             .delete()
-             .eq('id', window.activeJadwalLogId);
+          const { error: errDel } = await window.supabaseClient
+            .from('jadwal_log')
+            .delete()
+            .eq('id', window.activeJadwalLogId);
+          if (errDel) console.warn("Gagal menghapus jadwal_log:", errDel.message);
         }
 
-        alert(`SUKSES! ${window.previewDataGlobal.length} nilai tersimpan ke arsip master. Jadwal log telah dibersihkan.`);
-        document.getElementById('tabelPreviewToefl').innerHTML = `<tr><td colspan="9" class="px-5 py-10 text-center text-slate-400 text-sm italic">Selesai. Log telah bersih.</td></tr>`;
-        window.previewDataGlobal = [];
+        alert(`SUKSES! ${window.previewDataGlobal.length} nilai berhasil disimpan ke Rekapan Master dan jadwal terkait telah dihapus dari log.`);
+        resetPreview("Data berhasil disimpan dan log jadwal telah dibersihkan.");
 
       } catch (err) {
         alert("Gagal menyimpan ke database Supabase: " + err.message);
