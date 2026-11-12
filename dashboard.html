@@ -368,5 +368,104 @@
 
     document.addEventListener('DOMContentLoaded', muatStatistikDashboard);
   </script>
+  <!-- ==================== MODAL UBAH USERNAME ==================== -->
+<div id="modalUbahUsername" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+      <h3 class="text-sm font-extrabold text-slate-900">Ubah Username Staff</h3>
+      <button onclick="tutupModalUbahUsername()" class="text-slate-400 hover:text-slate-600"><i class="ri-close-line text-lg"></i></button>
+    </div>
+    <form onsubmit="simpanUsernameBaru(event)" class="space-y-3">
+      <div>
+        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Username Baru</label>
+        <input type="text" id="inputUsernameBaru" required class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-mono focus:border-[#169C53] outline-none">
+      </div>
+      <button type="submit" class="w-full py-2.5 rounded-xl bg-[#169C53] hover:bg-[#0E7A3F] text-white font-bold text-xs">Simpan Perubahan</button>
+    </form>
+  </div>
+</div>
+
+<!-- ==================== MODAL UBAH KATA SANDI ==================== -->
+<div id="modalUbahPassword" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+      <h3 class="text-sm font-extrabold text-slate-900">Ubah Kata Sandi</h3>
+      <button onclick="tutupModalUbahPassword()" class="text-slate-400 hover:text-slate-600"><i class="ri-close-line text-lg"></i></button>
+    </div>
+    <form onsubmit="simpanPasswordBaru(event)" class="space-y-3">
+      <div>
+        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Kata Sandi Lama</label>
+        <input type="password" id="inputPassLama" required placeholder="••••••••" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs outline-none focus:border-[#169C53]">
+      </div>
+      <div>
+        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Kata Sandi Baru</label>
+        <input type="password" id="inputPassBaru" required placeholder="••••••••" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs outline-none focus:border-[#169C53]">
+      </div>
+      <button type="submit" class="w-full py-2.5 rounded-xl bg-[#169C53] hover:bg-[#0E7A3F] text-white font-bold text-xs">Perbarui Kata Sandi</button>
+    </form>
+  </div>
+</div>
+
+<!-- ==================== SCRIPT PROFIL & DROPDOWN ==================== -->
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const currentStaff = JSON.parse(localStorage.getItem('upa_active_staff') || '{"nama": "Staff UPA", "username": "admin"}');
+    const initials = currentStaff.nama.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+    document.getElementById('userAvatarText').innerText = initials || 'ST';
+    document.getElementById('popupNamaUser').innerText = currentStaff.nama;
+    document.getElementById('popupUsername').innerText = '@' + currentStaff.username;
+  });
+
+  function toggleDropdownProfil(e) {
+    e.stopPropagation();
+    const menu = document.getElementById('menuDropdownProfil');
+    menu.classList.toggle('hidden');
+  }
+
+  document.addEventListener('click', (e) => {
+    const wrapper = document.getElementById('dropdownProfilWrapper');
+    const menu = document.getElementById('menuDropdownProfil');
+    if (wrapper && !wrapper.contains(e.target)) {
+      menu.classList.add('hidden');
+    }
+  });
+
+  function bukaModalUbahUsername() {
+    document.getElementById('menuDropdownProfil').classList.add('hidden');
+    document.getElementById('modalUbahUsername').classList.remove('hidden');
+  }
+  function tutupModalUbahUsername() {
+    document.getElementById('modalUbahUsername').classList.add('hidden');
+  }
+  function simpanUsernameBaru(e) {
+    e.preventDefault();
+    const baru = document.getElementById('inputUsernameBaru').value.trim();
+    let currentStaff = JSON.parse(localStorage.getItem('upa_active_staff') || '{"nama": "Staff UPA", "username": "admin"}');
+    currentStaff.username = baru;
+    localStorage.setItem('upa_active_staff', JSON.stringify(currentStaff));
+    alert("Username berhasil diperbarui!");
+    location.reload();
+  }
+
+  function bukaModalUbahPassword() {
+    document.getElementById('menuDropdownProfil').classList.add('hidden');
+    document.getElementById('modalUbahPassword').classList.remove('hidden');
+  }
+  function tutupModalUbahPassword() {
+    document.getElementById('modalUbahPassword').classList.add('hidden');
+  }
+  function simpanPasswordBaru(e) {
+    e.preventDefault();
+    alert("Kata sandi berhasil diperbarui!");
+    tutupModalUbahPassword();
+  }
+
+  function prosesLogoutStaff() {
+    if (confirm("Apakah Anda yakin ingin keluar dari sesi staff?")) {
+      localStorage.removeItem('upa_active_staff');
+      window.location.href = "login.html";
+    }
+  }
+</script>
 </body>
 </html>
