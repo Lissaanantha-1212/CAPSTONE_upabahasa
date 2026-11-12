@@ -26,7 +26,7 @@
 </head>
 <body class="bg-slate-50 font-sans text-slate-800 antialiased flex h-screen overflow-hidden">
 
-  <!-- ==================== SIDEBAR ==================== -->
+  <!-- ==================== SIDEBAR (DIKEMBALIKAN KE AWAL) ==================== -->
   <aside class="w-[260px] bg-white border-r border-slate-200 flex flex-col flex-shrink-0 h-full overflow-y-auto z-20">
     <div class="p-6 flex items-center gap-3 border-b border-slate-100 sticky top-0 bg-white z-10">
       <img src="./img/polnes.png" alt="Logo Polnes" class="w-8 h-8 object-contain">
@@ -52,9 +52,13 @@
           <a href="jadwal-remedial.html" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 transition-all font-medium text-[13px]">
             <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div> Jadwal Remedial
           </a>
+          <a href="jadwal-kursus.html" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 transition-all font-medium text-[13px]">
+            <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div> Jadwal Kursus
+          </a>
         </div>
       </div>
 
+      <!-- Hasil Test (AKTIF) -->
       <div class="space-y-1">
         <div onclick="document.getElementById('subHasilTest').classList.toggle('hidden'); document.getElementById('arrowHasilTest').classList.toggle('rotate-180')" class="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-slate-50 text-slate-600 font-medium text-[13px] cursor-pointer transition-all">
           <div class="flex items-center gap-3"><i class="ri-file-upload-line text-lg text-slate-500"></i> Hasil Test</div>
@@ -70,10 +74,34 @@
         </div>
       </div>
 
+      <a href="kalkulasi-score.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
+        <i class="ri-calculator-line text-lg text-slate-500"></i> Kalkulasi Score
+      </a>
+
       <a href="rekapan.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
         <i class="ri-folder-history-line text-lg text-slate-500"></i> Rekapan
       </a>
 
+      <a href="pusat-informasi.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
+        <i class="ri-information-line text-lg text-slate-500"></i> Pusat Informasi
+      </a>
+
+      <div class="pt-4 pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider px-4">MANAJEMEN KONTEN</div>
+      <a href="konten-utama.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
+        <i class="ri-article-line text-lg text-slate-500"></i> Konten Utama
+      </a>
+      <a href="layanan-tambahan.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
+        <i class="ri-heart-pulse-line text-lg text-slate-500"></i> Layanan Tambahan
+      </a>
+      <a href="pembelajaran.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
+        <i class="ri-book-open-line text-lg text-slate-500"></i> Pembelajaran
+      </a>
+      <a href="pengaduan.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
+        <i class="ri-message-2-line text-lg text-slate-500"></i> Pengaduan
+      </a>
+      <a href="survei.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
+        <i class="ri-clipboard-line text-lg text-slate-500"></i> Survei
+      </a>
     </div>
   </aside>
 
@@ -149,12 +177,16 @@
         <div>
           <h4 class="text-xs font-bold text-slate-700 uppercase">Target Kategori Rekapan Master</h4>
         </div>
+        
         <div class="flex items-center gap-3 w-full sm:w-auto">
           <select id="selectKategoriTargetToefl" class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-polnes-main">
             <option value="TOEFL D3">TOEFL D3 (Semester 6)</option>
             <option value="TOEFL D4">TOEFL D4 (Semester 8)</option>
             <option value="TOEFL LATIHAN D3">TOEFL LATIHAN D3 (Semester 4)</option>
+            <option value="TOEFL LATIHAN D4">TOEFL LATIHAN D4 (Semester 6)</option>
             <option value="REMEDIAL 1">REMEDIAL 1</option>
+            <option value="REMEDIAL 2">REMEDIAL 2</option>
+            <option value="REMEDIAL 3">REMEDIAL 3</option>
           </select>
           <button onclick="simpanKeArsipMasterDariToefl()" class="px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-2 transition-all shrink-0">
             <i class="ri-save-line text-sm"></i> Simpan Permanen ke Database
@@ -240,7 +272,6 @@
     function extractPureScore(cellValue) {
       if (!cellValue) return 0;
       let str = String(cellValue).trim();
-      // Menangkap format "42 / 50" -> 42
       if (str.includes('/')) {
         let parts = str.split('/');
         return parseInt(parts[0].trim()) || 0;
@@ -250,21 +281,17 @@
 
     function extractStudentRow(rows) {
       let students = [];
-      // Cari baris yang mulai dengan STUDENT01, STUDENT02, dst
       for (let i = 0; i < rows.length; i++) {
         let r = rows[i];
         let studentNameColIdx = r.findIndex(c => String(c).toUpperCase().includes("STUDENT"));
         
         if (studentNameColIdx !== -1) {
-          let studentId = String(r[studentNameColIdx]).trim(); // "STUDENT01"
-          
-          // Cari kolom skor (biasanya ada nilai " / 50" di baris yang sama)
+          let studentId = String(r[studentNameColIdx]).trim();
           let scoreColIdx = r.findIndex(c => String(c).includes('/'));
           let score = 0;
           if (scoreColIdx !== -1) {
              score = extractPureScore(r[scoreColIdx]);
           } else {
-             // Jika tidak ada garis miring, cari angka murni di kolom terakhir yang masuk akal
              for(let k = r.length-1; k > studentNameColIdx; k--){
                 if(!isNaN(parseInt(r[k]))) { score = parseInt(r[k]); break; }
              }
@@ -290,7 +317,6 @@
 
     async function tarikDataAutoMapping(tanggal, lab, sesi) {
       try {
-        // 1. Ekstrak data STUDENT01 dst dari 3 File Excel
         let sec1Students = extractStudentRow(fileSec1Info.data);
         let sec2Students = extractStudentRow(fileSec2Info.data);
         let sec3Students = extractStudentRow(fileSec3Info.data);
@@ -300,7 +326,6 @@
           return;
         }
 
-        // 2. Tarik log jadwal di database untuk dapat ID Jadwal / Kelas
         const { data: logData } = await window.supabaseClient
           .from('jadwal_log')
           .select('*')
@@ -314,40 +339,31 @@
           
           window.activeJadwalLogId = matchedJadwal.id;
           kelasInfo = matchedJadwal.nama_kelas || "4 PPM B";
-          
-          // 3. (OPSIONAL JIKA ADA TABEL PESERTA) Tarik data tabel 'peserta_ujian' yg terhubung ke jadwal ini
-          // Namun sebagai contoh ini kita buat auto-mapping list virtual sesuai absen kelas:
         } else {
           console.warn("Jadwal Log Kosong untuk tanggal ini. Menggunakan pemetaan offline.");
         }
 
-        // Simulasi Absen Mahasiswa dari Database untuk kelas yang sesuai (Auto Mapping berdasar urutan)
         let dbMahasiswa = [
            { nim: "24610101", nama: "AHMAD FAUZI" },
            { nim: "24610102", nama: "SITI NURHALIZA" },
-           { nim: "24610103", nama: "GUNTUR RAMADHAN" },
-           { nim: "24610104", nama: "ALDI TAHER" },
-           // ... (berjumlah X orang sesuai kelas)
+           { nim: "24610103", nama: "GUNTUR RAMADHAN" }
         ];
 
         let parsedPeserta = [];
 
-        // Gabungkan nilai Excel dan mapping ke database mahasiswa berdasarkan indeks (STUDENT01 = index 0)
         for (let i = 0; i < sec1Students.length; i++) {
           let s1 = sec1Students[i];
           let s2 = sec2Students.find(x => x.id === s1.id) || { score: 40 };
           let s3 = sec3Students.find(x => x.id === s1.id) || { score: 40 };
 
-          // Total standar TOEFL -> ((S1+S2+S3) * 10 / 3)
           let totalSkor = Math.round(((s1.score + s2.score + s3.score) * 10 / 3));
           
-          // Auto Mapping ke Database Absen
           let dbData = dbMahasiswa[i]; 
           let mappedNim = dbData ? dbData.nim : "";
           let mappedNama = dbData ? dbData.nama : `<span class="text-rose-600 italic">Peserta Extra (${s1.id})</span>`;
 
           parsedPeserta.push({
-            id_excel: s1.id, // STUDENT01
+            id_excel: s1.id, 
             nim: mappedNim,
             nama: mappedNama,
             prodi: kelasInfo,
@@ -390,7 +406,6 @@
       `).join('');
     }
 
-    // Fungsi Bind NIM jika peserta berlebih
     function bindNimOtomatis(index, excelId) {
       const bindTargetNim = prompt(`Masukkan NIM mahasiswa untuk di-bind ke data ${excelId}:`);
       if(bindTargetNim && bindTargetNim.trim() !== "") {
@@ -442,13 +457,11 @@
           };
         });
 
-        // 1. Insert ke Rekapan
         const { error: errInsert } = await window.supabaseClient
           .from('arsip_master_rekapan')
           .insert(payload);
         if (errInsert) throw errInsert;
 
-        // 2. HAPUS JADWAL DARI LOG
         if (window.activeJadwalLogId) {
            const { error: errDel } = await window.supabaseClient
              .from('jadwal_log')
