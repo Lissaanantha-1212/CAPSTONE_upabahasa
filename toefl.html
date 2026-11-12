@@ -129,19 +129,18 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">PILIH RUANG LAB UJIAN</label>
+            <label class="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">PILIH RUANG LAB UJIAN (LAB A & LAB B)</label>
             <select id="selectLabToefl" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-[13px] font-semibold text-slate-700 outline-none focus:border-polnes-main">
               <option value="Lab A">Lab A</option>
               <option value="Lab B">Lab B</option>
-              <option value="Lab C">Lab C</option>
             </select>
           </div>
           <div>
-            <label class="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">PILIH SESI & WAKTU</label>
+            <label class="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">PILIH SESI & WAKTU (SESUAI JADWAL)</label>
             <select id="selectSesiToefl" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-[13px] font-semibold text-slate-700 outline-none focus:border-polnes-main">
               <option value="SESI 1 (08.00 - 10.00 WITA)">SESI 1 (08.00 - 10.00 WITA)</option>
-              <option value="SESI 2 (10.30 - 12.30 WITA)">SESI 2 (10.30 - 12.30 WITA)</option>
-              <option value="SESI 3 (13.30 - 15.30 WITA)">SESI 3 (13.30 - 15.30 WITA)</option>
+              <option value="SESI 2 (10.00 - 12.00 WITA)">SESI 2 (10.00 - 12.00 WITA)</option>
+              <option value="SESI 3 (14.00 - 16.00 WITA)">SESI 3 (14.00 - 16.00 WITA)</option>
             </select>
           </div>
         </div>
@@ -182,7 +181,7 @@
         </div>
         
         <div class="flex items-center gap-3 w-full sm:w-auto">
-          <!-- DROPDOWN 5 PILIHAN / 8 KATEGORI TOEFL -->
+          <!-- DROPDOWN 7 PILIHAN KATEGORI -->
           <select id="selectKategoriTargetToefl" class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-polnes-main">
             <option value="TOEFL D3">TOEFL D3 (Semester 6)</option>
             <option value="TOEFL D4">TOEFL D4 (Semester 8)</option>
@@ -242,7 +241,7 @@
       const file = input.files[0];
       if (!file) return;
 
-      document.getElementById(`labelSec3`).innerText = file.name; // Sederhana
+      document.getElementById(`labelSec${secNum}`).innerText = file.name;
       const reader = new FileReader();
       reader.onload = (e) => {
         const data = new Uint8Array(e.target.result);
@@ -254,7 +253,6 @@
         if (secNum === 2) fileSec2Data = rows;
         if (secNum === 3) fileSec3Data = rows;
 
-        // Jika ketiganya sudah ada, proses preview gabungan
         if (fileSec1Data && fileSec2Data && fileSec3Data) {
           prosesSinkronisasiToefl();
         }
@@ -263,7 +261,6 @@
     }
 
     function prosesSinkronisasiToefl() {
-      // Simulasi parsing gabungan 3 file section
       let mockList = [];
       for (let i = 1; i <= 10; i++) {
         mockList.push({
@@ -332,7 +329,7 @@
             nama: m.nama,
             jurusan: "TEKNOLOGI INFORMASI",
             prodi: m.prodi,
-            tahun_angkatan: "2024", // Sesuai tahun aktif arsip
+            tahun_angkatan: "2024",
             kategori_tes: kategoriPilihan,
             skor_total: String(m.totalSkor),
             riwayat_json: JSON.stringify(riwayatObj)
