@@ -34,7 +34,6 @@
     </div>
     
     <div class="p-4 space-y-1 flex-1">
-      <!-- DIPERBAIKI: Mengarah ke index.html agar tidak 404 error -->
       <a href="index.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
         <i class="ri-layout-grid-line text-lg text-slate-500"></i> Dashboard
       </a>
@@ -119,20 +118,18 @@
 
     <div class="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 pb-12">
       
-      <!-- Upload File Excel Mahasiswa (Grid 3 Kolom) -->
+      <!-- Upload File Excel Mahasiswa -->
       <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
         <h3 class="text-base font-bold text-slate-800 flex items-center gap-2 mb-4">
           <i class="ri-file-excel-line text-polnes-main text-base"></i> Upload File Excel Mahasiswa
         </h3>
         
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
-          <!-- Input Nama Kelas -->
           <div>
             <label class="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">NAMA KELAS BARU (CONTOH: 2 PDOK B)</label>
             <input type="text" id="namaKelasInput" placeholder="Ketik nama kelas..." class="w-full px-4 py-3 border border-slate-200 rounded-xl text-[13px] font-semibold text-slate-700 focus:outline-none focus:border-polnes-main focus:ring-1 focus:ring-polnes-main bg-white">
           </div>
           
-          <!-- Dropdown Program Studi (Lengkap 26 Prodi) -->
           <div>
             <label class="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">PILIH PROGRAM STUDI</label>
             <select id="selectProdi" class="w-full px-4 py-3 border border-slate-200 rounded-xl text-[13px] font-semibold text-slate-700 focus:outline-none focus:border-polnes-main focus:ring-1 focus:ring-polnes-main bg-white">
@@ -186,7 +183,6 @@
             </select>
           </div>
 
-          <!-- Input File Excel -->
           <div>
             <label class="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">FILE EXCEL (.XLSX / .XLS)</label>
             <input type="file" id="excelFileInput" accept=".xlsx, .xls" class="hidden">
@@ -198,7 +194,7 @@
         </div>
       </div>
 
-      <!-- Pengaturan Sesi & Filter Kelas & Tabel Antrean -->
+      <!-- Pengaturan Sesi & Tabel Antrean -->
       <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-6">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
@@ -229,7 +225,6 @@
           </div>
         </div>
 
-        <!-- Tombol Filter Kelas Dinamis -->
         <div id="filterKelasContainer" class="flex items-center gap-2 flex-wrap"></div>
 
         <div class="overflow-x-auto rounded-xl border border-slate-100">
@@ -287,7 +282,7 @@
   </main>
 
   <!-- MODAL PREVIEW BERITA ACARA PDF -->
- <div id="pdfPreviewModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+  <div id="pdfPreviewModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl w-full max-w-4xl h-[90vh] flex flex-col shadow-2xl overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
       <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
         <h3 class="text-sm font-extrabold text-slate-800 flex items-center gap-2">
@@ -311,7 +306,7 @@
     </div>
   </div>
 
-  <!-- WAJIB ADA: Urutan CDN jsPDF & Plugin autoTable yang benar -->
+  <!-- CDN JS UNTUK jsPDF DAN autoTable YANG BENAR & BERURUTAN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/plugin.jspdf.autotable.min.js"></script>
   
