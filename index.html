@@ -55,10 +55,12 @@
           <i class="ri-phone-line text-sm"></i> (0541) 743584
         </span>
       </div>
-      <div class="flex items-center gap-2 font-bold tracking-wide">
-        <span class="text-white">ID</span>
-        <span class="text-white/50">|</span>
-        <span class="text-white/75">EN</span>
+      <div class="flex items-center gap-4 font-bold tracking-wide">
+        <div class="flex items-center gap-2">
+          <span class="text-white">ID</span>
+          <span class="text-white/50">|</span>
+          <span class="text-white/75">EN</span>
+        </div>
       </div>
     </div>
   </div>
@@ -80,7 +82,7 @@
       </button>
 
       <!-- Menu Navigasi Desktop -->
-      <nav class="hidden lg:flex items-center gap-7 text-[13.5px] font-semibold">
+      <nav class="hidden lg:flex items-center gap-6 text-[13.5px] font-semibold">
         <!-- BERANDA (Aktif) -->
         <button id="navBeranda" onclick="bukaHalaman('beranda')" class="relative py-2 text-[#169C53] font-bold transition-colors">
           BERANDA
@@ -98,10 +100,10 @@
             <span id="lineLayanan" class="hidden absolute left-0 right-0 -bottom-1 h-[2.5px] bg-[#169C53] rounded-full"></span>
           </button>
 
-          <!-- Mega Dropdown Layanan (Tanpa Huruf A & B) -->
+          <!-- Mega Dropdown Layanan -->
           <div id="menuDropdownLayanan" class="hidden absolute right-0 mt-3 w-[620px] bg-white rounded-2xl shadow-xl border border-slate-200 p-6 grid grid-cols-2 gap-6 z-50">
             
-            <!-- Kolom Kiri: Layanan Tes (Bisa Diklik) -->
+            <!-- Kolom Kiri: Layanan Tes -->
             <div class="space-y-3 border-r border-slate-100 pr-5">
               <div class="pb-2 border-b border-slate-100">
                 <span class="text-xs font-extrabold uppercase tracking-wider text-slate-800">Layanan Tes</span>
@@ -117,7 +119,6 @@
                   <i class="ri-arrow-right-s-line text-slate-400 group-hover:text-[#169C53] text-base"></i>
                 </button>
 
-                <!-- Pintasan Sub-Bagian TOEFL -->
                 <div class="pl-3 space-y-1 border-l-2 border-emerald-100 ml-2">
                   <button onclick="bukaHalaman('toefl', 'sec-info-toefl')" class="block w-full text-left text-[11.5px] text-slate-600 hover:text-[#169C53] py-0.5 font-medium">• Informasi TOEFL Prediction</button>
                   <button onclick="bukaHalaman('toefl', 'sec-jadwal-toefl')" class="block w-full text-left text-[11.5px] text-slate-600 hover:text-[#169C53] py-0.5 font-medium">• Jadwal Tes & Jadwal Remedial</button>
@@ -135,14 +136,14 @@
                 <i class="ri-arrow-right-s-line text-slate-400 group-hover:text-[#169C53] text-base"></i>
               </button>
 
-              <!-- 3) TOEIC (Teks / Non-Aktif) -->
+              <!-- 3) TOEIC (Non-Aktif) -->
               <div class="p-2.5 rounded-xl bg-slate-50/70 opacity-70 select-none">
                 <div class="text-xs font-bold text-slate-600">3. TOEIC</div>
                 <div class="text-[11px] text-slate-400">Informasi TOEIC</div>
               </div>
             </div>
 
-            <!-- Kolom Kanan: Layanan Non-Tes (Hanya Teks / Tidak Bisa Diklik) -->
+            <!-- Kolom Kanan: Layanan Non-Tes (Non-Aktif) -->
             <div class="space-y-3 select-none">
               <div class="flex items-center justify-between pb-2 border-b border-slate-100">
                 <span class="text-xs font-extrabold uppercase tracking-wider text-slate-500">Layanan Non-Tes</span>
@@ -168,7 +169,7 @@
           </div>
         </div>
 
-        <!-- Menu Lainnya (Teks Saja / Tidak Bisa Diklik) -->
+        <!-- Menu Lainnya (Teks Saja) -->
         <span class="py-2 text-slate-500 flex items-center gap-1 cursor-default select-none">
           Informasi <i class="ri-arrow-down-s-line text-base"></i>
         </span>
@@ -178,6 +179,12 @@
         <span class="py-2 text-slate-500 flex items-center gap-1 cursor-default select-none">
           Layanan Pengguna <i class="ri-arrow-down-s-line text-base"></i>
         </span>
+
+        <!-- Tombol Login Staff -->
+        <button onclick="bukaModalLoginStaff()" class="ml-2 px-4 py-2 rounded-full bg-emerald-50 hover:bg-[#169C53] text-[#169C53] hover:text-white border border-emerald-200 font-bold text-xs transition-all flex items-center gap-1.5">
+          <i class="ri-shield-user-line text-sm"></i>
+          <span>Login Staff</span>
+        </button>
       </nav>
 
       <!-- Tombol Menu Mobile -->
@@ -186,9 +193,14 @@
       </button>
     </div>
 
-    <!-- Drawer Mobile (Khusus Layanan Tes & Non-Tes) -->
+    <!-- Drawer Mobile -->
     <div id="mobileMenuLayanan" class="hidden lg:hidden bg-white border-t border-slate-200 px-5 py-4 space-y-4">
-      <button onclick="bukaHalaman('beranda'); document.getElementById('mobileMenuLayanan').classList.add('hidden')" class="block w-full text-left font-bold text-sm text-[#169C53]">BERANDA</button>
+      <div class="flex items-center justify-between">
+        <button onclick="bukaHalaman('beranda'); document.getElementById('mobileMenuLayanan').classList.add('hidden')" class="font-bold text-sm text-[#169C53]">BERANDA</button>
+        <button onclick="bukaModalLoginStaff(); document.getElementById('mobileMenuLayanan').classList.add('hidden')" class="px-3.5 py-1.5 rounded-full bg-[#169C53] text-white font-bold text-xs flex items-center gap-1">
+          <i class="ri-shield-user-line"></i> Login Staff
+        </button>
+      </div>
       <div class="space-y-2 pt-2 border-t border-slate-100">
         <div class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Layanan Tes</div>
         <button onclick="bukaHalaman('toefl', 'sec-info-toefl'); document.getElementById('mobileMenuLayanan').classList.add('hidden')" class="block w-full text-left text-sm font-bold text-slate-800 py-1">• TOEFL Prediction (Info, Jadwal, Remedial, Cek Skor)</button>
@@ -207,23 +219,19 @@
   <section id="viewBeranda" class="hero-bg flex-1 flex items-center justify-center text-center px-4 py-20 relative">
     <div class="max-w-4xl mx-auto flex flex-col items-center space-y-6">
       
-      <!-- Badge Pill Putih -->
       <div class="inline-flex items-center gap-2 bg-white/95 px-4 py-1.5 rounded-full shadow-md">
         <span class="w-2 h-2 rounded-full bg-[#169C53]"></span>
         <span class="text-[11px] font-extrabold tracking-widest text-[#169C53] uppercase">UPA BAHASA POLNES</span>
       </div>
 
-      <!-- Judul Utama -->
       <h1 class="text-3xl sm:text-5xl md:text-[56px] font-extrabold text-white leading-[1.15] tracking-tight">
         Mengembangkan<br class="hidden sm:inline"> Kompetensi Bahasa<br class="hidden sm:inline"> untuk Masa Depan
       </h1>
 
-      <!-- Subjudul -->
       <p class="text-white/90 text-sm sm:text-base md:text-lg max-w-2xl leading-relaxed font-normal">
         Pusat layanan dan pengembangan bahasa di Politeknik Negeri Samarinda yang mendukung peningkatan kemampuan bahasa mahasiswa dan sivitas akademika.
       </p>
 
-      <!-- Tombol CTA -->
       <div class="pt-3 flex flex-wrap items-center justify-center gap-4">
         <button onclick="toggleDropdownLayanan(event)" class="px-7 py-3.5 rounded-full bg-[#169C53] hover:bg-[#128244] text-white font-bold text-sm shadow-lg transition-all flex items-center gap-2.5">
           <span>Jelajahi Layanan</span>
@@ -241,10 +249,10 @@
     </div>
   </section>
 
-  <!-- ==================== VIEW 2: LAYANAN TES - TOEFL PREDICTION (TANPA BANNER HIJAU) ==================== -->
+  <!-- ==================== VIEW 2: LAYANAN TES - TOEFL PREDICTION ==================== -->
   <section id="viewToefl" class="hidden flex-1 pb-16">
 
-    <!-- Sub-Navigasi Cepat (Sticky di bawah Navbar) -->
+    <!-- Sub-Navigasi Cepat -->
     <div class="bg-white border-b border-slate-200 sticky top-20 z-20 shadow-xs">
       <div class="max-w-7xl mx-auto px-4 md:px-10 lg:px-16 py-3 flex items-center justify-between gap-3 overflow-x-auto">
         <div class="flex items-center gap-2 text-xs font-bold shrink-0">
@@ -280,7 +288,6 @@
           <strong>TOEFL Prediction</strong> di UPA Bahasa Politeknik Negeri Samarinda merupakan tes standar untuk mengukur kemampuan berbahasa Inggris pasif mahasiswa dalam konteks akademik. Sertifikat hasil tes ini menjadi salah satu dokumen penting pendamping ijazah dan syarat kelulusan bagi mahasiswa program Diploma III (D3) maupun Sarjana Terapan (D4).
         </p>
 
-        <!-- 3 Kartu Manfaat -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div class="p-5 rounded-2xl bg-emerald-50/60 border border-emerald-100 space-y-2">
             <div class="w-10 h-10 rounded-xl bg-[#169C53] text-white flex items-center justify-center text-lg">
@@ -317,7 +324,7 @@
       <!-- BAGIAN 2: JADWAL TES TOEFL (DARI LOG STAFF) & JADWAL REMEDIAL -->
       <div id="sec-jadwal-toefl" class="scroll-mt-36 space-y-8">
         
-        <!-- 2A. Tabel Jadwal Tes TOEFL (Tarik dari jadwal_log) -->
+        <!-- 2A. Tabel Jadwal Tes TOEFL -->
         <div class="bg-white rounded-2xl p-6 md:p-8 shadow-xs border border-slate-200 space-y-4">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-4">
             <div>
@@ -383,7 +390,7 @@
 
       </div>
 
-      <!-- BAGIAN 3 & 4: FORM PENDAFTARAN REMEDIAL & CEK SKOR (GRID 2 KOLOM) -->
+      <!-- BAGIAN 3 & 4: FORM PENDAFTARAN REMEDIAL & CEK SKOR -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
 
         <!-- BAGIAN 3: FORM PENDAFTARAN REMEDIAL TOEFL -->
@@ -457,7 +464,6 @@
             </button>
           </form>
 
-          <!-- Area Hasil Pencarian Skor -->
           <div id="hasilCekSkorContainer" class="pt-1">
             <div class="p-6 rounded-2xl bg-slate-50 border border-dashed border-slate-200 text-center space-y-2">
               <i class="ri-file-search-line text-3xl text-slate-300"></i>
@@ -470,7 +476,7 @@
     </div>
   </section>
 
-  <!-- ==================== VIEW 3: LAYANAN TES - SSPECT (TANPA BANNER HIJAU) ==================== -->
+  <!-- ==================== VIEW 3: LAYANAN TES - SSPECT ==================== -->
   <section id="viewSspect" class="hidden flex-1 pb-16">
 
     <!-- Sub-Header Ringkas SSPECT -->
@@ -517,7 +523,7 @@
         </div>
       </div>
 
-      <!-- Tabel 2: Daftar Peserta Terjadwal SSPECT (NIM, Nama, Prodi, Kelas, Tanggal) -->
+      <!-- Tabel 2: Daftar Peserta Terjadwal SSPECT -->
       <div class="bg-white rounded-2xl p-6 md:p-8 shadow-xs border border-slate-200 space-y-4">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
           <div>
@@ -555,6 +561,40 @@
     </div>
   </section>
 
+  <!-- ==================== MODAL LOGIN STAFF ==================== -->
+  <div id="modalLoginStaff" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 md:p-7 shadow-2xl border border-slate-200 space-y-5">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-emerald-50 text-[#169C53] flex items-center justify-center text-lg">
+            <i class="ri-shield-user-line"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-extrabold text-slate-900">Login Portal Staff</h3>
+            <p class="text-[11px] text-slate-500">Khusus Administrator & Staff UPA Bahasa POLNES</p>
+          </div>
+        </div>
+        <button onclick="tutupModalLoginStaff()" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center">
+          <i class="ri-close-line text-lg"></i>
+        </button>
+      </div>
+
+      <form onsubmit="prosesLoginStaff(event)" class="space-y-4">
+        <div>
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1.5">Username / NIP Staff</label>
+          <input type="text" id="staffUsername" required placeholder="Masukkan username staff..." class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-[#169C53] outline-none">
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1.5">Password</label>
+          <input type="password" id="staffPassword" required placeholder="••••••••" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-[#169C53] outline-none">
+        </div>
+        <button type="submit" class="w-full py-3 rounded-xl bg-[#169C53] hover:bg-[#128244] text-white font-bold text-sm shadow-sm transition-all flex items-center justify-center gap-2">
+          <i class="ri-login-box-line"></i> Masuk ke Dashboard Staff
+        </button>
+      </form>
+    </div>
+  </div>
+
   <!-- ==================== FOOTER ==================== -->
   <footer class="bg-white border-t border-slate-200 py-6 px-4 md:px-10 lg:px-16 text-xs text-slate-500">
     <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
@@ -567,7 +607,30 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./js/supabase-config.js"></script>
   <script>
+    // Ganti URL di bawah ini jika folder/link Vercel Web Staff berbeda
+    const URL_WEB_STAFF = "https://upabahasa.vercel.app/index.html";
+
     window.daftarPesertaSspectGlobal = [];
+
+    function bukaModalLoginStaff() {
+      document.getElementById('modalLoginStaff').classList.remove('hidden');
+    }
+
+    function tutupModalLoginStaff() {
+      document.getElementById('modalLoginStaff').classList.add('hidden');
+    }
+
+    function prosesLoginStaff(e) {
+      e.preventDefault();
+      const user = document.getElementById('staffUsername').value.trim();
+      const pass = document.getElementById('staffPassword').value.trim();
+
+      if (user === "admin" && pass === "upabahasa2026") {
+        window.location.href = URL_WEB_STAFF;
+      } else {
+        alert("Username atau Password Staff salah! (Default: admin / upabahasa2026)");
+      }
+    }
 
     function toggleDropdownLayanan(e) {
       if (e) e.stopPropagation();
@@ -654,6 +717,11 @@
     async function muatJadwalToefl() {
       const tbody = document.getElementById('tbodyJadwalToefl');
       try {
+        if (!window.supabaseClient) {
+          tbody.innerHTML = `<tr><td colspan="7" class="px-5 py-8 text-center text-rose-500 font-semibold">Koneksi Supabase belum terpasang (pastikan file js/supabase-config.js ada).</td></tr>`;
+          return;
+        }
+
         const { data, error } = await window.supabaseClient
           .from('jadwal_log')
           .select('*')
@@ -701,6 +769,7 @@
     async function muatJadwalRemedial() {
       const tbody = document.getElementById('tbodyJadwalRemedial');
       try {
+        if (!window.supabaseClient) return;
         const { data } = await window.supabaseClient
           .from('jadwal_log')
           .select('*')
@@ -811,7 +880,7 @@
       }
     }
 
-    // ==================== 3. CEK SKOR TOEFL MAHASISWA (HANYA TAMPILKAN SKOR YANG ADA) ====================
+    // ==================== 3. CEK SKOR TOEFL MAHASISWA ====================
     async function cariSkorMahasiswa(e) {
       e.preventDefault();
       const nimCari = document.getElementById('inputCariNimSkor').value.trim();
@@ -859,7 +928,6 @@
         };
 
         for (const row of data) {
-          // 1. Cek dari kolom langsung kategori_tes & skor_total
           if (row.kategori_tes && isValidScore(row.skor_total)) {
             const kat = String(row.kategori_tes).toUpperCase().trim();
             if (kat.includes('SSPECT')) skorMap.sspect = row.skor_total;
@@ -872,7 +940,6 @@
             else if (kat === 'REMEDIAL 3') skorMap.remedial3 = row.skor_total;
           }
 
-          // 2. Cek dari objek riwayat_json
           if (row.riwayat_json) {
             try {
               const parsed = typeof row.riwayat_json === 'string' ? JSON.parse(row.riwayat_json) : row.riwayat_json;
@@ -885,7 +952,6 @@
           }
         }
 
-        // Susun HANYA skor yang benar-benar ada nilainya
         const daftarSkorTersedia = [];
         if (isValidScore(skorMap.sspect)) daftarSkorTersedia.push({ label: 'SSPECT', nilai: skorMap.sspect, utama: false });
         if (isValidScore(skorMap.latihanD3)) daftarSkorTersedia.push({ label: 'TOEFL LATIHAN D3', nilai: skorMap.latihanD3, utama: false });
@@ -957,6 +1023,11 @@
       const tbodyPeserta = document.getElementById('tbodyPesertaSspect');
 
       try {
+        if (!window.supabaseClient) {
+          tbodyJadwal.innerHTML = `<tr><td colspan="7" class="px-5 py-8 text-center text-rose-500 font-semibold">Koneksi Supabase belum terpasang (pastikan file js/supabase-config.js ada).</td></tr>`;
+          return;
+        }
+
         const { data: logData, error: logErr } = await window.supabaseClient
           .from('jadwal_log')
           .select('*')
