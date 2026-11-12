@@ -1,7 +1,6 @@
 /**
- * MODUL HASIL TEST SSPECT - UPA BAHASA POLNES (FULL VERSION UTUH MIRIP TOEFL)
- * Menangani 1 file Excel SSPECT, validasi jam, tabel pratinjau lengkap,
- * bind NIM siswa susulan, simpan ke tabel HasilTes, dan auto-delete jadwal log.
+ * MODUL HASIL TEST SSPECT - UPA BAHASA POLNES
+ * Validasi 1 file Excel, auto-mapping, bind NIM, dan simpan permanen.
  */
 
 let parsedSspectData = null;
@@ -14,15 +13,15 @@ const SSPECT_SESI_RANGES = {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-  const fileInput = document.getElementById('fileSspectInput') || document.getElementById('fileSec1');
+  const fileInput = document.getElementById('fileSspectInput');
   if (fileInput) {
     fileInput.addEventListener('change', handleFileSspectUpload);
   }
 });
 
 function resetSspectInput() {
-  const el = document.getElementById('fileSspectInput') || document.getElementById('fileSec1');
-  const lbl = document.getElementById('labelSspectFile') || document.getElementById('labelSec1');
+  const el = document.getElementById('fileSspectInput');
+  const lbl = document.getElementById('labelSspectFile');
   if (el) el.value = '';
   if (lbl) {
     lbl.innerText = 'Belum ada file';
@@ -59,8 +58,8 @@ async function handleFileSspectUpload(event) {
   const file = event.target.files[0];
   if (!file) return;
 
-  const sesiSelect = document.getElementById('selectSesiSspect') || document.getElementById('selectSesiToefl');
-  const labSelect = document.getElementById('selectLabSspect') || document.getElementById('selectLabToefl');
+  const sesiSelect = document.getElementById('selectSesiSspect');
+  const labSelect = document.getElementById('selectLabSspect');
   const sesiTerpilih = sesiSelect ? sesiSelect.value : '';
   const labTerpilih = labSelect ? labSelect.value : '';
   
@@ -79,7 +78,7 @@ async function handleFileSspectUpload(event) {
     }
   }
 
-  const label = document.getElementById('labelSspectFile') || document.getElementById('labelSec1');
+  const label = document.getElementById('labelSspectFile');
   if (label) {
     label.innerText = file.name;
     label.classList.add('text-polnes-main', 'font-bold');
@@ -275,52 +274,15 @@ async function prosesBindNimSspect(idMeja) {
 }
 
 function renderTabelPratinjauSspect() {
-  // Pastikan kontainer pratinjau muncul (menghapus class hidden jika ada)
-  let container = document.getElementById('previewContainerSspect') || document.getElementById('pratinjauContainer');
-  if (!container) {
-    // Jika elemen kontainer belum ada di HTML, kita buatkan secara dinamis di bawah form upload
-    const uploadCard = document.querySelector('main') || document.body;
-    const div = document.createElement('div');
-    div.id = 'previewContainerSspect';
-    div.className = 'mt-6 bg-white p-6 rounded-2xl shadow-sm border border-slate-100';
-    div.innerHTML = `
-      <h3 class="text-base font-bold text-slate-800 mb-2">Pratinjau & Sinkronisasi Nilai SSPECT</h3>
-      <p id="infoStatusSync" class="text-xs text-slate-500 mb-4">Sinkronisasi berhasil dicocokkan dengan data jadwal.</p>
-      <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
-          <thead>
-            <tr class="bg-slate-50 text-slate-600 text-xs border-b">
-              <th class="px-4 py-3 font-bold">NO</th>
-              <th class="px-4 py-3 font-bold">NIM</th>
-              <th class="px-4 py-3 font-bold">NAMA MAHASISWA</th>
-              <th class="px-4 py-3 font-bold">ID MEJA</th>
-              <th class="px-4 py-3 font-bold text-center">SKOR SSPECT</th>
-              <th class="px-4 py-3 font-bold">AKSI BIND</th>
-            </tr>
-          </thead>
-          <tbody id="tabelPratinjauSspectBody"></tbody>
-        </table>
-      </div>
-      <div class="mt-6 flex justify-end">
-        <button onclick="simpanPermanenSspectKeDatabase()" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-md transition-all flex items-center gap-2">
-          <i class="ri-save-line"></i> Simpan Permanen ke Database
-        </button>
-      </div>
-    `;
-    uploadCard.appendChild(div);
-    container = div;
-  } else {
-    container.classList.remove('hidden');
-  }
+  const tbody = document.getElementById('tabelPratinjauSspectBody');
+  if (!tbody) return;
 
   const statusSync = document.getElementById('infoStatusSync');
   const unmapped = globalSyncedSspectResults.filter(x => x.status === 'UNMAPPED').length;
+  
   if (statusSync) {
-    statusSync.innerHTML = `<span class="text-polnes-main font-bold">Sinkronisasi Selesai!</span> Total ${globalSyncedSspectResults.length} peserta. <b class="text-rose-500">${unmapped > 0 ? unmapped + ' siswa susulan belum di-Bind.' : 'Semua data pas dan valid.'}</b>`;
+    statusSync.innerHTML = `<span class="text-polnes-main font-bold">Sinkronisasi Selesai!</span> Total ${globalSyncedSspectResults.length} peserta. <span class="${unmapped > 0 ? 'text-rose-500 font-bold' : 'text-polnes-main font-bold'}">${unmapped > 0 ? unmapped + ' siswa susulan belum di-Bind.' : 'Semua data pas dan valid.'}</span>`;
   }
-
-  const tbody = document.getElementById('tabelPratinjauSspectBody') || document.getElementById('tabelPratinjauBody');
-  if (!tbody) return;
 
   tbody.innerHTML = globalSyncedSspectResults.map((item) => {
     let nimHtml = '';
@@ -328,32 +290,32 @@ function renderTabelPratinjauSspect() {
     let actionHtml = '';
 
     if (item.status === 'MAPPED') {
-      nimHtml = `<td class="px-4 py-3 text-xs font-bold text-slate-800">${item.nim}</td>`;
-      namaHtml = `<td class="px-4 py-3 text-xs font-medium truncate max-w-[150px]">${item.nama}</td>`;
+      nimHtml = `<td class="px-4 py-4 text-[13px] font-bold text-slate-800 border-b border-slate-100">${item.nim}</td>`;
+      namaHtml = `<td class="px-4 py-4 text-[13px] font-medium text-slate-600 border-b border-slate-100 uppercase">${item.nama}</td>`;
       actionHtml = `
-        <span class="bg-emerald-100 text-emerald-700 px-2.5 py-1.5 rounded-md text-[10px] uppercase font-bold shadow-sm flex items-center justify-center w-max gap-1">
-          <i class="ri-link"></i> Mapped
+        <span class="bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-lg text-[11px] uppercase font-bold shadow-sm inline-flex items-center justify-center gap-1">
+          <i class="ri-link"></i> MAPPED
         </span>`;
     } else {
       nimHtml = `
-        <td class="px-4 py-3 text-xs">
-          <input type="text" id="input_nim_${item.id_meja}" placeholder="Ketik NIM..." class="px-2 py-1.5 border border-rose-300 bg-rose-50 rounded-lg text-xs w-28 focus:outline-none focus:border-rose-500 font-bold text-rose-700 placeholder-rose-300">
+        <td class="px-4 py-4 text-[13px] border-b border-slate-100">
+          <input type="text" id="input_nim_${item.id_meja}" placeholder="Ketik NIM..." class="px-3 py-1.5 border border-rose-300 bg-rose-50 rounded-lg text-xs w-32 focus:outline-none focus:border-rose-500 font-bold text-rose-700 placeholder-rose-300">
         </td>`;
-      namaHtml = `<td class="px-4 py-3 text-xs font-semibold text-rose-500 italic">? (Siswa Susulan)</td>`;
+      namaHtml = `<td class="px-4 py-4 text-[13px] font-semibold text-rose-500 italic border-b border-slate-100">? (Siswa Susulan)</td>`;
       actionHtml = `
-        <button onclick="prosesBindNimSspect('${item.id_meja}')" class="bg-rose-500 hover:bg-rose-600 text-white px-2.5 py-1.5 rounded-md text-[10px] uppercase font-bold shadow-sm flex items-center justify-center w-max gap-1 transition-all">
-          <i class="ri-lock-unlock-line"></i> Bind NIM
+        <button onclick="prosesBindNimSspect('${item.id_meja}')" class="bg-rose-500 hover:bg-rose-600 text-white px-3 py-1.5 rounded-lg text-[11px] uppercase font-bold shadow-sm inline-flex items-center justify-center gap-1 transition-all">
+          <i class="ri-lock-unlock-line"></i> BIND
         </button>`;
     }
 
     return `
-      <tr class="${item.status === 'UNMAPPED' ? 'bg-rose-50/30' : 'hover:bg-slate-50'} transition-colors border-b">
-        <td class="px-4 py-3 text-xs font-semibold">${item.no}</td>
+      <tr class="${item.status === 'UNMAPPED' ? 'bg-rose-50/40' : 'hover:bg-slate-50/50'} transition-colors">
+        <td class="px-4 py-4 text-[13px] font-semibold border-b border-slate-100">${item.no}</td>
         ${nimHtml}
         ${namaHtml}
-        <td class="px-4 py-3 text-xs font-mono font-bold text-emerald-600">${item.id_meja}</td>
-        <td class="px-4 py-3 text-sm text-center font-extrabold text-polnes-dark bg-emerald-50/50">${item.totalSkor}</td>
-        <td class="px-4 py-3 text-xs">${actionHtml}</td>
+        <td class="px-4 py-4 text-[13px] font-bold text-emerald-600 border-b border-slate-100 uppercase">${item.id_meja}</td>
+        <td class="px-4 py-4 text-sm text-center font-extrabold text-polnes-dark bg-emerald-50/30 border-b border-slate-100">${item.totalSkor}</td>
+        <td class="px-4 py-4 text-center border-b border-slate-100">${actionHtml}</td>
       </tr>
     `;
   }).join('');
