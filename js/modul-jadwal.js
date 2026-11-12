@@ -1,7 +1,7 @@
 /**
- * MODUL PENJADWALAN - UPA BAHASA POLNES (FULL VERSION UTUH + PRODI & PDF 1 HALAMAN)
+ * MODUL PENJADWALAN - UPA BAHASA POLNES (FULL VERSION UTUH + VALIDASI KETAT LAB & SESI)
  * Menangani Upload Excel, Antrean, Filter Kelas, Validasi Kapasitas Lab (Maks 30),
- * Validasi Pasangan Lab A & Lab B (Tidak Boleh Sama-Sama 30), Kunci Sesi, Histori, & PDF Paten.
+ * Validasi Ketat Lab & Sesi Terpakai, Kunci Sesi, Histori, & PDF Paten 1 Halaman.
  */
 
 let uploadedMahasiswaList = [];
@@ -253,7 +253,7 @@ function toggleSelectAllMhs(masterCheckbox) {
   checkboxes.forEach(cb => cb.checked = masterCheckbox.checked);
 }
 
-// --- KUNCI SESI DENGAN ATURAN KAPASITAS & PASANGAN LAB (LAB A & LAB B) ---
+// --- KUNCI SESI DENGAN VALIDASI KETAT (LAB & SESI SUDAH TERPAKAI PADA TANGGAL TERSEBUT) ---
 async function kunciSesiUjianKeSupabase() {
   const checkboxes = document.querySelectorAll('.mhs-checkbox:checked');
   if (checkboxes.length === 0) {
@@ -281,6 +281,7 @@ async function kunciSesiUjianKeSupabase() {
   }
 
   try {
+    // 1. Ambil seluruh jadwal yang sudah terkunci pada tanggal & sesi yang sama
     const { data: sesiAktifList, error: checkErr } = await window.supabaseClient
       .from('jadwal_log')
       .select('*')
@@ -289,16 +290,18 @@ async function kunciSesiUjianKeSupabase() {
 
     if (checkErr) throw checkErr;
 
+    // 2. VALIDASI KETAT: Cek apakah ruang lab yang dipilih sudah digunakan di tanggal & sesi tersebut
     const labSudahDipakai = sesiAktifList.find(s => s.ruang_lab === ruangLabDipilih);
     if (labSudahDipakai) {
-      alert(`[DITOLAK] ${ruangLabDipilih} pada tanggal ${tanggal} (${sesi}) sudah digunakan oleh kelas "${labSudahDipakai.nama_kelas}"!`);
+      alert(`[DITOLAK] ${ruangLabDipilih} pada tanggal ${tanggal} (${sesi}) sudah digunakan oleh kelas "${labSudahDipakai.nama_kelas}" (${labSudahDipakai.jenis_tes})! Lab fisik tidak dapat digunakan bersamaan.`);
       return;
     }
 
+    // 3. VALIDASI KAPASITAS PASANGAN LAB (Lab A & Lab B tidak boleh sama-sama 30 penuh)
     const labLain = sesiAktifList.find(s => s.ruang_lab !== ruangLabDipilih);
     if (labLain) {
       if (labLain.jumlah_mhs === 30 && jumlahDipilih === 30) {
-        alert(`[DITOLAK] Aturan UPA Bahasa: Lab pasangan (${labLain.ruang_lab}) sudah berisi 30 mahasiswa penuh. Lab ${ruangLabDipilih} tidak boleh sama-sama 30 orang penuh di sesi yang sama! Silakan kurangi jumlah mahasiswa di bawah 30.`);
+        alert(`[DITOLAK] Aturan UPA Bahasa: Lab pasangan (${labLain.ruang_lab}) sudah berisi 30 mahasiswa penuh. Lab ${ruangLabDipilih} tidak boleh sama-sama 30 orang penuh di sesi yang sama!`);
         return;
       }
     }
@@ -438,7 +441,7 @@ async function hapusHistoriJadwal(id) {
   }
 }
 
-// --- GENERATE BERITA ACARA PDF (DIATUR PAS 1 HALAMAN PENUH UNTUK 30 PESERTA) ---
+// --- GENERATE BERITA ACARA PDF (1 HALAMAN PENUH) ---
 async function bukaPreviewPDF(jadwalId) {
   try {
     const { data: jadwalData } = await window.supabaseClient
@@ -461,7 +464,6 @@ async function bukaPreviewPDF(jadwalId) {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('p', 'mm', 'a4');
 
-    // Header KOP Instansi yang Compact (Hemat Ruang)
     try {
       doc.addImage('./img/polnes.png', 'PNG', 15, 8, 16, 16);
     } catch(err) {}
@@ -482,14 +484,12 @@ async function bukaPreviewPDF(jadwalId) {
     doc.setLineWidth(0.3);
     doc.line(15, 24, 195, 24);
 
-    // Judul Berita Acara
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9.5);
     doc.text("BERITA ACARA & DAFTAR HADIR PELAKSANAAN UJIAN", 105, 29, { align: "center" });
     doc.setFontSize(8.5);
     doc.text(`JENIS TES: ${jadwalData.jenis_tes.toUpperCase()}`, 105, 33, { align: "center" });
 
-    // Informasi Sesi Ujian (2 Kolom Rapat)
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8.5);
     let startY = 38;
@@ -508,7 +508,6 @@ async function bukaPreviewPDF(jadwalId) {
       ""
     ]);
 
-    // TABEL PESERTA DIATUR AGAR PAS 1 HALAMAN (Padding & Font Disesuaikan)
     const autoTableFn = doc.autoTable || window.jspdf.jsAutoTable;
 
     if (typeof autoTableFn === 'function') {
@@ -535,14 +534,13 @@ async function bukaPreviewPDF(jadwalId) {
         },
         styles: { 
           fontSize: 7.5, 
-          cellPadding: 0.9 // Padding diperkecil agar pas 1 halaman penuh
+          cellPadding: 0.9
         }
       });
     } else {
       throw new Error("Library autoTable tidak terdeteksi.");
     }
 
-    // Bagian Tanda Tangan Pengawas di Bawah Tabel (Hemat Ruang)
     let finalY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 4 : startY + 45;
     
     doc.setFontSize(8.5);
