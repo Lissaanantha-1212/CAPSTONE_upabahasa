@@ -1,6 +1,6 @@
 /**
  * MODUL 4: KALKULASI & PUBLIKASI SCORE - UPA BAHASA POLNES (FULL VERSION UTUH)
- * Menampilkan antrean sesi dengan informasi detail (Kelas, Lab, Sesi, Tanggal),
+ * Menampilkan pilihan sesi berdasarkan Nama Kelas dan Jenis Tes,
  * kalkulasi konversi live, dan Publish dengan validasi status.
  */
 
@@ -56,7 +56,7 @@ async function loadAntreanSesi() {
     // Ambil unique idJadwal
     const uniqueIds = [...new Set(listHasil.map(item => item.idJadwal))];
 
-    // 2. Ambil detail lengkap dari tabel jadwal_log agar staff tahu kelas & lab nya
+    // 2. Ambil detail dari jadwal_log untuk mendapatkan Nama Kelas dan detail lainnya
     const { data: jadwalList, error: jadwalErr } = await window.supabaseClient
       .from('jadwal_log')
       .select('*')
@@ -64,8 +64,9 @@ async function loadAntreanSesi() {
 
     if (jadwalErr) throw jadwalErr;
 
-    select.innerHTML = '<option value="">-- Pilih Batch Sesi Ujian --</option>' + (jadwalList || []).map(j => 
-      `<option value="${j.id}">[${j.jenis_tes}] Kelas: ${j.nama_kelas} | ${j.ruang_lab} | ${j.sesi} | Tgl: ${j.tanggal}</option>`
+    // Tampilan dropdown: Nama Kelas di depan, Jenis Tes di belakang
+    select.innerHTML = '<option value="">-- Pilih Kelas & Sesi Ujian --</option>' + (jadwalList || []).map(j => 
+      `<option value="${j.id}">Kelas: ${j.nama_kelas} — ${j.jenis_tes.toUpperCase()} (${j.ruang_lab} | ${j.sesi} | Tgl: ${j.tanggal})</option>`
     ).join('');
 
   } catch (err) {
@@ -80,7 +81,7 @@ async function muatDataKalkulasi() {
   
   const idj = select.value;
   if (!idj) {
-    alert("Pilih batch antrean sesi terlebih dahulu.");
+    alert("Pilih kelas dan sesi ujian terlebih dahulu.");
     return;
   }
   
@@ -148,11 +149,11 @@ function renderTabelKalkulasi() {
 
 async function publishKeWebUtama() {
   if (!activeIdJadwal || globalDataAntrean.length === 0) {
-    alert("Silakan proses kalkulasi batch antrean terlebih dahulu.");
+    alert("Silakan proses kalkulasi kelas ujian terlebih dahulu.");
     return;
   }
 
-  if (!confirm(`Yakin ingin MEM-PUBLISH data hasil test Batch ini? Setelah dipublikasikan, mahasiswa dapat langsung melihat skor resminya.`)) {
+  if (!confirm(`Yakin ingin MEM-PUBLISH data hasil test kelas ini? Setelah dipublikasikan, mahasiswa dapat langsung melihat skor resminya.`)) {
     return;
   }
 
