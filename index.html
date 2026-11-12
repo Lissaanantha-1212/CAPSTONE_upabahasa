@@ -324,39 +324,39 @@
       <!-- BAGIAN 2: JADWAL TES TOEFL (DARI LOG STAFF) & JADWAL REMEDIAL -->
       <div id="sec-jadwal-toefl" class="scroll-mt-36 space-y-8">
         
-       <!-- 2A. Tabel Daftar Peserta & Jadwal Tes TOEFL -->
-    <div class="bg-white rounded-2xl p-6 md:p-8 shadow-xs border border-slate-200 space-y-4">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-        <div>
-          <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#169C53]">PESERTA TERDAFTAR</span>
-          <h2 class="text-lg md:text-xl font-extrabold text-slate-900 mt-0.5">Daftar Peserta Ujian TOEFL Prediction (NIM, Nama & Program Studi)</h2>
-        </div>
-        <button onclick="muatJadwalToefl()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-all self-start sm:self-auto">
-          <i class="ri-refresh-line"></i> Segarkan Data
-        </button>
-      </div>
+        <!-- 2A. Tabel Jadwal Tes TOEFL -->
+        <div class="bg-white rounded-2xl p-6 md:p-8 shadow-xs border border-slate-200 space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-4">
+            <div>
+              <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#169C53]">JADWAL REGULER TERKUNCI</span>
+              <h2 class="text-lg md:text-xl font-extrabold text-slate-900 mt-0.5">Jadwal Pelaksanaan Tes TOEFL Prediction</h2>
+            </div>
+            <button onclick="muatJadwalToefl()" class="self-start sm:self-auto px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-all">
+              <i class="ri-refresh-line"></i> Segarkan Jadwal
+            </button>
+          </div>
 
-      <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
-          <thead>
-            <tr class="bg-slate-50 text-slate-500 text-[11px] uppercase tracking-wider border-b border-slate-200">
-              <th class="px-4 py-3 font-bold w-16">No</th>
-              <th class="px-4 py-3 font-bold">NIM</th>
-              <th class="px-4 py-3 font-bold">Nama Mahasiswa</th>
-              <th class="px-4 py-3 font-bold">Program Studi</th>
-              <th class="px-4 py-3 font-bold">Kelas</th>
-              <th class="px-4 py-3 font-bold">Tanggal & Sesi</th>
-              <th class="px-4 py-3 font-bold text-center">Ruang Lab</th>
-            </tr>
-          </thead>
-          <tbody id="tbodyJadwalToefl" class="divide-y divide-slate-100 text-xs sm:text-sm text-slate-700">
-            <tr>
-              <td colspan="7" class="px-5 py-8 text-center text-slate-400 italic">Memuat data peserta TOEFL dari sistem...</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50 text-slate-500 text-[11px] uppercase tracking-wider border-b border-slate-200">
+                  <th class="px-4 py-3 font-bold text-center w-12">No</th>
+                  <th class="px-4 py-3 font-bold">Kelas / Kelompok</th>
+                  <th class="px-4 py-3 font-bold">Tanggal Ujian</th>
+                  <th class="px-4 py-3 font-bold">Sesi & Waktu</th>
+                  <th class="px-4 py-3 font-bold">Ruang Lab</th>
+                  <th class="px-4 py-3 font-bold text-center">Kuota / Peserta</th>
+                  <th class="px-4 py-3 font-bold text-center">Status</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyJadwalToefl" class="divide-y divide-slate-100 text-xs sm:text-sm text-slate-700">
+                <tr>
+                  <td colspan="7" class="px-5 py-8 text-center text-slate-400 italic">Memuat jadwal tes TOEFL dari sistem...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
 
         <!-- 2B. Tabel Jadwal Remedial TOEFL -->
         <div class="bg-white rounded-2xl p-6 md:p-8 shadow-xs border border-slate-200 space-y-4">
