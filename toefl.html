@@ -125,7 +125,7 @@
           <p class="text-xs text-slate-500 mt-1">Validasi ketat 3 file Section (Listening, Structure, Reading), sinkronisasi data peserta dengan nomor meja secara otomatis.</p>
         </div>
 
-        <!-- Parameter Acuan Sesi Ujian (2 Kolom Bersih Tanpa Input Tanggal Manual) -->
+        <!-- Parameter Acuan Sesi Ujian -->
         <div class="bg-slate-50 rounded-xl p-5 border border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label class="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">PILIH RUANG LAB UJIAN</label>
@@ -201,6 +201,7 @@
                 <th class="px-4 py-3.5 font-bold border-r border-slate-100">NIM</th>
                 <th class="px-4 py-3.5 font-bold border-r border-slate-100">NAMA MAHASISWA</th>
                 <th class="px-4 py-3.5 font-bold border-r border-slate-100">PROGRAM STUDI</th>
+                <th class="px-4 py-3.5 font-bold border-r border-slate-100 text-center">NOMOR MEJA</th> <!-- DIPERBAIKI: Kolom ID Meja di posisi ini -->
                 <th class="px-4 py-3.5 font-bold border-r border-slate-100 text-center">SEC 1</th>
                 <th class="px-4 py-3.5 font-bold border-r border-slate-100 text-center">SEC 2</th>
                 <th class="px-4 py-3.5 font-bold border-r border-slate-100 text-center">SEC 3</th>
@@ -209,7 +210,7 @@
               </tr>
             </thead>
             <tbody id="tabelPratinjauBody" class="text-sm text-slate-700 divide-y divide-slate-100">
-              <tr><td colspan="9" class="px-4 py-8 text-center text-slate-400 text-xs italic">Belum ada file yang diunggah atau disinkronisasi.</td></tr>
+              <tr><td colspan="10" class="px-4 py-8 text-center text-slate-400 text-xs italic">Belum ada file yang diunggah atau disinkronisasi.</td></tr>
             </tbody>
           </table>
         </div>
