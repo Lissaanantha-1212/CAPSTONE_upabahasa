@@ -1,6 +1,6 @@
 /**
  * MODUL 4: KALKULASI & PUBLIKASI SCORE - UPA BAHASA POLNES (FULL VERSION UTUH)
- * Menampilkan pilihan antrean murni berdasarkan Nama Kelas Asli & Jenis Tes.
+ * Menampilkan pilihan antrean dengan Nama Kelas yang jelas dan mudah dibaca staff.
  */
 
 let globalDataAntrean = [];
@@ -39,10 +39,10 @@ async function loadAntreanSesi() {
   if (!select) return;
 
   try {
-    // 1. Ambil data dari HasilTes
+    // 1. Ambil data dari HasilTes (ambil juga namaKelas jika tersimpan di tabel HasilTes)
     const { data: listHasil, error } = await window.supabaseClient
       .from('HasilTes')
-      .select('idJadwal, jenisTes, status');
+      .select('idJadwal, jenisTes, namaKelas, status');
 
     if (error) throw error;
 
@@ -53,32 +53,44 @@ async function loadAntreanSesi() {
       return;
     }
 
-    const uniqueIds = [...new Set(belumPublish.map(item => item.idJadwal))];
+    // Buat daftar unik berdasarkan idJadwal
+    const mapBatch = new Map();
+    belumPublish.forEach(item => {
+      if (!mapBatch.has(item.idJadwal)) {
+        mapBatch.set(item.idJadwal, {
+          idJadwal: item.idJadwal,
+          jenisTes: item.jenisTes,
+          namaKelas: item.namaKelas || ''
+        });
+      }
+    });
 
-    // 2. Ambil detail dari jadwal_log
-    const { data: jadwalList, error: jadwalErr } = await window.supabaseClient
+    const uniqueBatches = Array.from(mapBatch.values());
+    const uniqueIds = uniqueBatches.map(b => b.idJadwal);
+
+    // 2. Ambil pelengkap dari jadwal_log untuk memastikan nama kelas 100% akurat
+    const { data: jadwalList } = await window.supabaseClient
       .from('jadwal_log')
       .select('*')
       .in('id', uniqueIds);
 
-    if (jadwalErr) throw jadwalErr;
-
-    if (!jadwalList || jadwalList.length === 0) {
-      select.innerHTML = '<option value="">-- Pilih Kelas & Sesi Ujian --</option>' + uniqueIds.map(id => 
-        `<option value="${id}">ID Jadwal: ${id}</option>`
-      ).join('');
-      return;
+    const jadwalMap = new Map();
+    if (jadwalList) {
+      jadwalList.forEach(j => jadwalMap.set(j.id, j));
     }
 
-    // TAMPILAN DROPDOWN MENGGUNAKAN NAMA KELAS ASLI DARI DATABASE
-    select.innerHTML = '<option value="">-- Pilih Kelas & Sesi Ujian --</option>' + jadwalList.map(j => {
-      const namaKelas = j.nama_kelas || j.kelas || 'KELAS';
-      const jenisTes = (j.jenis_tes || 'TOEFL').toUpperCase();
-      const lab = j.ruang_lab || '-';
-      const sesi = j.sesi || '-';
-      const tgl = j.tanggal || '-';
+    // TAMPILAN DROPDOWN DENGAN NAMA KELAS YANG JELAS
+    select.innerHTML = '<option value="">-- Pilih Kelas & Sesi Ujian --</option>' + uniqueBatches.map(b => {
+      const detailJadwal = jadwalMap.get(b.idJadwal) || {};
+      const namaKls = detailJadwal.nama_kelas || detailJadwal.kelas || b.namaKelas || `Sesi ID ${b.idJadwal}`;
+      const jenis = (b.jenisTes || detailJadwal.jenis_tes || 'TOEFL').toUpperCase();
+      const lab = detailJadwal.ruang_lab || '';
+      const sesi = detailJadwal.sesi || '';
+      const tgl = detailJadwal.tanggal || '';
 
-      return `<option value="${j.id}">Kelas: ${namaKelas} — ${jenisTes} (${lab} | ${sesi} | Tgl: ${tgl})</option>`;
+      const infoTambahan = lab ? ` (${lab} | ${sesi} | Tgl: ${tgl})` : '';
+
+      return `<option value="${b.idJadwal}">Kelas: ${namaKls} — ${jenis}${infoTambahan}</option>`;
     }).join('');
 
   } catch (err) {
