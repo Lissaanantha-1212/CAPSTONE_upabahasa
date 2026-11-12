@@ -30,9 +30,10 @@
 </head>
 <body class="bg-[#0E7A3F] font-sans text-slate-800 antialiased h-screen w-screen overflow-hidden flex items-center justify-center p-3 sm:p-6">
 
+  <!-- Container Utama Model Kapsul -->
   <div class="bg-white w-full max-w-6xl h-[92vh] rounded-[36px] shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 relative">
     
-    <!-- Sisi Kiri: Ilustrasi & Identitas -->
+    <!-- Sisi Kiri: Ilustrasi & Identitas POLNES -->
     <div class="lg:col-span-7 bg-white relative flex flex-col justify-between p-8 sm:p-12 overflow-hidden">
       <div class="absolute inset-y-0 right-0 w-3/4 bg-emerald-50/70 rounded-l-[120px] pointer-events-none"></div>
 
@@ -49,13 +50,13 @@
 
       <div class="relative z-10 my-auto py-6 space-y-4 max-w-md">
         <div class="inline-flex items-center gap-2 bg-emerald-100 text-[#169C53] px-3.5 py-1 rounded-full text-xs font-extrabold uppercase">
-          <i class="ri-shield-user-line"></i> Portal Pengguna (Kepala & Staff)
+          <i class="ri-shield-user-line"></i> Portal Manajemen Staff & Admin
         </div>
         <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-snug">
           Sistem Pengelolaan Tes & Rekapan Akademik
         </h1>
         <p class="text-xs sm:text-sm text-slate-500 leading-relaxed">
-          Silakan masuk sesuai hak akses Anda (Kepala atau Staff biasa) untuk mengelola jadwal ujian dan rekapan data.
+          Silakan masuk menggunakan akun staff yang terdaftar di database untuk mengelola penjadwalan ujian dan rekapan data mahasiswa.
         </p>
       </div>
 
@@ -67,7 +68,7 @@
       </div>
     </div>
 
-    <!-- Sisi Kanan: Form Login -->
+    <!-- Sisi Kanan: Form Login (Warna Hijau UPA Bahasa) -->
     <div class="lg:col-span-5 bg-[#0E7A3F] text-white p-8 sm:p-12 flex flex-col justify-center relative overflow-hidden">
       <div class="max-w-sm w-full mx-auto space-y-6 relative z-10">
         
@@ -76,8 +77,10 @@
           <p class="text-xs text-emerald-100 mt-1">Masukkan username dan password Anda.</p>
         </div>
 
+        <!-- Alert Pesan Error/Sukses -->
         <div id="loginAlert" class="hidden p-3.5 rounded-xl text-xs font-semibold"></div>
 
+        <!-- Form Login -->
         <form onsubmit="prosesLoginUser(event)" class="space-y-4">
           <div class="space-y-1">
             <label class="block text-xs font-bold uppercase tracking-wider text-emerald-100">Username</label>
@@ -112,7 +115,7 @@
 
   </div>
 
-  <!-- ==================== MODAL REGISTER USER (DENGAN PILIHAN PERAN) ==================== -->
+  <!-- ==================== MODAL REGISTER USER ==================== -->
   <div id="modalRegister" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-5 relative">
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -131,18 +134,9 @@
           <input type="text" id="regNama" required placeholder="Contoh: Lissa Anantha, S.Kom." class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-[#169C53] outline-none">
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Username *</label>
-            <input type="text" id="regUsername" required placeholder="Username..." class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-mono focus:border-[#169C53] outline-none">
-          </div>
-          <div>
-            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Sebagai (Role) *</label>
-            <select id="regRole" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-bold bg-white focus:border-[#169C53] outline-none">
-              <option value="STAFF">Staff Biasa</option>
-              <option value="KEPALA">Kepala UPA</option>
-            </select>
-          </div>
+        <div>
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Username *</label>
+          <input type="text" id="regUsername" required placeholder="Username..." class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-mono focus:border-[#169C53] outline-none">
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -163,6 +157,7 @@
     </div>
   </div>
 
+  <!-- ==================== SCRIPT SUPABASE & LOGIKA LOGIN/REGISTER ==================== -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./js/supabase-config.js"></script>
   <script>
@@ -173,11 +168,11 @@
       document.getElementById('modalRegister').classList.add('hidden');
     }
 
+    // Fungsi Registrasi ke Tabel 'staff' Supabase
     async function prosesRegisterUser(e) {
       e.preventDefault();
       const nama = document.getElementById('regNama').value.trim();
       const user = document.getElementById('regUsername').value.trim();
-      const role = document.getElementById('regRole').value;
       const pass = document.getElementById('regPassword').value.trim();
       const konf = document.getElementById('regKonfirmasi').value.trim();
 
@@ -192,8 +187,9 @@
           return;
         }
 
+        // Cek apakah username sudah ada
         const { data: existing } = await window.supabaseClient
-          .from('user_app')
+          .from('staff')
           .select('*')
           .eq('username', user)
           .maybeSingle();
@@ -203,13 +199,14 @@
           return;
         }
 
+        // Simpan ke database
         const { error } = await window.supabaseClient
-          .from('user_app')
-          .insert([{ nama: nama, username: user, password: pass, role: role }]);
+          .from('staff')
+          .insert([{ nama: nama, username: user, password: pass }]);
 
         if (error) throw error;
 
-        alert(`Registrasi berhasil untuk ${nama} sebagai ${role}! Silakan Login.`);
+        alert(`Registrasi berhasil untuk ${nama} (@${user})! Silakan Login.`);
         tutupModalRegister();
         document.getElementById('loginUsername').value = user;
         document.getElementById('loginPassword').value = '';
@@ -219,6 +216,7 @@
       }
     }
 
+    // Fungsi Login (Mengecek langsung ke tabel 'staff' Supabase)
     async function prosesLoginUser(e) {
       e.preventDefault();
       const user = document.getElementById('loginUsername').value.trim();
@@ -241,26 +239,26 @@
       try {
         if (!window.supabaseClient) throw new Error("Koneksi Supabase tidak ditemukan.");
 
+        // Query mencocokkan data dengan tabel 'staff' di Supabase
         const { data: userData, error } = await window.supabaseClient
-          .from('user_app')
+          .from('staff')
           .select('*')
           .eq('username', user)
           .maybeSingle();
 
         if (error) throw error;
 
-        if (userData && userData.password === pass) {
-          // Simpan sesi user aktif beserta perannya (KEPALA atau STAFF)
+        if (userData && String(userData.password) === String(pass)) {
+          // Simpan sesi aktif ke localStorage agar dashboard mengenali nama user (misal: Lissa Anantha)
           const aktifUser = {
             id: userData.id,
             nama: userData.nama,
-            username: userData.username,
-            role: userData.role // Menyimpan status KEPALA atau STAFF
+            username: userData.username
           };
           localStorage.setItem('upa_active_staff', JSON.stringify(aktifUser));
 
           alertBox.className = "p-3.5 rounded-xl text-xs font-semibold bg-emerald-500/20 border border-emerald-400 text-emerald-200";
-          alertBox.innerText = `Login Sukses! Selamat datang, ${userData.nama} (${userData.role}). Mengalihkan...`;
+          alertBox.innerText = `Login Sukses! Selamat datang, ${userData.nama}. Mengalihkan ke Dashboard...`;
           alertBox.classList.remove('hidden');
 
           setTimeout(() => {
