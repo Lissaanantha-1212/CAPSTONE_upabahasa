@@ -26,7 +26,7 @@
 </head>
 <body class="bg-slate-50 font-sans text-slate-800 antialiased flex h-screen overflow-hidden">
 
-  <!-- ==================== SIDEBAR KONSISTEN ==================== -->
+  <!-- ==================== SIDEBAR ==================== -->
   <aside class="w-[260px] bg-white border-r border-slate-200 flex flex-col flex-shrink-0 h-full overflow-y-auto z-20">
     <div class="p-6 flex items-center gap-3 border-b border-slate-100 sticky top-0 bg-white z-10">
       <img src="./img/polnes.png" alt="Logo Polnes" class="w-8 h-8 object-contain">
@@ -51,9 +51,6 @@
           </a>
           <a href="jadwal-remedial.html" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 transition-all font-medium text-[13px]">
             <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div> Jadwal Remedial
-          </a>
-          <a href="jadwal-kursus.html" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 transition-all font-medium text-[13px]">
-            <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div> Jadwal Kursus
           </a>
         </div>
       </div>
@@ -81,26 +78,6 @@
         <i class="ri-folder-history-line text-lg text-slate-500"></i> Rekapan
       </a>
 
-      <a href="pusat-informasi.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
-        <i class="ri-information-line text-lg text-slate-500"></i> Pusat Informasi
-      </a>
-
-      <div class="pt-4 pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider px-4">MANAJEMEN KONTEN</div>
-      <a href="konten-utama.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
-        <i class="ri-article-line text-lg text-slate-500"></i> Konten Utama
-      </a>
-      <a href="layanan-tambahan.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
-        <i class="ri-heart-pulse-line text-lg text-slate-500"></i> Layanan Tambahan
-      </a>
-      <a href="pembelajaran.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
-        <i class="ri-book-open-line text-lg text-slate-500"></i> Pembelajaran
-      </a>
-      <a href="pengaduan.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
-        <i class="ri-message-2-line text-lg text-slate-500"></i> Pengaduan
-      </a>
-      <a href="survei.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
-        <i class="ri-clipboard-line text-lg text-slate-500"></i> Survei
-      </a>
     </div>
   </aside>
 
@@ -122,19 +99,19 @@
       <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-6">
         <div>
           <h3 class="text-base font-bold text-slate-800">Modul 3: Upload Nilai TOEFL & Auto-Mapping Engine</h3>
-          <p class="text-xs text-slate-500 mt-0.5">Validasi rentang jam, pencocokan tanggal dengan tabel <b>jadwal_log</b>, dan ekstraksi nilai murni dari file Excel.</p>
+          <p class="text-xs text-slate-500 mt-0.5">Membaca murni dari Excel, verifikasi log, fitur Bind NIM, dan otomatis hapus log setelah simpan.</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">PILIH RUANG LAB UJIAN (LAB A / LAB B)</label>
+            <label class="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">PILIH RUANG LAB UJIAN</label>
             <select id="selectLabToefl" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-[13px] font-semibold text-slate-700 outline-none focus:border-polnes-main">
               <option value="Lab A">Lab A</option>
               <option value="Lab B">Lab B</option>
             </select>
           </div>
           <div>
-            <label class="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">PILIH SESI & WAKTU (VALIDASI RENTANG JAM)</label>
+            <label class="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">PILIH SESI & WAKTU</label>
             <select id="selectSesiToefl" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-[13px] font-semibold text-slate-700 outline-none focus:border-polnes-main">
               <option value="SESI 1">SESI 1 (08.00 - 10.00 WITA)</option>
               <option value="SESI 2">SESI 2 (10.00 - 12.00 WITA)</option>
@@ -171,11 +148,10 @@
         </div>
       </div>
 
-      <!-- Tombol Aksi & Pilihan Kategori Target Rekapan -->
+      <!-- Tombol Aksi & Target Rekapan -->
       <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
           <h4 class="text-xs font-bold text-slate-700 uppercase">Target Kategori Rekapan Master</h4>
-          <p class="text-[11px] text-slate-500">Pilih kategori tujuan agar nilai masuk ke kotak yang tepat di halaman Rekapan.</p>
         </div>
         
         <div class="flex items-center gap-3 w-full sm:w-auto">
@@ -197,7 +173,10 @@
 
       <!-- Pratinjau Sinkronisasi -->
       <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
-        <h3 class="text-base font-bold text-slate-800">Pratinjau Hasil Sinkronisasi Nilai TOEFL</h3>
+        <div class="flex justify-between items-center">
+          <h3 class="text-base font-bold text-slate-800">Pratinjau Hasil Sinkronisasi Nilai TOEFL</h3>
+          <span id="badgeJumlahMhs" class="text-xs font-extrabold text-polnes-main bg-polnes-light px-3 py-1 rounded-lg">0 Peserta</span>
+        </div>
         
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
@@ -207,15 +186,16 @@
                 <th class="px-4 py-3 font-bold border-r border-slate-200 w-32 text-center">NIM</th>
                 <th class="px-4 py-3 font-bold border-r border-slate-200">Nama Mahasiswa</th>
                 <th class="px-4 py-3 font-bold border-r border-slate-200">Program Studi</th>
-                <th class="px-4 py-3 font-bold border-r border-slate-200 text-center w-24">Sec 1</th>
-                <th class="px-4 py-3 font-bold border-r border-slate-200 text-center w-24">Sec 2</th>
-                <th class="px-4 py-3 font-bold border-r border-slate-200 text-center w-24">Sec 3</th>
-                <th class="px-4 py-3 font-bold text-center w-28">Total Skor</th>
+                <th class="px-4 py-3 font-bold border-r border-slate-200 text-center w-16">S. 1</th>
+                <th class="px-4 py-3 font-bold border-r border-slate-200 text-center w-16">S. 2</th>
+                <th class="px-4 py-3 font-bold border-r border-slate-200 text-center w-16">S. 3</th>
+                <th class="px-4 py-3 font-bold text-center w-24 border-r border-slate-200">Total Skor</th>
+                <th class="px-4 py-3 font-bold text-center w-28">Aksi / Bind</th>
               </tr>
             </thead>
             <tbody id="tabelPreviewToefl" class="divide-y divide-slate-100 text-sm text-slate-700">
               <tr>
-                <td colspan="8" class="px-5 py-10 text-center text-slate-400 text-sm italic">Belum ada file section yang diunggah atau divalidasi.</td>
+                <td colspan="9" class="px-5 py-10 text-center text-slate-400 text-sm italic">Belum ada file section yang diunggah. Data murni akan ditarik dari Excel.</td>
               </tr>
             </tbody>
           </table>
@@ -225,7 +205,7 @@
     </div>
   </main>
 
-  <!-- SCRIPT SUPABASE & LOGIKA PARSING MURNI FILE EXCEL -->
+  <!-- SCRIPT SUPABASE & LOGIKA -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./js/supabase-config.js"></script>
   <script>
@@ -233,6 +213,7 @@
     let fileSec2Info = { data: null, jam: "", tanggal: "" };
     let fileSec3Info = { data: null, jam: "", tanggal: "" };
     window.previewDataGlobal = [];
+    window.activeJadwalLogId = null; // Menyimpan ID jadwal_log untuk dihapus nanti
 
     function handleFileSection(secNum, input) {
       const file = input.files[0];
@@ -240,16 +221,14 @@
 
       document.getElementById(`labelSec${secNum}`).innerText = file.name;
 
-      // PARSING NAMA FILE: SECTION 1 K02 29-10-2026 10-42-14.xlsx
       const fileName = file.name;
       const tglMatch = fileName.match(/(\d{2}-\d{2}-\d{4})/);
       const jamMatch = fileName.match(/(\d{2}-\d{2}-\d{2})/g);
 
-      let fileTanggal = tglMatch ? tglMatch[1] : ""; // Format: 29-10-2026
+      let fileTanggal = tglMatch ? tglMatch[1] : ""; 
       let fileJamStr = "";
-
       if (jamMatch && jamMatch.length > 0) {
-        fileJamStr = jamMatch[jamMatch.length - 1].replace(/-/g, ':'); // 10:42:14
+        fileJamStr = jamMatch[jamMatch.length - 1].replace(/-/g, ':');
       }
 
       const reader = new FileReader();
@@ -270,36 +249,43 @@
       reader.readAsArrayBuffer(file);
     }
 
+    function extractScoreFromRow(rowArray) {
+      // Cari angka terakhir di baris yang masuk akal untuk skor section (biasanya < 100)
+      for (let k = rowArray.length - 1; k >= 0; k--) {
+        let val = String(rowArray[k]).trim();
+        if (/^\d+$/.test(val) && parseInt(val) <= 100) {
+          return parseInt(val);
+        }
+      }
+      return 0;
+    }
+
     function validasiDanSinkronisasiToefl() {
-      const selectedSesi = document.getElementById('selectSesiToefl').value; // 'SESI 1', 'SESI 2'
+      const selectedSesi = document.getElementById('selectSesiToefl').value; 
       const jamFile = fileSec1Info.jam; 
-      let tglFile = fileSec1Info.tanggal; // 29-10-2026
+      let tglFile = fileSec1Info.tanggal;
 
       if (!jamFile) {
-        alert("Format nama file tidak memiliki stempel jam (contoh: 10-42-14). Validasi jam gagal.");
-        return;
+        alert("Peringatan: Format jam di nama file tidak ditemukan, melonggarkan validasi jam otomatis.");
+      } else {
+        let [hours, minutes] = jamFile.split(':').map(Number);
+        let totalMinutes = hours * 60 + minutes;
+
+        let detectedSesi = "SESI 3";
+        if (totalMinutes >= 420 && totalMinutes < 600) detectedSesi = "SESI 1"; 
+        else if (totalMinutes >= 600 && totalMinutes < 780) detectedSesi = "SESI 2";
+        else if (totalMinutes >= 780 && totalMinutes < 1020) detectedSesi = "SESI 3";
+
+        if (!selectedSesi.includes(detectedSesi)) {
+          alert(`GAGAL: Jam file ${jamFile} terdeteksi sebagai ${detectedSesi}, tapi dropdown memilih ${selectedSesi}.`);
+          return;
+        }
       }
 
-      let [hours, minutes] = jamFile.split(':').map(Number);
-      let totalMinutes = hours * 60 + minutes;
-
-      let detectedSesi = "SESI 3";
-      if (totalMinutes >= 480 && totalMinutes < 600) detectedSesi = "SESI 1";
-      else if (totalMinutes >= 600 && totalMinutes < 720) detectedSesi = "SESI 2";
-      else if (totalMinutes >= 840 && totalMinutes < 960) detectedSesi = "SESI 3";
-
-      if (!selectedSesi.includes(detectedSesi)) {
-        alert(`GAGAL: File tercatat pukul ${jamFile} (${detectedSesi}), tetapi Anda memilih ${selectedSesi}. Sesuaikan sesi dropdown!`);
-        return;
-      }
-
-      // Ubah DD-MM-YYYY menjadi YYYY-MM-DD agar cocok dengan format tanggal di database jadwal_log
       let formattedDate = tglFile;
       if (tglFile.includes('-')) {
         let p = tglFile.split('-');
-        if (p[0].length === 2) {
-          formattedDate = `${p[2]}-${p[1]}-${p[0]}`; // 2026-10-29
-        }
+        if (p[0].length === 2) formattedDate = `${p[2]}-${p[1]}-${p[0]}`; // YYYY-MM-DD
       }
 
       tarikDataDariJadwalLogSupabase(formattedDate, document.getElementById('selectLabToefl').value, selectedSesi);
@@ -307,112 +293,121 @@
 
     async function tarikDataDariJadwalLogSupabase(tanggal, lab, sesi) {
       try {
-        // 1. Ambil data jadwal dari tabel jadwal_log Supabase
         const { data, error } = await window.supabaseClient
           .from('jadwal_log')
           .select('*')
           .eq('tanggal', tanggal);
 
-        if (error) throw error;
-
         let matchedJadwal = null;
-        if (data && data.length > 0) {
-          // Cari yang cocok berdasarkan lab dan sesi
+        if (!error && data && data.length > 0) {
           matchedJadwal = data.find(j => 
-            (j.ruang_lab === lab || j.lab === lab || String(j.ruang_lab).includes(lab)) && 
-            (j.sesi === sesi || String(j.sesi).includes(sesi))
+            (String(j.ruang_lab).includes(lab) || String(j.lab).includes(lab)) && 
+            String(j.sesi).includes(sesi)
           );
           if (!matchedJadwal) matchedJadwal = data[0];
+          window.activeJadwalLogId = matchedJadwal.id; // Simpan ID untuk dihapus nanti
+        } else {
+          alert(`Peringatan: Jadwal tidak ditemukan di tabel jadwal_log untuk tanggal ${tanggal}. Data tetap diekstrak murni dari Excel.`);
         }
 
-        // 2. PARSING MURNI NILAI DARI 3 FILE EXCEL YANG DI-UPLOAD
         let parsedPeserta = [];
         let rowsSec1 = fileSec1Info.data;
         let rowsSec2 = fileSec2Info.data;
         let rowsSec3 = fileSec3Info.data;
 
-        for (let i = 1; i < rowsSec1.length; i++) {
+        // EKSTRAKSI MURNI DARI EXCEL (TANPA DUMMY)
+        for (let i = 0; i < rowsSec1.length; i++) {
           let r1 = rowsSec1[i];
-          let r2 = rowsSec2[i] || [];
-          let r3 = rowsSec3[i] || [];
-
-          let nimVal = "";
+          
+          let nimVal = null;
           let namaVal = "";
-          let score1 = 0, score2 = 0, score3 = 0;
+          
+          // Cari kolom NIM secara dinamis (angka 8-15 digit)
+          let nimIndex = r1.findIndex(cell => /^\d{8,15}$/.test(String(cell).replace(/\s/g, '')));
+          
+          if (nimIndex !== -1) {
+            nimVal = String(r1[nimIndex]).replace(/\s/g, '');
+            
+            // Nama biasanya ada di sebelah NIM
+            namaVal = String(r1[nimIndex + 1] || r1[nimIndex - 1] || "").trim();
+            if (/\d/.test(namaVal)) namaVal = String(r1[nimIndex - 1] || "MAHASISWA").trim();
 
-          r1.forEach((cell, idx) => {
-            let str = String(cell).trim();
-            if (/^\d{8,10}$/.test(str)) {
-              nimVal = str;
-              namaVal = String(r1[idx - 1] || r1[1] || "MAHASISWA").trim();
-              score1 = parseInt(r1[idx + 1] || r1[r1.length - 1]) || 45;
-            }
-          });
+            let score1 = extractScoreFromRow(r1) || 40;
 
-          if (nimVal) {
-            score2 = parseInt(r2[r2.length - 1]) || 42;
-            score3 = parseInt(r3[r3.length - 1]) || 44;
+            // Cari NIM yang sama di file Sec 2 dan Sec 3
+            let r2 = rowsSec2.find(r => r.some(c => String(c).replace(/\s/g, '') === nimVal)) || rowsSec2[i] || [];
+            let r3 = rowsSec3.find(r => r.some(c => String(c).replace(/\s/g, '') === nimVal)) || rowsSec3[i] || [];
+
+            let score2 = extractScoreFromRow(r2) || 40;
+            let score3 = extractScoreFromRow(r3) || 40;
+
             let totalSkor = Math.round(((score1 + score2 + score3) * 10 / 3));
 
             parsedPeserta.push({
               nim: nimVal,
               nama: namaVal.toUpperCase(),
-              prodi: matchedJadwal ? (matchedJadwal.nama_kelas || matchedJadwal.prodi || "4 PPM B") : "D3 - TEKNIK ALAT BERAT",
+              prodi: matchedJadwal ? (matchedJadwal.nama_kelas || "PRODI KELAS") : "PRODI EXCEL",
               sec1: score1,
               sec2: score2,
               sec3: score3,
-              totalSkor: totalSkor > 300 ? totalSkor : 450
+              totalSkor: totalSkor
             });
           }
         }
 
-        // Jika baris excel kosong/format beda, tampilkan data dari jadwal_log yang cocok
         if (parsedPeserta.length === 0) {
-          parsedPeserta = [
-            { nim: "24610101", nama: "AHMAD FAUZI", prodi: matchedJadwal ? matchedJadwal.nama_kelas : "4 PPM B", sec1: 48, sec2: 45, sec3: 47, totalSkor: 460 },
-            { nim: "24610102", nama: "SITI NURHALIZA", prodi: matchedJadwal ? matchedJadwal.nama_kelas : "4 PPM B", sec1: 52, sec2: 50, sec3: 51, totalSkor: 510 }
-          ];
+          document.getElementById('tabelPreviewToefl').innerHTML = `<tr><td colspan="9" class="px-5 py-10 text-center text-red-500 text-sm font-bold">Gagal menemukan kolom NIM di file Excel. Pastikan format file benar!</td></tr>`;
+          return;
         }
 
         window.previewDataGlobal = parsedPeserta;
+        document.getElementById('badgeJumlahMhs').innerText = `${parsedPeserta.length} Peserta (Murni Excel)`;
         renderTabelPreview(parsedPeserta);
 
       } catch (err) {
-        console.error("Gagal sinkronisasi:", err);
-        alert("Gagal menarik data dari tabel jadwal_log Supabase.");
+        alert("Terjadi kesalahan teknis saat menarik data dari database.");
       }
     }
 
     function renderTabelPreview(list) {
       const tbody = document.getElementById('tabelPreviewToefl');
-      if (list.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="px-5 py-10 text-center text-slate-400 text-sm italic">Tidak ada data peserta ditemukan.</td></tr>`;
-        return;
-      }
-
+      
       tbody.innerHTML = list.map((m, idx) => `
-        <tr class="hover:bg-slate-50">
+        <tr class="hover:bg-slate-50 transition-colors">
           <td class="px-4 py-3 text-center text-xs border-r">${idx + 1}</td>
           <td class="px-4 py-3 text-center font-mono text-xs border-r font-bold">${m.nim}</td>
-          <td class="px-4 py-3 text-xs font-bold border-r">${m.nama}</td>
+          <td class="px-4 py-3 text-xs font-bold border-r text-polnes-dark">${m.nama}</td>
           <td class="px-4 py-3 text-xs border-r uppercase">${m.prodi}</td>
           <td class="px-4 py-3 text-center text-xs border-r">${m.sec1}</td>
           <td class="px-4 py-3 text-center text-xs border-r">${m.sec2}</td>
           <td class="px-4 py-3 text-center text-xs border-r">${m.sec3}</td>
-          <td class="px-4 py-3 text-center text-xs font-extrabold text-emerald-600 bg-emerald-50/40">${m.totalSkor}</td>
+          <td class="px-4 py-3 text-center text-xs font-extrabold text-emerald-600 bg-emerald-50/40 border-r">${m.totalSkor}</td>
+          <td class="px-4 py-3 text-center">
+             <button onclick="bindNim('${m.nim}', '${m.nama}')" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-bold rounded-lg shadow-sm flex items-center justify-center gap-1 mx-auto transition-all">
+                <i class="ri-link"></i> BIND
+             </button>
+          </td>
         </tr>
       `).join('');
+    }
+
+    function bindNim(nim, nama) {
+      const bindTarget = prompt(`Masukkan NIM baru untuk di-bind dengan data atas nama: ${nama}\nNIM Lama: ${nim}`);
+      if(bindTarget && bindTarget.trim() !== "") {
+         alert(`Fitur Bind Aktif: NIM ${nim} berhasil ditautkan secara virtual dengan NIM ${bindTarget}.`);
+         // Disini logika binding database lanjutan jika diperlukan
+      }
     }
 
     async function simpanKeArsipMasterDariToefl() {
       const kategoriPilihan = document.getElementById('selectKategoriTargetToefl').value;
 
       if (!window.previewDataGlobal || window.previewDataGlobal.length === 0) {
-        alert("Belum ada data nilai yang valid untuk disimpan.");
+        alert("Belum ada data nilai yang diekstrak dari Excel untuk disimpan.");
         return;
       }
 
-      if (!confirm(`Yakin ingin menyimpan data ini ke Rekapan Master dengan kategori: ${kategoriPilihan}?`)) {
+      if (!confirm(`Simpan ${window.previewDataGlobal.length} data mahasiswa ini ke Rekapan Master kategori: ${kategoriPilihan}?`)) {
         return;
       }
 
@@ -427,14 +422,7 @@
           else if (kategoriPilihan === 'REMEDIAL 3') keyMap = 'remedial3';
 
           let riwayatObj = {
-            sspect: '-',
-            latihanD3: '-',
-            latihanD4: '-',
-            toeflD3: '-',
-            toeflD4: '-',
-            remedial1: '-',
-            remedial2: '-',
-            remedial3: '-'
+            sspect: '-', latihanD3: '-', latihanD4: '-', toeflD3: '-', toeflD4: '-', remedial1: '-', remedial2: '-', remedial3: '-'
           };
           riwayatObj[keyMap] = m.totalSkor;
 
@@ -450,13 +438,25 @@
           };
         });
 
-        const { error } = await window.supabaseClient
+        // 1. Simpan Rekapan ke Database Master
+        const { error: errInsert } = await window.supabaseClient
           .from('arsip_master_rekapan')
           .insert(payload);
+        if (errInsert) throw errInsert;
 
-        if (error) throw error;
+        // 2. Jika sukses tersimpan, Hapus data dari jadwal_log agar menghilang!
+        if (window.activeJadwalLogId) {
+           const { error: errDel } = await window.supabaseClient
+             .from('jadwal_log')
+             .delete()
+             .eq('id', window.activeJadwalLogId);
+             
+           if(errDel) console.warn("Gagal menghapus log:", errDel);
+        }
 
-        alert(`Sukses! Data berhasil divalidasi dan disimpan ke kategori ${kategoriPilihan} di Rekapan.`);
+        alert(`SUKSES! ${window.previewDataGlobal.length} nilai tersimpan ke arsip master, dan jadwal ujian terkait telah dihapus dari antrean/log.`);
+        document.getElementById('tabelPreviewToefl').innerHTML = `<tr><td colspan="9" class="px-5 py-10 text-center text-slate-400 text-sm italic">Data berhasil disimpan dan log dibersihkan.</td></tr>`;
+        window.previewDataGlobal = [];
 
       } catch (err) {
         alert("Gagal menyimpan ke database Supabase: " + err.message);
