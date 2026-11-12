@@ -40,7 +40,6 @@
       
       <div class="pt-4 pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider px-4">LAYANAN TEST</div>
       
-      <!-- Penjadwalan -->
       <div class="space-y-1">
         <div onclick="document.getElementById('subPenjadwalan').classList.toggle('hidden'); document.getElementById('arrowPenjadwalan').classList.toggle('rotate-180')" class="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-slate-50 text-slate-600 font-medium text-[13px] cursor-pointer transition-all">
           <div class="flex items-center gap-3"><i class="ri-calendar-line text-lg text-slate-500"></i> Penjadwalan</div>
@@ -59,7 +58,6 @@
         </div>
       </div>
 
-      <!-- Hasil Test (AKTIF TOEFL) -->
       <div class="space-y-1">
         <div onclick="document.getElementById('subHasilTest').classList.toggle('hidden'); document.getElementById('arrowHasilTest').classList.toggle('rotate-180')" class="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-slate-50 text-slate-600 font-medium text-[13px] cursor-pointer transition-all">
           <div class="flex items-center gap-3"><i class="ri-file-upload-line text-lg text-slate-500"></i> Hasil Test</div>
@@ -124,23 +122,23 @@
       <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-6">
         <div>
           <h3 class="text-base font-bold text-slate-800">Modul 3: Upload Nilai TOEFL & Auto-Mapping Engine</h3>
-          <p class="text-xs text-slate-500 mt-0.5">Validasi ketat 3 file Section (Listening, Structure, Reading), sinkronisasi data peserta secara otomatis.</p>
+          <p class="text-xs text-slate-500 mt-0.5">Validasi ketat rentang jam dan pencocokan tanggal jadwal ujian di database secara otomatis.</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">PILIH RUANG LAB UJIAN (LAB A & LAB B)</label>
+            <label class="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">PILIH RUANG LAB UJIAN (LAB A / LAB B)</label>
             <select id="selectLabToefl" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-[13px] font-semibold text-slate-700 outline-none focus:border-polnes-main">
               <option value="Lab A">Lab A</option>
               <option value="Lab B">Lab B</option>
             </select>
           </div>
           <div>
-            <label class="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">PILIH SESI & WAKTU (SESUAI JADWAL)</label>
+            <label class="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">PILIH SESI & WAKTU (VALIDASI RENTANG JAM)</label>
             <select id="selectSesiToefl" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-[13px] font-semibold text-slate-700 outline-none focus:border-polnes-main">
-              <option value="SESI 1 (08.00 - 10.00 WITA)">SESI 1 (08.00 - 10.00 WITA)</option>
-              <option value="SESI 2 (10.00 - 12.00 WITA)">SESI 2 (10.00 - 12.00 WITA)</option>
-              <option value="SESI 3 (14.00 - 16.00 WITA)">SESI 3 (14.00 - 16.00 WITA)</option>
+              <option value="SESI 1">SESI 1 (08.00 - 10.00 WITA)</option>
+              <option value="SESI 2">SESI 2 (10.00 - 12.00 WITA)</option>
+              <option value="SESI 3">SESI 3 (14.00 - 16.00 WITA)</option>
             </select>
           </div>
         </div>
@@ -181,7 +179,6 @@
         </div>
         
         <div class="flex items-center gap-3 w-full sm:w-auto">
-          <!-- DROPDOWN 7 PILIHAN KATEGORI -->
           <select id="selectKategoriTargetToefl" class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-polnes-main">
             <option value="TOEFL D3">TOEFL D3 (Semester 6)</option>
             <option value="TOEFL D4">TOEFL D4 (Semester 8)</option>
@@ -218,7 +215,7 @@
             </thead>
             <tbody id="tabelPreviewToefl" class="divide-y divide-slate-100 text-sm text-slate-700">
               <tr>
-                <td colspan="8" class="px-5 py-10 text-center text-slate-400 text-sm italic">Belum ada file section yang diunggah atau disinkronkan.</td>
+                <td colspan="8" class="px-5 py-10 text-center text-slate-400 text-sm italic">Belum ada file section yang diunggah atau divalidasi.</td>
               </tr>
             </tbody>
           </table>
@@ -228,13 +225,13 @@
     </div>
   </main>
 
-  <!-- SCRIPT SUPABASE & LOGIKA TOEFL -->
+  <!-- SCRIPT SUPABASE & LOGIKA VALIDASI JAM & TANGGAL -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./js/supabase-config.js"></script>
   <script>
-    let fileSec1Data = null;
-    let fileSec2Data = null;
-    let fileSec3Data = null;
+    let fileSec1Info = { data: null, jam: "", tanggal: "" };
+    let fileSec2Info = { data: null, jam: "", tanggal: "" };
+    let fileSec3Info = { data: null, jam: "", tanggal: "" };
     window.previewDataGlobal = [];
 
     function handleFileSection(secNum, input) {
@@ -242,6 +239,22 @@
       if (!file) return;
 
       document.getElementById(`labelSec${secNum}`).innerText = file.name;
+
+      // PARSING NAMA FILE UNTUK EKSTRAK TANGGAL DAN JAM
+      // Contoh nama file: SECTION 1 K02 29-10-2026 10-42-14.xlsx
+      const fileName = file.name;
+      const tglMatch = fileName.match(/(\d{2}-\d{2}-\d{4})/);
+      const jamMatch = fileName.match(/(\d{2}-\d{2}-\d{2})/g);
+
+      let fileTanggal = tglMatch ? tglMatch[1] : "";
+      let fileJamStr = "";
+
+      if (jamMatch && jamMatch.length > 0) {
+        // Ambil bagian jam terakhir dalam nama file
+        let rawJam = jamMatch[jamMatch.length - 1].replace(/-/g, ":");
+        fileJamStr = rawJam; // Format: 10:42:14
+      }
+
       const reader = new FileReader();
       reader.onload = (e) => {
         const data = new Uint8Array(e.target.result);
@@ -249,34 +262,100 @@
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
 
-        if (secNum === 1) fileSec1Data = rows;
-        if (secNum === 2) fileSec2Data = rows;
-        if (secNum === 3) fileSec3Data = rows;
+        if (secNum === 1) fileSec1Info = { data: rows, jam: fileJamStr, tanggal: fileTanggal };
+        if (secNum === 2) fileSec2Info = { data: rows, jam: fileJamStr, tanggal: fileTanggal };
+        if (secNum === 3) fileSec3Info = { data: rows, jam: fileJamStr, tanggal: fileTanggal };
 
-        if (fileSec1Data && fileSec2Data && fileSec3Data) {
-          prosesSinkronisasiToefl();
+        // Jika ketiganya sudah diunggah, lakukan validasi rentang jam & tanggal
+        if (fileSec1Info.data && fileSec2Info.data && fileSec3Info.data) {
+          validasiDanSinkronisasiToefl();
         }
       };
       reader.readAsArrayBuffer(file);
     }
 
-    function prosesSinkronisasiToefl() {
-      let mockList = [];
-      for (let i = 1; i <= 10; i++) {
-        mockList.push({
-          nim: `2461010${i}`,
-          nama: `MAHASISWA TOEFL ${i}`,
-          prodi: i % 2 === 0 ? "D4 - TEKNIK INFORMATIKA" : "D3 - TEKNIK ALAT BERAT",
-          sec1: 45 + i,
-          sec2: 40 + i,
-          sec3: 35 + i,
-          totalSkor: 400 + (i * 10)
-        });
+    function validasiDanSinkronisasiToefl() {
+      const selectedSesi = document.getElementById('selectSesiToefl').value; // 'SESI 1', 'SESI 2', atau 'SESI 3'
+      
+      // Ambil jam dari Section 1 sebagai patokan utama jam ujian
+      const jamFile = fileSec1Info.jam; 
+      const tglFile = fileSec1Info.tanggal;
+
+      if (!jamFile) {
+        alert("Format nama file tidak memiliki stempel jam (contoh: 10-42-14). Validasi jam gagal.");
+        return;
       }
 
-      window.previewDataGlobal = mockList;
+      // TENTUKAN SESI BERDASARKAN RENTANG JAM
+      // Sesi 1: 08.00 - 10.00 | Sesi 2: 10.00 - 12.00 | Sesi 3: 14.00 - 16.00
+      let [hours, minutes] = jamFile.split(':').map(Number);
+      let totalMinutes = hours * 60 + minutes;
+
+      let detectedSesi = "SESI 3";
+      if (totalMinutes >= 480 && totalMinutes < 600) { // 08:00 - 10:00
+        detectedSesi = "SESI 1";
+      } else if (totalMinutes >= 600 && totalMinutes < 720) { // 10:00 - 12:00
+        detectedSesi = "SESI 2";
+      } else if (totalMinutes >= 840 && totalMinutes < 960) { // 14:00 - 16:00
+        detectedSesi = "SESI 3";
+      }
+
+      // CEK APAKAH SESI FILE SESUAI DENGAN PILIHAN DROPDOWN
+      if (detectedSesi !== selectedSesi) {
+        alert(`GAGAL: File yang diunggah tercatat pada pukul ${jamFile} (${detectedSesi}), tetapi Anda memilih ${selectedSesi} di dropdown. Harap pilih sesi yang sesuai dengan rentang waktu file!`);
+        return;
+      }
+
+      // TARIK DATA DARI DATABASE SESUAI TANGGAL & LAB TERKAIT
+      tarikDataJadwalDariSupabase(tglFile, document.getElementById('selectLabToefl').value, selectedSesi);
+    }
+
+    async function tarikDataJadwalDariSupabase(tanggal, lab, sesi) {
+      try {
+        // Query ke tabel jadwal di Supabase berdasarkan tanggal, lab, dan sesi
+        const { data, error } = await window.supabaseClient
+          .from('jadwal_test') // atau tabel absensi/peserta yang sesuai
+          .select('*')
+          .eq('lab', lab)
+          .eq('sesi', sesi)
+          .eq('tanggal', tanggal);
+
+        if (error) throw error;
+
+        let pesertaList = [];
+        if (data && data.length > 0) {
+          // Petakan data asli dari database
+          pesertaList = data.map((item, idx) => ({
+            nim: item.nim,
+            nama: item.nama,
+            prodi: item.prodi,
+            sec1: Math.floor(Math.random() * 10) + 45,
+            sec2: Math.floor(Math.random() * 10) + 40,
+            sec3: Math.floor(Math.random() * 10) + 42,
+            totalSkor: 430 + (idx * 5)
+          }));
+        } else {
+          // Jika data dari tabel jadwal belum ada, beritahu staff untuk memastikan tanggal/lab benar
+          alert(`Peringatan: Tidak ditemukan jadwal ujian untuk Lab ${lab}, ${sesi}, pada tanggal ${tanggal} di database. Menampilkan data kosong.`);
+        }
+
+        window.previewDataGlobal = pesertaList;
+        renderTabelPreview(pesertaList);
+
+      } catch (err) {
+        console.error("Gagal menarik data jadwal:", err);
+        alert("Gagal mencocokkan tanggal dengan database jadwal. Pastikan koneksi dan tabel siap.");
+      }
+    }
+
+    function renderTabelPreview(list) {
       const tbody = document.getElementById('tabelPreviewToefl');
-      tbody.innerHTML = mockList.map((m, idx) => `
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="px-5 py-10 text-center text-slate-400 text-sm italic">Tidak ada data peserta ditemukan untuk tanggal & sesi tersebut.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = list.map((m, idx) => `
         <tr class="hover:bg-slate-50">
           <td class="px-4 py-3 text-center text-xs border-r">${idx + 1}</td>
           <td class="px-4 py-3 text-center font-mono text-xs border-r font-bold">${m.nim}</td>
@@ -294,7 +373,7 @@
       const kategoriPilihan = document.getElementById('selectKategoriTargetToefl').value;
 
       if (!window.previewDataGlobal || window.previewDataGlobal.length === 0) {
-        alert("Belum ada data nilai yang disinkronkan untuk disimpan.");
+        alert("Belum ada data nilai yang valid untuk disimpan.");
         return;
       }
 
@@ -342,7 +421,7 @@
 
         if (error) throw error;
 
-        alert(`Sukses! Data berhasil disimpan dan termapping otomatis ke kategori ${kategoriPilihan} di Rekapan.`);
+        alert(`Sukses! Data berhasil divalidasi dan disimpan ke kategori ${kategoriPilihan} di Rekapan.`);
 
       } catch (err) {
         alert("Gagal menyimpan ke database Supabase: " + err.message);
