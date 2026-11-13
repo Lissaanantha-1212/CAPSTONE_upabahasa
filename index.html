@@ -627,17 +627,18 @@
   </section>
 
   <!-- ==================== VIEW 5: LAYANAN TOEIC (INFORMASI UMUM & FILE PENGUMUMAN DARI STAFF) ==================== -->
+  <!-- ==================== VIEW 5: LAYANAN TOEIC (INFO UMUM + PENGUMUMAN GAYA BERITA) ==================== -->
   <section id="viewToeic" class="hidden flex-1 pb-16">
-    <div class="max-w-7xl mx-auto px-4 md:px-10 lg:px-16 pt-8 space-y-8">
+    <div class="max-w-7xl mx-auto px-4 md:px-10 lg:px-16 pt-8 space-y-10">
       
-      <!-- Header & Informasi Umum TOEIC -->
+      <!-- Bagian Atas: Informasi Umum TOEIC -->
       <div class="bg-white rounded-3xl p-6 md:p-10 shadow-2xs border border-slate-200 space-y-8">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-5">
           <div>
             <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#169C53]" data-i18n="toeic_badge">LAYANAN SERTIFIKASI INTERNASIONAL • TOEIC</span>
             <h2 class="text-2xl font-extrabold text-slate-900 mt-0.5" data-i18n="toeic_heading">Informasi Umum & Pengumuman Resmi TOEIC</h2>
             <p class="text-xs text-slate-500 mt-1" data-i18n="toeic_sub">
-              Pusat informasi pelaksanaan tes TOEIC bagi mahasiswa POLNES serta publikasi file daftar peserta wajib dan hasil ujian yang diunggah oleh staf.
+              Pusat informasi pelaksanaan tes TOEIC bagi mahasiswa POLNES serta publikasi resmi daftar peserta wajib dan hasil ujian dari staf UPA Bahasa.
             </p>
           </div>
           <button type="button" onclick="muatFilePengumumanToeic()" class="self-start px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-all">
@@ -646,7 +647,7 @@
           </button>
         </div>
 
-        <!-- 3 Kartu Informasi Umum TOEIC -->
+        <!-- 3 Kartu Penjelasan Umum TOEIC -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div class="p-6 rounded-2xl bg-emerald-50/60 border border-emerald-100 space-y-2.5">
             <div class="w-10 h-10 rounded-xl bg-[#169C53] text-white flex items-center justify-center text-lg">
@@ -664,7 +665,7 @@
             </div>
             <h3 class="font-extrabold text-slate-900 text-sm" data-i18n="toeic_info2_t">Peserta Wajib TOEIC</h3>
             <p class="text-xs text-slate-600 leading-relaxed" data-i18n="toeic_info2_d">
-              Daftar mahasiswa yang diwajibkan mengikuti program sertifikasi TOEIC diterbitkan melalui lampiran dokumen resmi di bawah ini oleh staf UPA Bahasa.
+              Daftar mahasiswa yang diwajibkan mengikuti program sertifikasi TOEIC diterbitkan melalui pengumuman resmi di bawah ini oleh staf UPA Bahasa.
             </p>
           </div>
 
@@ -674,47 +675,92 @@
             </div>
             <h3 class="font-extrabold text-slate-900 text-sm" data-i18n="toeic_info3_t">Publikasi Hasil dari Pusat</h3>
             <p class="text-xs text-slate-600 leading-relaxed" data-i18n="toeic_info3_d">
-              Setelah pelaksanaan tes selesai dan rekap nilai diterima dari pusat penyelenggara, staf akan mempublikasikan dokumen hasil resmi di portal ini.
+              Setelah pelaksanaan tes selesai dan rekap nilai diterima dari pusat penyelenggara, staf akan mempublikasikan pengumuman dan lampiran hasil resminya di portal ini.
             </p>
           </div>
         </div>
+      </div>
 
-        <!-- Daftar File Pengumuman & Hasil TOEIC (Terkoneksi ke Database Upload Staff) -->
-        <div class="space-y-4 pt-2">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <h3 class="font-extrabold text-slate-900 text-base flex items-center gap-2">
-                <i class="ri-folder-info-line text-[#169C53]"></i>
-                <span data-i18n="toeic_files_title">Pengumuman & Lampiran Dokumen TOEIC (Publikasi Staf)</span>
-              </h3>
-              <p class="text-[11px] text-slate-400 mt-0.5" data-i18n="toeic_files_hint">Klik tombol Unduh / Lihat Dokumen untuk membuka file daftar peserta wajib maupun hasil tes TOEIC.</p>
-            </div>
-
-            <div class="w-full sm:w-64">
-              <input type="text" id="inputCariFileToeic" onkeyup="filterTabelFileToeic()" placeholder="Cari judul pengumuman..." class="w-full px-4 py-2 rounded-full border border-slate-200 text-xs focus:border-[#169C53] outline-none">
-            </div>
+      <!-- Bagian Bawah: Daftar Pengumuman Gaya Portal Berita (Headline Utama + Grid 3 Kolom) -->
+      <div class="space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#169C53]">KABAR & PENGUMUMAN TERKINI</span>
+            <h3 class="text-xl font-extrabold text-slate-900 mt-0.5" data-i18n="toeic_files_title">Pengumuman & Publikasi Resmi TOEIC</h3>
           </div>
+          <div class="w-full sm:w-72">
+            <input type="text" id="inputCariFileToeic" onkeyup="filterTabelFileToeic()" placeholder="Cari judul pengumuman..." class="w-full px-4 py-2.5 rounded-full bg-white border border-slate-200 text-xs focus:border-[#169C53] outline-none shadow-2xs">
+          </div>
+        </div>
 
-          <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-              <thead>
-                <tr class="bg-slate-50 text-slate-500 text-[11px] uppercase tracking-wider border-b border-slate-200">
-                  <th class="px-4 py-3 font-bold w-16">NO</th>
-                  <th class="px-4 py-3 font-bold" data-i18n="th_judul_file">JUDUL PENGUMUMAN / NAMA FILE</th>
-                  <th class="px-4 py-3 font-bold" data-i18n="th_jenis_dok">JENIS DOKUMEN</th>
-                  <th class="px-4 py-3 font-bold" data-i18n="th_tgl_posting">TANGGAL POSTING</th>
-                  <th class="px-4 py-3 font-bold text-center" data-i18n="th_aksi_unduh">AKSI</th>
-                </tr>
-              </thead>
-              <tbody id="tbodyFileToeic" class="divide-y divide-slate-100 text-xs sm:text-sm text-slate-700">
-                <tr>
-                  <td colspan="5" class="px-5 py-8 text-center text-slate-400 italic">Memuat pengumuman dan file TOEIC dari database staf...</td>
-                </tr>
-              </tbody>
-            </table>
+        <!-- Container Render Berita Utama (Headline) + Grid 3 Kolom -->
+        <div id="containerBeritaToeic" class="space-y-8">
+          <div class="bg-white rounded-3xl p-12 text-center text-slate-400 text-xs italic border border-slate-200">
+            Memuat pengumuman resmi TOEIC dari database staf...
           </div>
         </div>
       </div>
+
+    </div>
+  </section>
+
+  <!-- ==================== VIEW 6: HALAMAN KHUSUS BACA DETAIL PENGUMUMAN TOEIC ==================== -->
+  <section id="viewToeicDetail" class="hidden flex-1 pb-16">
+    <div class="max-w-4xl mx-auto px-4 md:px-10 pt-8 space-y-6">
+      
+      <!-- Tombol Kembali ke Halaman TOEIC -->
+      <button type="button" onclick="bukaHalaman('toeic')" class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-extrabold shadow-2xs transition-all">
+        <i class="ri-arrow-left-line"></i>
+        <span>Kembali ke Daftar Pengumuman TOEIC</span>
+      </button>
+
+      <!-- Artikel Lengkap Pengumuman -->
+      <article class="bg-white rounded-3xl overflow-hidden border border-slate-200 shadow-sm">
+        <!-- Gambar Banner Pengumuman -->
+        <div class="w-full h-64 sm:h-96 bg-slate-100 relative overflow-hidden">
+          <img id="detailToeicImg" src="" alt="Gambar Pengumuman TOEIC" class="w-full h-full object-cover">
+        </div>
+
+        <div class="p-6 sm:p-10 space-y-6">
+          <!-- Kategori & Tanggal Posting -->
+          <div class="flex flex-wrap items-center gap-3 text-xs">
+            <span id="detailToeicKategori" class="px-3 py-1 rounded-full bg-emerald-50 text-[#169C53] font-extrabold border border-emerald-200">
+              Pengumuman TOEIC
+            </span>
+            <span class="text-slate-400">•</span>
+            <span id="detailToeicTanggal" class="text-slate-500 font-medium">13 November 2026</span>
+            <span class="text-slate-400">•</span>
+            <span id="detailToeicAuthor" class="text-slate-500 font-semibold">Admin UPA Bahasa</span>
+          </div>
+
+          <!-- Judul Pengumuman -->
+          <h1 id="detailToeicJudul" class="text-2xl sm:text-4xl font-extrabold text-slate-900 leading-tight">
+            Judul Pengumuman TOEIC
+          </h1>
+
+          <!-- Kotak Unduh Lampiran Dokumen Resmi (Jika staf melampirkan file PDF/Excel) -->
+          <div id="detailToeicFileBox" class="p-5 rounded-2xl bg-emerald-50/80 border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="flex items-center gap-3.5">
+              <div class="w-11 h-11 rounded-xl bg-[#169C53] text-white flex items-center justify-center text-xl shrink-0">
+                <i class="ri-file-pdf-2-line"></i>
+              </div>
+              <div>
+                <div class="text-[10px] font-extrabold uppercase tracking-wider text-[#169C53]">LAMPIRAN DOKUMEN RESMI</div>
+                <div id="detailToeicNamaFile" class="font-extrabold text-slate-900 text-xs sm:text-sm">Daftar_Peserta_TOEIC.pdf</div>
+              </div>
+            </div>
+            <a id="detailToeicLinkDownload" href="#" target="_blank" rel="noopener noreferrer" class="px-5 py-2.5 rounded-xl bg-[#169C53] hover:bg-[#0E7A3F] text-white font-extrabold text-xs inline-flex items-center justify-center gap-2 shadow-sm transition-all shrink-0">
+              <i class="ri-download-cloud-2-line text-base"></i>
+              <span>Unduh / Buka Dokumen</span>
+            </a>
+          </div>
+
+          <!-- Isi Teks Lengkap Pengumuman -->
+          <div id="detailToeicIsi" class="prose max-w-none text-slate-700 text-sm leading-relaxed space-y-4 whitespace-pre-line pt-2 border-t border-slate-100">
+            Isi pengumuman lengkap akan tampil di sini...
+          </div>
+        </div>
+      </article>
 
     </div>
   </section>
@@ -1033,7 +1079,7 @@
     function bukaHalaman(namaHalaman, targetSectionId = null) {
       tutupSemuaMegaMenu();
 
-      const views = ['viewBeranda', 'viewTentang', 'viewToefl', 'viewSspect', 'viewToeic'];
+      const views = ['viewBeranda', 'viewTentang', 'viewToefl', 'viewSspect', 'viewToeic', 'viewToeicDetail'];
       views.forEach(v => {
         const el = document.getElementById(v);
         if (el) el.classList.add('hidden');
@@ -1378,19 +1424,23 @@
     }
 
     // ==================== 7. PENGUMUMAN & FILE TOEIC DARI DATABASE STAFF ====================
+   // Pastikan di dalam fungsi bukaHalaman() daftar views mencakup 'viewToeicDetail':
+    // const views = ['viewBeranda', 'viewTentang', 'viewToefl', 'viewSspect', 'viewToeic', 'viewToeicDetail'];
+
     window.daftarFileToeicGlobal = [];
 
+    const DEFAULT_IMG_TOEIC = "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=1200&q=80";
+
     async function muatFilePengumumanToeic() {
-      const tbody = document.getElementById('tbodyFileToeic');
-      if (!tbody) return;
+      const container = document.getElementById('containerBeritaToeic');
+      if (!container) return;
 
       try {
         if (!window.supabaseClient) {
-          tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-8 text-center text-rose-500 font-semibold">Koneksi Supabase belum terpasang.</td></tr>`;
+          container.innerHTML = `<div class="bg-white rounded-3xl p-8 text-center text-rose-500 text-xs font-semibold border border-slate-200">Koneksi Supabase belum terpasang.</div>`;
           return;
         }
 
-        // Terkoneksi ke tabel 'toeic_files' yang diunggah dari halaman staff (toeic.html / toeic.js)
         const { data, error } = await window.supabaseClient
           .from('toeic_files')
           .select('*')
@@ -1399,66 +1449,123 @@
         if (error) throw error;
 
         window.daftarFileToeicGlobal = data || [];
-        renderTabelFileToeic(window.daftarFileToeicGlobal);
+        renderBeritaToeic(window.daftarFileToeicGlobal);
       } catch (err) {
         console.error(err);
-        tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-8 text-center text-slate-400 italic">Belum ada file pengumuman TOEIC yang dipublikasikan oleh staf.</td></tr>`;
+        container.innerHTML = `<div class="bg-white rounded-3xl p-8 text-center text-slate-400 text-xs italic border border-slate-200">Belum ada pengumuman TOEIC yang dipublikasikan oleh staf.</div>`;
       }
     }
 
-    function renderTabelFileToeic(list) {
-      const tbody = document.getElementById('tbodyFileToeic');
-      if (!tbody) return;
+    function renderBeritaToeic(list) {
+      const container = document.getElementById('containerBeritaToeic');
+      if (!container) return;
 
       if (!list || list.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-8 text-center text-slate-400 italic">Belum ada file pengumuman TOEIC yang dipublikasikan oleh staf.</td></tr>`;
+        container.innerHTML = `<div class="bg-white rounded-3xl p-10 text-center text-slate-400 text-xs italic border border-slate-200">Belum ada pengumuman TOEIC yang dipublikasikan oleh staf.</div>`;
         return;
       }
 
-      tbody.innerHTML = list.map((file, idx) => {
-        const kategori = file.kategori || 'Peserta Wajib TOEIC';
-        const isHasil = kategori.toLowerCase().includes('hasil') || kategori.toLowerCase().includes('skor');
-        const badgeClass = isHasil
-          ? 'bg-sky-50 text-sky-700 border-sky-200'
-          : 'bg-emerald-50 text-[#169C53] border-emerald-200';
+      // 1. Pengumuman Terbaru sebagai Headline Utama Besar di Atas
+      const headline = list[0];
+      const headlineImg = headline.gambar_url || DEFAULT_IMG_TOEIC;
+      const headlineKat = headline.kategori || 'Pengumuman TOEIC';
 
-        return `
-          <tr class="hover:bg-slate-50/80 transition-colors">
-            <td class="px-4 py-4 font-bold text-slate-400">${idx + 1}</td>
-            <td class="px-4 py-4">
-              <div class="font-extrabold text-slate-900 flex items-center gap-2">
-                <i class="ri-file-pdf-2-line text-[#169C53] text-lg"></i>
-                <span>${file.judul || file.nama_file || 'Dokumen Pengumuman TOEIC'}</span>
+      let html = `
+        <div onclick="bukaDetailPengumumanToeic(${headline.id})" class="cursor-pointer group bg-white rounded-3xl overflow-hidden border border-slate-200 hover:border-[#169C53] shadow-sm hover:shadow-xl transition-all">
+          <div class="w-full h-64 sm:h-96 bg-slate-100 overflow-hidden relative">
+            <img src="${headlineImg}" onerror="this.src='${DEFAULT_IMG_TOEIC}'" alt="${headline.judul}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+            <span class="absolute top-4 left-4 px-3.5 py-1 rounded-full bg-[#169C53] text-white text-[11px] font-extrabold shadow-md">
+              ${headlineKat}
+            </span>
+          </div>
+          <div class="p-6 sm:p-8 space-y-2.5">
+            <div class="text-xs text-slate-400 font-semibold">${formatTanggalIndo(headline.created_at)}</div>
+            <h3 class="text-xl sm:text-3xl font-extrabold text-slate-900 group-hover:text-[#169C53] transition-colors leading-snug">
+              ${headline.judul || 'Pengumuman Resmi UPA Bahasa'}
+            </h3>
+            <p class="text-xs sm:text-sm text-slate-500 line-clamp-2">
+              ${headline.keterangan || headline.isi_berita || 'Klik untuk membaca pengumuman selengkapnya dan mengunduh lampiran dokumen resmi.'}
+            </p>
+          </div>
+        </div>
+      `;
+
+      // 2. Pengumuman Lainnya dalam Grid 3 Kolom di Bawahnya
+      const sisaBerita = list.slice(1);
+      if (sisaBerita.length > 0) {
+        html += `<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">`;
+        sisaBerita.forEach(item => {
+          const imgUrl = item.gambar_url || DEFAULT_IMG_TOEIC;
+          const kat = item.kategori || 'Pengumuman';
+          html += `
+            <div onclick="bukaDetailPengumumanToeic(${item.id})" class="cursor-pointer group bg-white rounded-2xl overflow-hidden border border-slate-200 hover:border-[#169C53] shadow-2xs hover:shadow-lg transition-all flex flex-col justify-between">
+              <div>
+                <div class="w-full h-44 bg-slate-100 overflow-hidden">
+                  <img src="${imgUrl}" onerror="this.src='${DEFAULT_IMG_TOEIC}'" alt="${item.judul}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                </div>
+                <div class="p-5 space-y-2">
+                  <h4 class="font-extrabold text-slate-900 group-hover:text-[#169C53] text-sm sm:text-base leading-snug line-clamp-3 transition-colors">
+                    ${item.judul || 'Pengumuman TOEIC'}
+                  </h4>
+                </div>
               </div>
-              ${file.keterangan ? `<div class="text-[11px] text-slate-500 mt-0.5 pl-6">${file.keterangan}</div>` : ''}
-            </td>
-            <td class="px-4 py-4">
-              <span class="px-2.5 py-1 rounded-full border text-[10px] font-extrabold ${badgeClass}">
-                ${kategori}
-              </span>
-            </td>
-            <td class="px-4 py-4 text-xs text-slate-600 font-medium">
-              ${formatTanggalIndo(file.created_at)}
-            </td>
-            <td class="px-4 py-4 text-center">
-              <a href="${file.file_url || '#'}" target="_blank" rel="noopener noreferrer" class="px-4 py-2 rounded-xl bg-[#169C53] hover:bg-[#0E7A3F] text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-2xs transition-all">
-                <i class="ri-download-cloud-2-line"></i>
-                <span>${window.currentLang === 'en' ? 'Download File' : 'Unduh File'}</span>
-              </a>
-            </td>
-          </tr>
-        `;
-      }).join('');
+              <div class="px-5 pb-5 pt-1 flex items-center justify-between text-[11px] font-bold">
+                <span class="text-[#169C53]">${kat}</span>
+                <span class="text-slate-400 font-normal">${formatTanggalIndo(item.created_at)}</span>
+              </div>
+            </div>
+          `;
+        });
+        html += `</div>`;
+      }
+
+      container.innerHTML = html;
     }
 
     function filterTabelFileToeic() {
       const q = (document.getElementById('inputCariFileToeic')?.value || '').toLowerCase();
       const filtered = window.daftarFileToeicGlobal.filter(f =>
-        String(f.judul || f.nama_file || '').toLowerCase().includes(q) ||
+        String(f.judul || '').toLowerCase().includes(q) ||
         String(f.kategori || '').toLowerCase().includes(q) ||
         String(f.keterangan || '').toLowerCase().includes(q)
       );
-      renderTabelFileToeic(filtered);
+      renderBeritaToeic(filtered);
+    }
+
+    // Membuka 1 Halaman Khusus Baca Detail Pengumuman saat Kartu Berita Diklik
+    function bukaDetailPengumumanToeic(id) {
+      const item = window.daftarFileToeicGlobal.find(f => f.id === id);
+      if (!item) return;
+
+      // Sembunyikan semua view lain, tampilkan viewToeicDetail
+      ['viewBeranda', 'viewTentang', 'viewToefl', 'viewSspect', 'viewToeic'].forEach(v => {
+        const el = document.getElementById(v);
+        if (el) el.classList.add('hidden');
+      });
+      document.getElementById('viewToeicDetail').classList.remove('hidden');
+
+      // Isi konten detail artikel
+      document.getElementById('detailToeicImg').src = item.gambar_url || DEFAULT_IMG_TOEIC;
+      document.getElementById('detailToeicKategori').textContent = item.kategori || 'Pengumuman TOEIC';
+      document.getElementById('detailToeicTanggal').textContent = formatTanggalIndo(item.created_at);
+      document.getElementById('detailToeicAuthor').textContent = item.uploaded_by ? `Oleh: ${item.uploaded_by}` : 'UPA Bahasa POLNES';
+      document.getElementById('detailToeicJudul').textContent = item.judul || 'Pengumuman Resmi TOEIC';
+      document.getElementById('detailToeicIsi').textContent = item.isi_berita || item.keterangan || 'Silakan unduh lampiran dokumen resmi melalui tombol di atas untuk melihat daftar lengkap peserta atau hasil tes TOEIC.';
+
+      // Atur tombol unduh file lampiran
+      const fileBox = document.getElementById('detailToeicFileBox');
+      const linkDownload = document.getElementById('detailToeicLinkDownload');
+      const namaFileEl = document.getElementById('detailToeicNamaFile');
+
+      if (item.file_url && item.file_url !== '#') {
+        fileBox.classList.remove('hidden');
+        linkDownload.href = item.file_url;
+        namaFileEl.textContent = item.judul ? `${item.judul} (Lampiran Resmi)` : 'Dokumen_Lampiran_TOEIC';
+      } else {
+        fileBox.classList.add('hidden');
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     // ==================== 8. INISIALISASI SAAT HALAMAN DIMUAT ====================
