@@ -15,6 +15,24 @@ function getDbClientRekapan() {
   return window.supabaseClient || window.supabase || null;
 }
 
+// Helper mengambil nilai pertama yang tidak kosong dari beberapa kemungkinan nama kolom DB
+function ambilNilaiKolom(obj, daftarKey, fallback = null) {
+  if (!obj) return fallback;
+  for (const key of daftarKey) {
+    if (obj[key] !== undefined && obj[key] !== null && String(obj[key]).trim() !== "") {
+      return obj[key];
+    }
+  }
+  return fallback;
+}
+
+function ambilAngkaKolom(obj, daftarKey) {
+  const raw = ambilNilaiKolom(obj, daftarKey, null);
+  if (raw === null) return null;
+  const num = Number(raw);
+  return !isNaN(num) && num > 0 ? num : null;
+}
+
 function ekstrakAngkatanNim(nimRaw, fallback = null) {
   const clean = String(nimRaw || "").replace(/\D/g, "");
   if (clean.length >= 2) {
@@ -37,25 +55,17 @@ function getBatasLulusJenjang(prodi, jenjangRaw) {
 }
 
 function hitungSkorAkhirMahasiswa(m) {
-  const kandidat = [
-    m.remedial_3,
-    m.remedial_2,
-    m.remedial_1,
-    m.skor_toefl,
-    m.skor_latihan,
-    m.skor_sspect
-  ]
-    .map(v => Number(v))
-    .filter(v => !isNaN(v) && v > 0);
-
-  if (kandidat.length === 0) return null;
-  // Ambil skor TOEFL/Remedial tertinggi jika ada, atau skor tes yang tersedia
   const skorToeflUtama = [m.remedial_3, m.remedial_2, m.remedial_1, m.skor_toefl]
     .map(v => Number(v))
     .filter(v => !isNaN(v) && v > 0);
 
   if (skorToeflUtama.length > 0) return Math.max(...skorToeflUtama);
-  return Math.max(...kandidat);
+
+  const semuaSkor = [m.skor_latihan, m.skor_sspect]
+    .map(v => Number(v))
+    .filter(v => !isNaN(v) && v > 0);
+
+  return semuaSkor.length > 0 ? Math.max(...semuaSkor) : null;
 }
 
 function cekStatusKelulusan(m) {
@@ -69,83 +79,146 @@ function cekStatusKelulusan(m) {
   return tertinggi >= batas ? "LULUS" : "BELUM_LULUS";
 }
 
-// ==================== 1. MUAT & SINKRONISASI DATA DATABASE (TERMASUK SSPECT) ====================
+// Ambil SEMUA baris dari tabel Supabase tanpa terpotong limit default 1000
+async function fetchAllRowsSupabase(db, namaTabel, orderByCol = null) {
+  const pageSize = 1000;
+  let from = 0;
+  let semuaBaris = [];
+
+  while (true) {
+    let query = db.from(namaTabel).select("*").range(from, from + pageSize - 1);
+    if (orderByCol) {
+      query = query.order(orderByCol, { ascending: true });
+    }
+    const { data, error } = await query;
+    if (error) {
+      return { data: semuaBaris, error };
+    }
+    if (!data || data.length === 0) {
+      break;
+    }
+    semuaBaris = semuaBaris.concat(data);
+    if (data.length < pageSize) {
+      break;
+    }
+    from += pageSize;
+  }
+
+  return { data: semuaBaris, error: null };
+}
+
+// ==================== 1. MUAT & SINKRONISASI SELURUH 1.836+ DATA DATABASE ====================
 async function sinkronkanDatabaseRekapan(tampilkanNotif = false) {
   const db = getDbClientRekapan();
   if (!db) return;
 
   const tbody = document.getElementById("tbodyRekapanMaster");
   if (tbody) {
-    tbody.innerHTML = `<tr><td colspan="7" class="px-6 py-10 text-center text-slate-400 italic">Menarik & menggabungkan data arsip serta skor SSPECT dari database...</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" class="px-6 py-10 text-center text-slate-400 italic">Menarik seluruh 1.836+ data mahasiswa & nilai dari database...</td></tr>`;
   }
 
   try {
-    // 1. Ambil arsip_master_rekapan
-    const { data: dataMaster, error: errMaster } = await db
-      .from("arsip_master_rekapan")
-      .select("*")
-      .order("nim", { ascending: true });
-
+    // 1. Ambil SEMUA baris dari arsip_master_rekapan (menembus limit 1000 baris Supabase)
+    const { data: dataMaster, error: errMaster } = await fetchAllRowsSupabase(db, "arsip_master_rekapan", "nim");
     if (errMaster) throw errMaster;
 
     const mapByNim = new Map();
 
     (dataMaster || []).forEach(row => {
-      const nimKey = String(row.nim || "").trim();
+      const nimKey = String(ambilNilaiKolom(row, ["nim", "nim_mahasiswa", "student_id"], "")).trim();
       if (!nimKey) return;
+
+      const namaAsli = String(
+        ambilNilaiKolom(row, ["nama_mahasiswa", "nama", "nama_lengkap", "full_name", "student_name"], "-")
+      ).toUpperCase();
+
+      const prodiAsli = String(
+        ambilNilaiKolom(row, ["program_studi", "prodi", "study_program", "kelas"], "-")
+      ).toUpperCase();
+
+      const jurusanAsli = String(
+        ambilNilaiKolom(row, ["jurusan", "department"], "-")
+      ).toUpperCase();
+
       mapByNim.set(nimKey, {
         ...row,
         nim: nimKey,
-        nama_mahasiswa: String(row.nama_mahasiswa || "-").toUpperCase(),
-        tahun_angkatan: ekstrakAngkatanNim(nimKey, row.tahun_angkatan),
-        skor_sspect: row.skor_sspect ?? row.nilai_sspect ?? null,
-        skor_latihan: row.skor_latihan ?? row.nilai_latihan ?? null,
-        skor_toefl: row.skor_toefl ?? row.nilai_toefl ?? null,
-        remedial_1: row.remedial_1 ?? null,
-        remedial_2: row.remedial_2 ?? null,
-        remedial_3: row.remedial_3 ?? null
+        nama_mahasiswa: namaAsli,
+        jurusan: jurusanAsli,
+        program_studi: prodiAsli,
+        tahun_angkatan: ekstrakAngkatanNim(nimKey, ambilNilaiKolom(row, ["tahun_angkatan", "angkatan"], null)),
+        skor_sspect: ambilAngkaKolom(row, ["skor_sspect", "nilai_sspect", "sspect"]),
+        skor_latihan: ambilAngkaKolom(row, ["skor_latihan", "nilai_latihan", "latihan"]),
+        skor_toefl: ambilAngkaKolom(row, ["skor_toefl", "nilai_toefl", "toefl", "skor_utama"]),
+        remedial_1: ambilAngkaKolom(row, ["remedial_1", "rem_1", "rem1"]),
+        remedial_2: ambilAngkaKolom(row, ["remedial_2", "rem_2", "rem2"]),
+        remedial_3: ambilAngkaKolom(row, ["remedial_3", "rem_3", "rem3"]),
+        listening: ambilAngkaKolom(row, ["listening", "section_1", "sec_1", "s1"]),
+        structure: ambilAngkaKolom(row, ["structure", "section_2", "sec_2", "s2"]),
+        reading: ambilAngkaKolom(row, ["reading", "section_3", "sec_3", "s3"]),
+        tempat_tanggal_lahir: ambilNilaiKolom(row, ["tempat_tanggal_lahir", "ttl", "birth"], ""),
+        tanggal_tes: ambilNilaiKolom(row, ["tanggal_tes", "tgl_tes", "test_date"], ""),
+        nomor_sertifikat: ambilNilaiKolom(row, ["nomor_sertifikat", "no_sertifikat", "certificate_number"], "")
       });
     });
 
-    // 2. Cek & gabungkan tabel SSPECT jika data SSPECT disimpan di tabel terpisah (mis. hasil_sspect / sspect_results)
-    const kandidatTabelSspect = ["hasil_sspect", "nilai_sspect", "sspect_hasil", "hasil_tes"];
-    for (const namaTabel of kandidatTabelSspect) {
-      const { data: rowsSspect, error: errSspect } = await db
-        .from(namaTabel)
-        .select("*")
-        .limit(5000);
-
-      if (!errSspect && Array.isArray(rowsSspect) && rowsSspect.length > 0) {
-        rowsSspect.forEach(s => {
-          const nimKey = String(s.nim || s.nim_mahasiswa || "").trim();
+    // 2. Gabungkan juga tabel hasil tes / SSPECT / TOEFL jika disimpan terpisah
+    const kandidatTabelHasil = ["hasil_sspect", "nilai_sspect", "sspect_hasil", "hasil_tes", "hasil_toefl"];
+    for (const namaTabel of kandidatTabelHasil) {
+      const { data: rowsHasil, error: errHasil } = await fetchAllRowsSupabase(db, namaTabel);
+      if (!errHasil && Array.isArray(rowsHasil) && rowsHasil.length > 0) {
+        rowsHasil.forEach(s => {
+          const nimKey = String(ambilNilaiKolom(s, ["nim", "nim_mahasiswa", "student_id"], "")).trim();
           if (!nimKey) return;
 
-          const jenis = String(s.kategori_tes || s.jenis_tes || namaTabel).toUpperCase();
-          const skorVal = Number(s.skor_sspect ?? s.total_skor ?? s.skor_akhir ?? s.nilai ?? 0);
-          if (!skorVal || isNaN(skorVal)) return;
+          const jenis = String(ambilNilaiKolom(s, ["kategori_tes", "jenis_tes", "kategori"], namaTabel)).toUpperCase();
+          const skorVal = ambilAngkaKolom(s, ["skor_sspect", "skor_toefl", "total_skor", "skor_akhir", "nilai"]);
+
+          const namaDariHasil = String(
+            ambilNilaiKolom(s, ["nama_mahasiswa", "nama", "nama_lengkap", "student_name"], "-")
+          ).toUpperCase();
+
+          const prodiDariHasil = String(
+            ambilNilaiKolom(s, ["program_studi", "prodi", "kelas"], "-")
+          ).toUpperCase();
 
           const existing = mapByNim.get(nimKey) || {
             nim: nimKey,
-            nama_mahasiswa: String(s.nama_mahasiswa || s.nama || "-").toUpperCase(),
-            jurusan: s.jurusan || "-",
-            program_studi: s.program_studi || s.prodi || "-",
-            tahun_angkatan: ekstrakAngkatanNim(nimKey, s.tahun_angkatan)
+            nama_mahasiswa: namaDariHasil,
+            jurusan: String(ambilNilaiKolom(s, ["jurusan"], "-")).toUpperCase(),
+            program_studi: prodiDariHasil,
+            tahun_angkatan: ekstrakAngkatanNim(nimKey, ambilNilaiKolom(s, ["tahun_angkatan", "angkatan"], null))
           };
 
-          if (jenis.includes("SSPECT")) {
-            existing.skor_sspect = skorVal;
-            existing.sspect_listening = existing.sspect_listening || s.section_1 || s.listening || null;
-            existing.sspect_structure = existing.sspect_structure || s.section_2 || s.structure || null;
-            existing.sspect_reading = existing.sspect_reading || s.section_3 || s.reading || null;
-          } else if (jenis.includes("LATIHAN")) {
-            existing.skor_latihan = skorVal;
-          } else if (!existing.skor_toefl && jenis.includes("TOEFL")) {
-            existing.skor_toefl = skorVal;
+          if ((existing.nama_mahasiswa === "-" || !existing.nama_mahasiswa) && namaDariHasil !== "-") {
+            existing.nama_mahasiswa = namaDariHasil;
+          }
+          if ((existing.program_studi === "-" || !existing.program_studi) && prodiDariHasil !== "-") {
+            existing.program_studi = prodiDariHasil;
           }
 
-          if (!existing.listening && (s.section_1 || s.listening)) existing.listening = s.section_1 || s.listening;
-          if (!existing.structure && (s.section_2 || s.structure)) existing.structure = s.section_2 || s.structure;
-          if (!existing.reading && (s.section_3 || s.reading)) existing.reading = s.section_3 || s.reading;
+          if (skorVal) {
+            if (jenis.includes("SSPECT")) {
+              existing.skor_sspect = skorVal;
+              existing.sspect_listening = existing.sspect_listening || ambilAngkaKolom(s, ["section_1", "listening"]);
+              existing.sspect_structure = existing.sspect_structure || ambilAngkaKolom(s, ["section_2", "structure"]);
+              existing.sspect_reading = existing.sspect_reading || ambilAngkaKolom(s, ["section_3", "reading"]);
+            } else if (jenis.includes("LATIHAN")) {
+              existing.skor_latihan = skorVal;
+            } else if (jenis.includes("REM") && jenis.includes("3")) {
+              existing.remedial_3 = skorVal;
+            } else if (jenis.includes("REM") && jenis.includes("2")) {
+              existing.remedial_2 = skorVal;
+            } else if (jenis.includes("REM")) {
+              existing.remedial_1 = skorVal;
+            } else if (!existing.skor_toefl && jenis.includes("TOEFL")) {
+              existing.skor_toefl = skorVal;
+            }
+          }
+
+          existing.listening = existing.listening || ambilAngkaKolom(s, ["section_1", "listening"]);
+          existing.structure = existing.structure || ambilAngkaKolom(s, ["section_2", "structure"]);
+          existing.reading = existing.reading || ambilAngkaKolom(s, ["section_3", "reading"]);
 
           mapByNim.set(nimKey, existing);
         });
@@ -162,7 +235,7 @@ async function sinkronkanDatabaseRekapan(tampilkanNotif = false) {
     terapkanFilterRekapan();
 
     if (tampilkanNotif) {
-      alert(`Sinkronisasi selesai! Total ${rekapanState.semuaData.length} data mahasiswa & riwayat nilai SSPECT/TOEFL dimuat.`);
+      alert(`Sinkronisasi selesai! Berhasil memuat seluruh ${rekapanState.semuaData.length} data mahasiswa dari database.`);
     }
   } catch (err) {
     console.error("Gagal memuat rekapan:", err);
@@ -212,7 +285,6 @@ function renderTabAngkatan() {
 
   container.innerHTML = htmlTabs;
 
-  // Isi opsi modal Batch Nomor Sertifikat & Modal Export Excel
   if (selectBatch) {
     selectBatch.innerHTML = daftarTahun
       .map(thn => `<option value="${thn}">Angkatan ${thn} (${hitungPerTahun[thn]} Mahasiswa)</option>`)
@@ -254,7 +326,6 @@ function terapkanFilterRekapan() {
   rekapanState.dataTersaring = hasil;
   rekapanState.halamanSaatIni = 1;
 
-  // Update Statistik
   const jmlLulus = hasil.filter(x => x.status_lulus === "LULUS").length;
   const jmlBelum = hasil.length - jmlLulus;
   document.getElementById("statTotalMahasiswa").textContent = `Total: ${hasil.length}`;
@@ -373,10 +444,10 @@ function bukaModalDetailMahasiswa(nimTarget) {
   document.getElementById("detailSec2").textContent = m.structure ?? m.sspect_structure ?? "-";
   document.getElementById("detailSec3").textContent = m.reading ?? m.sspect_reading ?? "-";
 
-  document.getElementById("inputDetailTtl").value = m.tempat_tanggal_lahir || "Samarinda, -";
-  document.getElementById("inputDetailTanggalTes").value = m.tanggal_tes || "15 November 2026";
+  document.getElementById("inputDetailTtl").value = m.tempat_tanggal_lahir || "";
+  document.getElementById("inputDetailTanggalTes").value = m.tanggal_tes || "";
   document.getElementById("inputDetailNomorSertifikat").value =
-    m.nomor_sertifikat || `L7.18 / UPA.BAHASA / TOEFL-P / ${new Date().getFullYear()}`;
+    m.nomor_sertifikat || `0001 / PL7.18 / UPA.BAHASA / TOEFL-P / ${new Date().getFullYear()}`;
 
   const modal = document.getElementById("modalDetailMahasiswa");
   modal.classList.remove("hidden");
@@ -487,23 +558,22 @@ async function eksekusiBatchNomorSertifikat() {
   btn.disabled = true;
 
   try {
-    const payloads = daftarTarget.map((m, idx) => {
-      const kodeUrut = generateNomorBerantai(kodeAwal, idx);
-      const nomorLengkap = suffix ? `${kodeUrut} ${suffix}` : kodeUrut;
-      m.nomor_sertifikat = nomorLengkap;
-      return {
-        nim: m.nim,
-        nama_mahasiswa: m.nama_mahasiswa,
-        tahun_angkatan: m.tahun_angkatan,
-        nomor_sertifikat: nomorLengkap
-      };
-    });
-
-    const { error } = await db
-      .from("arsip_master_rekapan")
-      .upsert(payloads, { onConflict: "nim" });
-
-    if (error) throw error;
+    // Update hanya kolom nomor_sertifikat per batch agar nama_mahasiswa, prodi, dan nilai asli tidak tertimpa
+    const chunkSize = 200;
+    for (let i = 0; i < daftarTarget.length; i += chunkSize) {
+      const slice = daftarTarget.slice(i, i + chunkSize);
+      const promises = slice.map((m, offsetLocal) => {
+        const idxGlobal = i + offsetLocal;
+        const kodeUrut = generateNomorBerantai(kodeAwal, idxGlobal);
+        const nomorLengkap = suffix ? `${kodeUrut} ${suffix}` : kodeUrut;
+        m.nomor_sertifikat = nomorLengkap;
+        return db
+          .from("arsip_master_rekapan")
+          .update({ nomor_sertifikat: nomorLengkap })
+          .eq("nim", m.nim);
+      });
+      await Promise.all(promises);
+    }
 
     tutupModalBatchNomor();
     alert(`Berhasil! ${daftarTarget.length} nomor sertifikat Angkatan ${targetAngkatan} telah dibuat berurutan mulai dari ${kodeAwal}.`);
@@ -608,7 +678,7 @@ function eksekusiUnduhExcelRekapan() {
   tutupModalUnduhExcel();
 }
 
-// ==================== 7. UNDUH / CETAK SERTIFIKAT RESMI UPA BAHASA POLNES ====================
+// ==================== 7. UNDUH / CETAK SERTIFIKAT RESMI (TEMPLATE ./img/sertif.png A4 LANDSCAPE) ====================
 function unduhSertifikatByNim(nimTarget) {
   const m = rekapanState.semuaData.find(x => String(x.nim) === String(nimTarget));
   if (!m) return;
@@ -625,15 +695,25 @@ function unduhSertifikatMahasiswaAktif() {
 }
 
 function cetakHalamanSertifikatResmi(m) {
-  const nomor = m.nomor_sertifikat || "A11 / PL7.18 / UPA.BAHASA / TOEFL-P / 2026";
-  const ttl = m.tempat_tanggal_lahir || "Samarinda, -";
-  const tglTes = m.tanggal_tes || "15 November 2026";
-  const sec1 = m.listening ?? m.sspect_listening ?? "-";
-  const sec2 = m.structure ?? m.sspect_structure ?? "-";
-  const sec3 = m.reading ?? m.sspect_reading ?? "-";
-  const totalSkor = m.skor_akhir ?? "-";
+  // Deteksi apakah sertifikat TOEFL atau SSPECT berdasarkan nilai yang dimiliki
+  const punyaToefl = Boolean(m.skor_toefl || m.remedial_1 || m.remedial_2 || m.remedial_3);
+  const isSspectOnly = !punyaToefl && Boolean(m.skor_sspect);
 
-  const win = window.open("", "_blank", "width=1050,height=760");
+  const jenisTesText = isSspectOnly ? "SSPECT Placement Test" : "Toefl Prediction Test";
+  const defaultKodeSurat = isSspectOnly ? "SSPECT" : "TOEFL-P";
+  const nomor = m.nomor_sertifikat || `0355 / PL7.18 / UPA.BAHASA / ${defaultKodeSurat} / ${new Date().getFullYear()}`;
+  const ttl = m.tempat_tanggal_lahir || "Samarinda, -";
+  const tglTes = m.tanggal_tes || "04 May 2026";
+
+  const sec1 = isSspectOnly ? (m.sspect_listening ?? m.listening ?? "-") : (m.listening ?? m.sspect_listening ?? "-");
+  const sec2 = isSspectOnly ? (m.sspect_structure ?? m.structure ?? "-") : (m.structure ?? m.sspect_structure ?? "-");
+  const sec3 = isSspectOnly ? (m.sspect_reading ?? m.reading ?? "-") : (m.reading ?? m.sspect_reading ?? "-");
+  const totalSkor = isSspectOnly ? (m.skor_sspect ?? "-") : (m.skor_akhir ?? "-");
+
+  // Resolusi URL absolut untuk ./img/sertif.png agar tetap muncul di window.open
+  const bgUrl = new URL("./img/sertif.png", window.location.href).href;
+
+  const win = window.open("", "_blank", "width=1120,height=800");
   if (!win) {
     alert("Pop-up diblokir browser. Izinkan pop-up untuk mencetak/mengunduh sertifikat PDF.");
     return;
@@ -641,232 +721,274 @@ function cetakHalamanSertifikatResmi(m) {
 
   win.document.write(`
     <!DOCTYPE html>
-    <html lang="en">
+    <html lang="id">
     <head>
       <meta charset="UTF-8" />
-      <title>Sertifikat TOEFL - ${m.nama_mahasiswa} (${m.nim})</title>
+      <title>Sertifikat ${isSspectOnly ? "SSPECT" : "TOEFL"} - ${m.nama_mahasiswa} (${m.nim})</title>
       <style>
-        @page { size: A4 landscape; margin: 0; }
+        @page {
+          size: A4 landscape;
+          margin: 0;
+        }
+        * {
+          box-sizing: border-box;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
         body {
           margin: 0;
-          padding: 24px;
-          background: #e2e8f0;
-          font-family: 'Times New Roman', Georgia, serif;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          min-height: 100vh;
-        }
-        .sheet {
-          width: 297mm;
-          height: 210mm;
-          background: #ffffff;
-          box-sizing: border-box;
-          padding: 14mm 18mm;
-          position: relative;
-          border: 8px double #0f5132;
-          box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-        }
-        .inner-border {
-          border: 2px solid #b8860b;
-          height: 100%;
-          box-sizing: border-box;
-          padding: 10mm 14mm;
+          padding: 0;
+          background: #cbd5e1;
+          font-family: 'Times New Roman', Times, serif;
           display: flex;
           flex-direction: column;
-          justify-content: space-between;
+          align-items: center;
         }
-        .header {
-          text-align: center;
-          border-bottom: 2px solid #0f5132;
-          padding-bottom: 8px;
-        }
-        .ministry {
-          font-size: 11pt;
-          font-weight: bold;
-          letter-spacing: 0.5px;
-          text-transform: uppercase;
-        }
-        .polnes {
-          font-size: 14pt;
-          font-weight: bold;
-          color: #0f5132;
-          text-transform: uppercase;
-          margin: 2px 0;
-        }
-        .upa {
-          font-size: 12pt;
-          font-weight: bold;
-          letter-spacing: 1px;
-        }
-        .address {
-          font-size: 9pt;
-          font-family: Arial, sans-serif;
-          color: #475569;
-          margin-top: 2px;
-        }
-        .title-block {
-          text-align: center;
-          margin-top: 6px;
-        }
-        .cert-title {
-          font-size: 24pt;
-          font-weight: bold;
-          letter-spacing: 3px;
-          color: #0f5132;
-          margin: 0;
-        }
-        .cert-no {
-          font-family: Arial, sans-serif;
-          font-size: 10pt;
-          font-weight: bold;
-          margin-top: 4px;
-          color: #1e293b;
-        }
-        .body-text {
-          text-align: center;
-          font-size: 12pt;
-          line-height: 1.5;
-        }
-        .student-name {
-          font-size: 20pt;
-          font-weight: bold;
-          text-transform: uppercase;
-          color: #0f172a;
-          border-bottom: 1.5px solid #0f5132;
-          display: inline-block;
-          padding: 2px 24px;
-          margin: 4px 0;
-        }
-        .meta-table {
-          margin: 6px auto;
-          font-size: 11pt;
-          text-align: left;
-        }
-        .meta-table td {
-          padding: 2px 10px;
-        }
-        .score-table {
-          width: 78%;
-          margin: 8px auto;
-          border-collapse: collapse;
-          font-family: Arial, sans-serif;
-          font-size: 10.5pt;
-        }
-        .score-table th, .score-table td {
-          border: 1px solid #334155;
-          padding: 6px 12px;
-        }
-        .score-table th {
-          background: #f1f5f9;
-          text-align: left;
-        }
-        .score-val {
-          text-align: center;
-          font-weight: bold;
-          width: 110px;
-        }
-        .footer {
+        .toolbar-cetak {
+          width: 297mm;
+          background: #0f172a;
+          color: #fff;
+          padding: 10px 20px;
           display: flex;
           justify-content: space-between;
-          align-items: flex-end;
+          align-items: center;
+          font-family: Arial, sans-serif;
+          font-size: 13px;
+        }
+        .toolbar-cetak select, .toolbar-cetak button {
+          padding: 6px 12px;
+          border-radius: 6px;
+          border: none;
+          font-weight: bold;
+          cursor: pointer;
+        }
+        .toolbar-cetak button {
+          background: #169C53;
+          color: #fff;
+        }
+        .page-a4 {
+          width: 297mm;
+          height: 210mm;
+          position: relative;
+          background-color: #ffffff;
+          background-image: url('${bgUrl}');
+          background-size: 100% 100%;
+          background-repeat: no-repeat;
+          background-position: center;
+          overflow: hidden;
+        }
+        /* Area Konten Utama tepat di tengah template ./img/sertif.png */
+        .cert-overlay {
+          position: absolute;
+          top: 42mm;
+          left: 28mm;
+          right: 22mm;
+          bottom: 18mm;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          color: #111827;
+        }
+        .cert-heading {
+          text-align: center;
+          margin-bottom: 3mm;
+        }
+        .cert-heading h1 {
+          margin: 0;
+          font-size: 17pt;
+          font-weight: bold;
+          letter-spacing: 1px;
+          text-transform: uppercase;
+        }
+        .cert-heading .no-surat {
+          margin-top: 1.5mm;
           font-size: 11pt;
-          margin-top: 6px;
+          font-weight: normal;
         }
-        .sign-box {
-          text-align: left;
-          width: 260px;
+        .presented-to {
+          font-size: 11.5pt;
+          font-style: italic;
+          margin-bottom: 3mm;
         }
-        .sign-space {
-          height: 52px;
+        .biodata-table {
+          width: 155mm;
+          border-collapse: collapse;
+          font-size: 11.5pt;
+          margin-bottom: 3.5mm;
+        }
+        .biodata-table td {
+          padding: 1.2mm 2mm;
+          vertical-align: top;
+        }
+        .biodata-table td.lbl {
+          width: 48mm;
+        }
+        .biodata-table td.sep {
+          width: 5mm;
+          text-align: center;
+        }
+        .biodata-table td.val-name {
+          font-weight: bold;
+          font-size: 13pt;
+          text-transform: uppercase;
+          letter-spacing: 0.4px;
+        }
+        .achieved-text {
+          font-size: 11.5pt;
+          font-style: italic;
+          margin-bottom: 3mm;
+        }
+        .score-grid {
+          width: 175mm;
+          border-collapse: collapse;
+          text-align: center;
+          font-size: 11pt;
+          margin-bottom: 5mm;
+        }
+        .score-grid th, .score-grid td {
+          border: 1.2px solid #1e293b;
+          padding: 2.2mm 3mm;
+        }
+        .score-grid th {
+          font-weight: bold;
+          font-style: italic;
+          background: rgba(255, 255, 255, 0.72);
+        }
+        .score-grid td {
+          font-size: 13pt;
+          font-weight: bold;
+          background: rgba(255, 255, 255, 0.82);
+        }
+        .ttd-wrapper {
+          width: 175mm;
+          display: flex;
+          justify-content: flex-start;
+          padding-left: 10mm;
+          margin-top: 1mm;
+        }
+        .ttd-box {
+          font-size: 11pt;
+          line-height: 1.35;
+        }
+        .ttd-space {
+          height: 16mm;
         }
         @media print {
-          body { background: none; padding: 0; }
-          .sheet { box-shadow: none; }
+          body { background: none; }
+          .toolbar-cetak { display: none !important; }
         }
       </style>
     </head>
     <body>
-      <div class="sheet">
-        <div class="inner-border">
-          <div class="header">
-            <div class="ministry">Ministry of Higher Education, Science, and Technology</div>
-            <div class="polnes">Politeknik Negeri Samarinda</div>
-            <div class="upa">LANGUAGE SUPPORT UNIT (UPA BAHASA)</div>
-            <div class="address">Jl. Dr. Ciptomangunkusumo Kampus Gunung Lipan Samarinda 75131 Kalimantan Timur</div>
+      <div class="toolbar-cetak">
+        <div>
+          <span>Jenis Sertifikat: </span>
+          <select id="pilihJenisSertif" onchange="gantiJenisSertifikat(this.value)">
+            <option value="TOEFL" ${!isSspectOnly ? "selected" : ""}>Sertifikat TOEFL (Toefl Prediction Test)</option>
+            <option value="SSPECT" ${isSspectOnly ? "selected" : ""}>Sertifikat SSPECT (SSPECT Placement Test)</option>
+          </select>
+        </div>
+        <button type="button" onclick="window.print()">Cetak / Simpan PDF (A4 Landscape)</button>
+      </div>
+
+      <div class="page-a4">
+        <div class="cert-overlay">
+          <div class="cert-heading">
+            <h1>CERTIFICATE OF ACHIEVEMENT</h1>
+            <div class="no-surat" id="teksNomorSurat">No : ${nomor}</div>
           </div>
 
-          <div class="title-block">
-            <h1 class="cert-title">CERTIFICATE OF ACHIEVEMENT</h1>
-            <div class="cert-no">Number: ${nomor}</div>
+          <div class="presented-to">This is presented to</div>
+
+          <table class="biodata-table">
+            <tr>
+              <td class="lbl">Name</td>
+              <td class="sep">:</td>
+              <td class="val-name">${m.nama_mahasiswa}</td>
+            </tr>
+            <tr>
+              <td class="lbl">NIM</td>
+              <td class="sep">:</td>
+              <td>${m.nim}</td>
+            </tr>
+            <tr>
+              <td class="lbl">Place, date of birth</td>
+              <td class="sep">:</td>
+              <td>${ttl}</td>
+            </tr>
+            <tr>
+              <td class="lbl">Program Study</td>
+              <td class="sep">:</td>
+              <td>${m.program_studi || "-"}</td>
+            </tr>
+            <tr>
+              <td class="lbl">Date of test taken</td>
+              <td class="sep">:</td>
+              <td>${tglTes}</td>
+            </tr>
+          </table>
+
+          <div class="achieved-text">
+            Achieved the following score on <span id="teksJenisTes">${jenisTesText}</span>
           </div>
 
-          <div class="body-text">
-            <div>This is to certify that</div>
-            <div class="student-name">${m.nama_mahasiswa}</div>
-            <table class="meta-table">
+          <table class="score-grid">
+            <thead>
               <tr>
-                <td>Student ID (NIM)</td>
-                <td>: <b>${m.nim}</b></td>
-                <td style="padding-left: 28px;">Study Program</td>
-                <td>: <b>${m.program_studi || "-"}</b></td>
+                <th>Listening<br />Comprehension</th>
+                <th>Structure and<br />Written Expression</th>
+                <th>Reading<br />Comprehension</th>
+                <th style="font-style:normal;">Total Score</th>
               </tr>
+            </thead>
+            <tbody>
               <tr>
-                <td>Place, Date of Birth</td>
-                <td>: ${ttl}</td>
-                <td style="padding-left: 28px;">Date of Test Taken</td>
-                <td>: ${tglTes}</td>
+                <td id="cellSec1">${sec1}</td>
+                <td id="cellSec2">${sec2}</td>
+                <td id="cellSec3">${sec3}</td>
+                <td id="cellTotal">${totalSkor}</td>
               </tr>
-            </table>
-            <div>has taken the <b>English Proficiency Test (TOEFL-Equivalent)</b> with the following scores:</div>
+            </tbody>
+          </table>
 
-            <table class="score-table">
-              <thead>
-                <tr>
-                  <th>Section</th>
-                  <th style="text-align:center;">Converted Score</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Section 1: Listening Comprehension</td>
-                  <td class="score-val">${sec1}</td>
-                </tr>
-                <tr>
-                  <td>Section 2: Structure and Written Expression</td>
-                  <td class="score-val">${sec2}</td>
-                </tr>
-                <tr>
-                  <td>Section 3: Reading Comprehension</td>
-                  <td class="score-val">${sec3}</td>
-                </tr>
-                <tr style="background:#ecfdf5;">
-                  <td><b>TOTAL SCORE</b></td>
-                  <td class="score-val" style="font-size:12pt;color:#0f5132;">${totalSkor}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div class="footer">
-            <div style="font-size:9pt;font-family:Arial,sans-serif;color:#64748b;">
-              Valid for 2 (two) years from the date of test taken.<br />
-              Verified by UPA Bahasa Politeknik Negeri Samarinda.
-            </div>
-            <div class="sign-box">
+          <div class="ttd-wrapper">
+            <div class="ttd-box">
               <div>Samarinda, ${tglTes}</div>
-              <div>Head of UPA Bahasa,</div>
-              <div class="sign-space"></div>
-              <div><b><u>Rina Sari, S.Pd., M.Pd.</u></b></div>
-              <div style="font-size:9.5pt;">NIP. 19800512 200501 2 002</div>
+              <div>Head of UPA. Bahasa</div>
+              <div class="ttd-space"></div>
+              <div><b><u>Dwi Titi Maesaroh, S.Pd., M.Pd.</u></b></div>
+              <div>NIP. 198901172024062002</div>
             </div>
           </div>
         </div>
       </div>
+
       <script>
-        window.onload = function() {
-          setTimeout(function() { window.print(); }, 400);
+        const dataCert = {
+          toefl: {
+            jenis: "Toefl Prediction Test",
+            s1: "${m.listening ?? "-"}",
+            s2: "${m.structure ?? "-"}",
+            s3: "${m.reading ?? "-"}",
+            total: "${m.skor_akhir ?? "-"}"
+          },
+          sspect: {
+            jenis: "SSPECT Placement Test",
+            s1: "${m.sspect_listening ?? m.listening ?? "-"}",
+            s2: "${m.sspect_structure ?? m.structure ?? "-"}",
+            s3: "${m.sspect_reading ?? m.reading ?? "-"}",
+            total: "${m.skor_sspect ?? "-"}"
+          }
         };
+
+        function gantiJenisSertifikat(tipe) {
+          const d = tipe === "SSPECT" ? dataCert.sspect : dataCert.toefl;
+          document.getElementById("teksJenisTes").textContent = d.jenis;
+          document.getElementById("cellSec1").textContent = d.s1;
+          document.getElementById("cellSec2").textContent = d.s2;
+          document.getElementById("cellSec3").textContent = d.s3;
+          document.getElementById("cellTotal").textContent = d.total;
+        }
       </script>
     </body>
     </html>
