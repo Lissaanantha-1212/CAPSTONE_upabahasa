@@ -392,16 +392,16 @@
         </div>
       </div>
 
-      <!-- 2. Jadwal Tes (2 Tabel: Tabel Jadwal Kelas dari jadwal_log + Tabel Daftar Mahasiswa dari peserta_ujian) -->
+      <!-- 2. Jadwal Tes (Tabel 1: Jadwal Kelas; Tabel 2: Muncul HANYA setelah tombol Lihat Peserta diklik) -->
       <div id="sec-jadwal-toefl" class="scroll-mt-36 space-y-8">
         
-        <!-- 2A. TABEL 1: JADWAL UJIAN PER KELAS (DARI jadwal_log) -->
+        <!-- 2A. TABEL 1: JADWAL UJIAN PER KELAS -->
         <div class="bg-white rounded-3xl p-6 md:p-8 shadow-2xs border border-slate-200 space-y-5">
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
             <div>
-              <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#169C53]" data-i18n="toefl_tbl1_badge">TABEL 1 • JADWAL PER KELAS (DARI JADWAL_LOG)</span>
+              <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#169C53]" data-i18n="toefl_tbl1_badge">JADWAL PELAKSANAAN UJIAN</span>
               <h2 class="text-lg md:text-xl font-extrabold text-slate-900 mt-0.5" data-i18n="toefl_tbl1_title">Jadwal Ujian TOEFL Prediction per Kelas</h2>
-              <p class="text-[11px] text-slate-500 mt-0.5" data-i18n="toefl_tbl1_hint">Klik baris jadwal atau tombol <b>Lihat Mahasiswa</b> untuk menampilkan daftar nama peserta pada kelas tersebut.</p>
+              <p class="text-[11px] text-slate-500 mt-0.5" data-i18n="toefl_tbl1_hint">Klik tombol <b>Lihat Peserta</b> pada kelas Anda untuk menampilkan daftar nama mahasiswa beserta detail sesi dan ruang lab.</p>
             </div>
 
             <button type="button" onclick="muatJadwalToefl()" class="self-start md:self-auto px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-all">
@@ -420,39 +420,40 @@
                   <th class="px-4 py-3 font-bold" data-i18n="th_tanggal">TANGGAL UJIAN</th>
                   <th class="px-4 py-3 font-bold" data-i18n="th_sesi_jam">SESI & JAM</th>
                   <th class="px-4 py-3 font-bold text-center" data-i18n="th_ruang_lab">RUANG LAB</th>
-                  <th class="px-4 py-3 font-bold text-center" data-i18n="th_detail">DETAIL PESERTA</th>
+                  <th class="px-4 py-3 font-bold text-center" data-i18n="th_detail">DAFTAR PESERTA</th>
                 </tr>
               </thead>
               <tbody id="tbodyJadwalKelasToefl" class="divide-y divide-slate-100 text-xs sm:text-sm text-slate-700">
                 <tr>
-                  <td colspan="7" class="px-5 py-8 text-center text-slate-400 italic">Memuat jadwal kelas TOEFL dari database staff...</td>
+                  <td colspan="7" class="px-5 py-8 text-center text-slate-400 italic">Memuat jadwal kelas TOEFL...</td>
                 </tr>
               </tbody>
             </table>
           </div>
         </div>
 
-        <!-- 2B. TABEL 2: DAFTAR MAHASISWA PESERTA UJIAN (DARI peserta_ujian) -->
-        <div id="boxDetailPesertaToefl" class="bg-white rounded-3xl p-6 md:p-8 shadow-2xs border border-slate-200 space-y-5">
+        <!-- 2B. TABEL 2: DAFTAR MAHASISWA PESERTA UJIAN (AWALNYA TERSEMBUNYI, MUNCUL SAAT KLIK LIHAT PESERTA) -->
+        <div id="boxDetailPesertaToefl" class="hidden bg-white rounded-3xl p-6 md:p-8 shadow-2xs border-2 border-emerald-200 space-y-5">
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
             <div>
               <div class="flex flex-wrap items-center gap-2">
-                <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#169C53]" data-i18n="toefl_tbl2_badge">TABEL 2 • DAFTAR MAHASISWA UJIAN (DARI PESERTA_UJIAN)</span>
-                <span id="badgeFilterKelasToefl" class="px-2.5 py-0.5 rounded-full bg-emerald-50 text-[#169C53] border border-emerald-200 text-[10px] font-extrabold">
-                  Semua Jadwal Aktif
+                <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#169C53]" data-i18n="toefl_tbl2_badge">DAFTAR PESERTA UJIAN</span>
+                <span id="badgeFilterKelasToefl" class="px-3 py-0.5 rounded-full bg-emerald-50 text-[#169C53] border border-emerald-200 text-[11px] font-extrabold">
+                  Kelas: -
                 </span>
               </div>
               <h3 class="text-lg font-extrabold text-slate-900 mt-1" data-i18n="toefl_tbl2_title">Daftar Nama Mahasiswa Peserta TOEFL Prediction</h3>
-              <p class="text-[11px] text-slate-500 mt-0.5" data-i18n="toefl_tbl2_hint">Cari nama atau NIM Anda di kolom pencarian untuk melihat tanggal, sesi & jam, ruang lab, kelas, serta program studi Anda.</p>
+              <p class="text-[11px] text-slate-500 mt-0.5" data-i18n="toefl_tbl2_hint">Cari nama atau NIM Anda di kolom pencarian di samping untuk mengecek nomor meja, tanggal, sesi, dan ruang lab.</p>
             </div>
 
             <div class="flex flex-wrap items-center gap-2">
-              <div class="relative w-full sm:w-72">
+              <div class="relative w-full sm:w-64">
                 <i class="ri-search-line absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                <input type="text" id="inputCariMahasiswaToefl" onkeyup="filterDaftarMahasiswaToefl()" placeholder="Cari Nama Mahasiswa atau NIM..." class="w-full pl-9 pr-4 py-2 rounded-full border border-slate-200 text-xs focus:border-[#169C53] outline-none">
+                <input type="text" id="inputCariMahasiswaToefl" onkeyup="filterDaftarMahasiswaToefl()" placeholder="Cari Nama atau NIM..." class="w-full pl-9 pr-4 py-2 rounded-full border border-slate-200 text-xs focus:border-[#169C53] outline-none">
               </div>
-              <button type="button" id="btnResetFilterToefl" onclick="resetFilterKelasToefl()" class="hidden px-3.5 py-2 rounded-full bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 text-xs font-bold transition-all">
-                Tampilkan Semua Kelas
+              <button type="button" onclick="tutupDetailPesertaToefl()" class="px-3.5 py-2 rounded-full bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 border border-slate-200 hover:border-rose-200 text-xs font-bold inline-flex items-center gap-1 transition-all">
+                <i class="ri-close-line"></i>
+                <span>Tutup</span>
               </button>
             </div>
           </div>
@@ -471,7 +472,7 @@
               </thead>
               <tbody id="tbodyMahasiswaToefl" class="divide-y divide-slate-100 text-xs sm:text-sm text-slate-700">
                 <tr>
-                  <td colspan="6" class="px-5 py-8 text-center text-slate-400 italic">Memuat daftar mahasiswa ujian dari tabel peserta_ujian...</td>
+                  <td colspan="6" class="px-5 py-8 text-center text-slate-400 italic">Silakan pilih jadwal kelas terlebih dahulu.</td>
                 </tr>
               </tbody>
             </table>
@@ -577,17 +578,17 @@
     </div>
   </section>
 
-  <!-- ==================== VIEW 4: LAYANAN SSPECT (2 TABEL: JADWAL KELAS + DAFTAR MAHASISWA) ==================== -->
+  <!-- ==================== VIEW 4: LAYANAN SSPECT (TABEL JADWAL KELAS; DAFTAR PESERTA MUNCUL SAAT DIKLIK) ==================== -->
   <section id="viewSspect" class="hidden flex-1 pb-16">
     <div class="max-w-7xl mx-auto px-4 md:px-10 lg:px-16 pt-8 space-y-8">
       
-      <!-- TABEL 1 SSPECT: JADWAL UJIAN PER KELAS (DARI jadwal_log) -->
+      <!-- TABEL 1 SSPECT: JADWAL UJIAN PER KELAS -->
       <div class="bg-white rounded-3xl p-6 md:p-8 shadow-2xs border border-slate-200 space-y-5">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
           <div>
-            <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#169C53]" data-i18n="sspect_tbl1_badge">TABEL 1 • JADWAL SSPECT PER KELAS (DARI JADWAL_LOG)</span>
+            <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#169C53]" data-i18n="sspect_tbl1_badge">JADWAL PELAKSANAAN SSPECT</span>
             <h2 class="text-xl font-extrabold text-slate-900 mt-0.5" data-i18n="sspect_tbl1_title">Jadwal Ujian SSPECT per Kelas</h2>
-            <p class="text-[11px] text-slate-500 mt-0.5">Klik baris jadwal atau tombol <b>Lihat Mahasiswa</b> untuk melihat daftar peserta ujian SSPECT pada kelas tersebut.</p>
+            <p class="text-[11px] text-slate-500 mt-0.5">Klik tombol <b>Lihat Peserta</b> pada kelas Anda untuk menampilkan daftar nama mahasiswa peserta ujian SSPECT.</p>
           </div>
 
           <button type="button" onclick="muatDataSspect()" class="self-start md:self-auto px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-all">
@@ -606,39 +607,40 @@
                 <th class="px-4 py-3 font-bold" data-i18n="th_tanggal">TANGGAL UJIAN</th>
                 <th class="px-4 py-3 font-bold" data-i18n="th_sesi_jam">SESI & JAM</th>
                 <th class="px-4 py-3 font-bold text-center" data-i18n="th_ruang_lab">RUANG LAB</th>
-                <th class="px-4 py-3 font-bold text-center" data-i18n="th_detail">DETAIL PESERTA</th>
+                <th class="px-4 py-3 font-bold text-center" data-i18n="th_detail">DAFTAR PESERTA</th>
               </tr>
             </thead>
             <tbody id="tbodyJadwalKelasSspect" class="divide-y divide-slate-100 text-xs sm:text-sm text-slate-700">
               <tr>
-                <td colspan="7" class="px-5 py-8 text-center text-slate-400 italic">Memuat jadwal kelas SSPECT dari database staff...</td>
+                <td colspan="7" class="px-5 py-8 text-center text-slate-400 italic">Memuat jadwal kelas SSPECT...</td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
 
-      <!-- TABEL 2 SSPECT: DAFTAR MAHASISWA PESERTA UJIAN (DARI peserta_ujian) -->
-      <div id="boxDetailPesertaSspect" class="bg-white rounded-3xl p-6 md:p-8 shadow-2xs border border-slate-200 space-y-5">
+      <!-- TABEL 2 SSPECT: DAFTAR MAHASISWA PESERTA UJIAN (AWALNYA TERSEMBUNYI, MUNCUL SAAT KLIK LIHAT PESERTA) -->
+      <div id="boxDetailPesertaSspect" class="hidden bg-white rounded-3xl p-6 md:p-8 shadow-2xs border-2 border-emerald-200 space-y-5">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
           <div>
             <div class="flex flex-wrap items-center gap-2">
-              <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#169C53]">TABEL 2 • DAFTAR MAHASISWA SSPECT (DARI PESERTA_UJIAN)</span>
-              <span id="badgeFilterKelasSspect" class="px-2.5 py-0.5 rounded-full bg-emerald-50 text-[#169C53] border border-emerald-200 text-[10px] font-extrabold">
-                Semua Jadwal Aktif
+              <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#169C53]">DAFTAR PESERTA SSPECT</span>
+              <span id="badgeFilterKelasSspect" class="px-3 py-0.5 rounded-full bg-emerald-50 text-[#169C53] border border-emerald-200 text-[11px] font-extrabold">
+                Kelas: -
               </span>
             </div>
             <h3 class="text-lg font-extrabold text-slate-900 mt-1">Daftar Nama Mahasiswa Peserta Ujian SSPECT</h3>
-            <p class="text-[11px] text-slate-500 mt-0.5">Ketik nama atau NIM mahasiswa di kolom pencarian untuk mengecek tanggal, sesi, jam, dan ruang lab ujian.</p>
+            <p class="text-[11px] text-slate-500 mt-0.5">Ketik nama atau NIM mahasiswa di kolom pencarian untuk mengecek nomor meja, tanggal, sesi, dan ruang lab ujian.</p>
           </div>
 
           <div class="flex flex-wrap items-center gap-2">
-            <div class="relative w-full sm:w-72">
+            <div class="relative w-full sm:w-64">
               <i class="ri-search-line absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-              <input type="text" id="inputCariMahasiswaSspect" onkeyup="filterDaftarMahasiswaSspect()" placeholder="Cari Nama Mahasiswa atau NIM..." class="w-full pl-9 pr-4 py-2 rounded-full border border-slate-200 text-xs focus:border-[#169C53] outline-none">
+              <input type="text" id="inputCariMahasiswaSspect" onkeyup="filterDaftarMahasiswaSspect()" placeholder="Cari Nama atau NIM..." class="w-full pl-9 pr-4 py-2 rounded-full border border-slate-200 text-xs focus:border-[#169C53] outline-none">
             </div>
-            <button type="button" id="btnResetFilterSspect" onclick="resetFilterKelasSspect()" class="hidden px-3.5 py-2 rounded-full bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 text-xs font-bold transition-all">
-              Tampilkan Semua Kelas
+            <button type="button" onclick="tutupDetailPesertaSspect()" class="px-3.5 py-2 rounded-full bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 border border-slate-200 hover:border-rose-200 text-xs font-bold inline-flex items-center gap-1 transition-all">
+              <i class="ri-close-line"></i>
+              <span>Tutup</span>
             </button>
           </div>
         </div>
@@ -657,7 +659,7 @@
             </thead>
             <tbody id="tbodyMahasiswaSspect" class="divide-y divide-slate-100 text-xs sm:text-sm text-slate-700">
               <tr>
-                <td colspan="6" class="px-5 py-8 text-center text-slate-400 italic">Memuat daftar mahasiswa SSPECT dari tabel peserta_ujian...</td>
+                <td colspan="6" class="px-5 py-8 text-center text-slate-400 italic">Silakan pilih jadwal kelas terlebih dahulu.</td>
               </tr>
             </tbody>
           </table>
@@ -736,7 +738,7 @@
         <!-- Container Render Berita Utama (Headline) + Grid 3 Kolom -->
         <div id="containerBeritaToeic" class="space-y-8">
           <div class="bg-white rounded-3xl p-12 text-center text-slate-400 text-xs italic border border-slate-200">
-            Memuat pengumuman resmi TOEIC dari database staf...
+            Memuat pengumuman resmi TOEIC...
           </div>
         </div>
       </div>
@@ -875,12 +877,12 @@
         toefl_box2_d: "Digunakan sebagai bukti kemampuan bahasa Inggris saat melamar pekerjaan di perusahaan nasional, multinasional, maupun instansi pemerintah.",
         toefl_box3_t: "Struktur Pengujian",
         toefl_box3_d: "Mengukur penguasaan tiga aspek utama: Listening Comprehension, Structure & Written Expression, dan Reading Comprehension.",
-        toefl_tbl1_badge: "TABEL 1 • JADWAL PER KELAS (DARI JADWAL_LOG)",
+        toefl_tbl1_badge: "JADWAL PELAKSANAAN UJIAN",
         toefl_tbl1_title: "Jadwal Ujian TOEFL Prediction per Kelas",
-        toefl_tbl1_hint: "Klik baris jadwal atau tombol Lihat Mahasiswa untuk menampilkan daftar nama peserta pada kelas tersebut.",
-        toefl_tbl2_badge: "TABEL 2 • DAFTAR MAHASISWA UJIAN (DARI PESERTA_UJIAN)",
+        toefl_tbl1_hint: "Klik tombol Lihat Peserta pada kelas Anda untuk menampilkan daftar nama mahasiswa beserta detail sesi dan ruang lab.",
+        toefl_tbl2_badge: "DAFTAR PESERTA UJIAN",
         toefl_tbl2_title: "Daftar Nama Mahasiswa Peserta TOEFL Prediction",
-        toefl_tbl2_hint: "Cari nama atau NIM Anda di kolom pencarian untuk melihat tanggal, sesi & jam, ruang lab, kelas, serta program studi Anda.",
+        toefl_tbl2_hint: "Cari nama atau NIM Anda di kolom pencarian di samping untuk mengecek nomor meja, tanggal, sesi, dan ruang lab.",
         btn_segarkan_jadwal: "Segarkan Jadwal",
         btn_segarkan_file: "Segarkan Pengumuman",
         th_kelas_uji: "KELAS",
@@ -888,7 +890,7 @@
         th_tanggal: "TANGGAL UJIAN",
         th_sesi_jam: "SESI & JAM",
         th_ruang_lab: "RUANG LAB",
-        th_detail: "DETAIL PESERTA",
+        th_detail: "DAFTAR PESERTA",
         th_nama_mhs: "NAMA MAHASISWA",
         th_kelas_prodi: "KELAS & PRODI",
         th_tgl_sesi: "TANGGAL, SESI & JAM",
@@ -905,7 +907,7 @@
         skor_title: "Cek Hasil Skor TOEFL Prediction",
         skor_sub: "Masukkan NIM Anda untuk memeriksa rincian nilai Listening, Structure, Reading, dan Total Skor.",
         btn_cek_skor: "Cek Skor Sekarang",
-        sspect_tbl1_badge: "TABEL 1 • JADWAL SSPECT PER KELAS (DARI JADWAL_LOG)",
+        sspect_tbl1_badge: "JADWAL PELAKSANAAN SSPECT",
         sspect_tbl1_title: "Jadwal Ujian SSPECT per Kelas",
         toeic_badge: "LAYANAN SERTIFIKASI INTERNASIONAL • TOEIC",
         toeic_heading: "Informasi Umum & Pengumuman Resmi TOEIC",
@@ -972,12 +974,12 @@
         toefl_box2_d: "Serves as proof of English proficiency when applying to national companies, multinational corporations, and government institutions.",
         toefl_box3_t: "Test Structure",
         toefl_box3_d: "Measures mastery across three core areas: Listening Comprehension, Structure & Written Expression, and Reading Comprehension.",
-        toefl_tbl1_badge: "TABLE 1 • CLASS SCHEDULE (FROM JADWAL_LOG)",
+        toefl_tbl1_badge: "EXAMINATION SCHEDULE",
         toefl_tbl1_title: "TOEFL Prediction Exam Schedule by Class",
-        toefl_tbl1_hint: "Click a schedule row or the View Students button to display the list of participants in that class.",
-        toefl_tbl2_badge: "TABLE 2 • EXAM PARTICIPANT LIST (FROM PESERTA_UJIAN)",
+        toefl_tbl1_hint: "Click the View Participants button on your class to display the list of students along with session and lab room details.",
+        toefl_tbl2_badge: "EXAM PARTICIPANT LIST",
         toefl_tbl2_title: "TOEFL Prediction Student Participant Roster",
-        toefl_tbl2_hint: "Search your name or NIM to see your exam date, session & time, lab room, class, and study program.",
+        toefl_tbl2_hint: "Search your name or NIM in the search bar to check your desk number, date, session, and lab room.",
         btn_segarkan_jadwal: "Refresh Schedule",
         btn_segarkan_file: "Refresh Announcements",
         th_kelas_uji: "CLASS",
@@ -985,7 +987,7 @@
         th_tanggal: "EXAM DATE",
         th_sesi_jam: "SESSION & TIME",
         th_ruang_lab: "LAB ROOM",
-        th_detail: "PARTICIPANT DETAIL",
+        th_detail: "PARTICIPANTS",
         th_nama_mhs: "STUDENT NAME",
         th_kelas_prodi: "CLASS & PROGRAM",
         th_tgl_sesi: "DATE, SESSION & TIME",
@@ -1002,7 +1004,7 @@
         skor_title: "Check TOEFL Prediction Score Results",
         skor_sub: "Enter your Student ID (NIM) to check your Listening, Structure, Reading, and Total Score details.",
         btn_cek_skor: "Check Score Now",
-        sspect_tbl1_badge: "TABLE 1 • SSPECT SCHEDULE BY CLASS (FROM JADWAL_LOG)",
+        sspect_tbl1_badge: "SSPECT EXAMINATION SCHEDULE",
         sspect_tbl1_title: "SSPECT Exam Schedule by Class",
         toeic_badge: "INTERNATIONAL CERTIFICATION SERVICE • TOEIC",
         toeic_heading: "TOEIC General Information & Official Announcements",
@@ -1049,8 +1051,8 @@
       const searchToefl = document.getElementById('inputCariMahasiswaToefl');
       const searchSspect = document.getElementById('inputCariMahasiswaSspect');
       const searchToeic = document.getElementById('inputCariFileToeic');
-      if (searchToefl) searchToefl.placeholder = lang === 'en' ? 'Search Student Name or NIM...' : 'Cari Nama Mahasiswa atau NIM...';
-      if (searchSspect) searchSspect.placeholder = lang === 'en' ? 'Search Student Name or NIM...' : 'Cari Nama Mahasiswa atau NIM...';
+      if (searchToefl) searchToefl.placeholder = lang === 'en' ? 'Search Student Name or NIM...' : 'Cari Nama atau NIM...';
+      if (searchSspect) searchSspect.placeholder = lang === 'en' ? 'Search Student Name or NIM...' : 'Cari Nama atau NIM...';
       if (searchToeic) searchToeic.placeholder = lang === 'en' ? 'Search announcement title...' : 'Cari judul pengumuman...';
     }
 
@@ -1114,6 +1116,8 @@
         navLayanan.classList.add('text-[#169C53]', 'font-bold');
         lineLayanan.classList.remove('hidden');
 
+        // Saat pertama dibuka, kotak detail peserta disembunyikan dulu sampai klik Lihat Peserta
+        tutupDetailPesertaToefl();
         muatJadwalToefl();
         muatJadwalRemedial();
 
@@ -1130,6 +1134,8 @@
         navLayanan.classList.add('text-[#169C53]', 'font-bold');
         lineLayanan.classList.remove('hidden');
 
+        // Saat pertama dibuka, kotak detail peserta disembunyikan dulu sampai klik Lihat Peserta
+        tutupDetailPesertaSspect();
         muatDataSspect();
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else if (namaHalaman === 'toeic') {
@@ -1149,19 +1155,36 @@
       return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
     }
 
-    // Helper mendeteksi prodi otomatis dari kode kelas jika kolom program_studi kosong di jadwal_log
-    function tebakProdiDariKelas(kelasStr, prodiDb) {
-      if (prodiDb && prodiDb !== '-') return prodiDb;
-      const k = String(kelasStr || '').toUpperCase();
-      if (k.includes('AKS')) return 'Akuntansi';
-      if (k.includes('UPW')) return 'Usaha Perjalanan Wisata';
-      if (k.includes('TNK')) return 'Teknik Kimia / Teknik';
-      if (k.includes('TI') || k.includes('TRPL')) return 'Teknologi Informasi';
-      if (k.includes('SPL') || k.includes('SIP')) return 'Teknik Sipil';
-      if (k.includes('ELK') || k.includes('LST')) return 'Teknik Elektro';
-      if (k.includes('MSN')) return 'Teknik Mesin';
-      if (k.includes('ADM') || k.includes('MBP')) return 'Administrasi Bisnis';
-      if (k.includes('KPL') || k.includes('Nautika')) return 'Kemaritiman';
+    // Ambil nama Program Studi secara akurat dari data peserta_ujian kelas tersebut terlebih dahulu
+    function dapatkanProdiAkurat(kelasStr, prodiJadwal, daftarPesertaDb) {
+      const kUpper = String(kelasStr || '').trim().toUpperCase();
+
+      // 1. Cari dari kolom prodi / program_studi di tabel peserta_ujian yang satu kelas
+      if (Array.isArray(daftarPesertaDb) && kUpper) {
+        const mhsCocok = daftarPesertaDb.find(m =>
+          String(m.nama_kelas || m.kelas || '').trim().toUpperCase() === kUpper &&
+          (m.prodi || m.program_studi)
+        );
+        if (mhsCocok) {
+          return mhsCocok.prodi || mhsCocok.program_studi;
+        }
+      }
+
+      // 2. Jika ada kolom program_studi / prodi di jadwal_log, gunakan itu
+      if (prodiJadwal && prodiJadwal !== '-') return prodiJadwal;
+
+      // 3. Fallback pemetaan kode jurusan POLNES yang akurat (TNK = Teknika, TKM = Teknik Kimia, dll.)
+      if (kUpper.includes('AKS')) return 'D3 - AKUNTANSI';
+      if (kUpper.includes('UPW')) return 'D4 - USAHA PERJALANAN WISATA';
+      if (kUpper.includes('TNK')) return 'D3 - TEKNIKA';
+      if (kUpper.includes('NTK')) return 'D3 - NAUTIKA';
+      if (kUpper.includes('KPN')) return 'D3 - KETATALAKSANAAN PELAYARAN NIAGA';
+      if (kUpper.includes('TKM')) return 'D3 - TEKNIK KIMIA';
+      if (kUpper.includes('TI') || kUpper.includes('TRPL')) return 'TEKNOLOGI INFORMASI';
+      if (kUpper.includes('SPL') || kUpper.includes('SIP')) return 'TEKNIK SIPIL';
+      if (kUpper.includes('ELK') || kUpper.includes('LST')) return 'TEKNIK ELEKTRO';
+      if (kUpper.includes('MSN')) return 'TEKNIK MESIN';
+      if (kUpper.includes('ADM') || kUpper.includes('MBP')) return 'ADMINISTRASI BISNIS';
       return 'Politeknik Negeri Samarinda';
     }
 
@@ -1177,18 +1200,16 @@
       return false;
     }
 
-    // ==================== 3. JADWAL KELAS (jadwal_log) & DAFTAR MAHASISWA (peserta_ujian) TOEFL ====================
+    // ==================== 3. JADWAL KELAS & DAFTAR MAHASISWA TOEFL ====================
     window.jadwalKelasToeflGlobal = [];
     window.semuaMahasiswaToeflGlobal = [];
-    window.filterKelasToeflAktif = null;
+    window.mahasiswaKelasTerpilihToefl = [];
 
     async function muatJadwalToefl() {
       const tbodyKelas = document.getElementById('tbodyJadwalKelasToefl');
-      const tbodyMhs = document.getElementById('tbodyMahasiswaToefl');
-      if (!tbodyKelas || !tbodyMhs) return;
+      if (!tbodyKelas) return;
 
-      tbodyKelas.innerHTML = `<tr><td colspan="7" class="px-5 py-8 text-center text-slate-400 italic">Memuat jadwal kelas TOEFL dari database staff...</td></tr>`;
-      tbodyMhs.innerHTML = `<tr><td colspan="6" class="px-5 py-8 text-center text-slate-400 italic">Memuat daftar mahasiswa ujian dari tabel peserta_ujian...</td></tr>`;
+      tbodyKelas.innerHTML = `<tr><td colspan="7" class="px-5 py-8 text-center text-slate-400 italic">Memuat jadwal kelas TOEFL...</td></tr>`;
 
       try {
         if (!window.supabaseClient) {
@@ -1196,15 +1217,19 @@
           return;
         }
 
-        // 1. Ambil jadwal kelas dari tabel 'jadwal_log'
-        const { data: dataJadwal, error: errJadwal } = await window.supabaseClient
-          .from('jadwal_log')
-          .select('*')
-          .order('tanggal', { ascending: true });
+        // Ambil data jadwal & data peserta secara bersamaan agar prodi sinkron akurat
+        const [resJadwal, resPeserta] = await Promise.all([
+          window.supabaseClient.from('jadwal_log').select('*').order('tanggal', { ascending: true }),
+          window.supabaseClient.from('peserta_ujian').select('*').order('id_meja', { ascending: true })
+        ]);
 
-        if (errJadwal) throw errJadwal;
+        if (resJadwal.error) throw resJadwal.error;
+        if (resPeserta.error) throw resPeserta.error;
 
-        const jadwalAktif = (dataJadwal || []).filter(item => {
+        const dataJadwal = resJadwal.data || [];
+        const dataPeserta = resPeserta.data || [];
+
+        const jadwalAktif = dataJadwal.filter(item => {
           if (isJadwalSudahDiLog(item)) return false;
           const jenis = String(item.jenis_tes || item.jenis_ujian || item.kategori || 'TOEFL').toUpperCase();
           const status = String(item.status || '').toUpperCase();
@@ -1213,28 +1238,24 @@
           return true;
         });
 
-        window.jadwalKelasToeflGlobal = jadwalAktif;
-        renderTabelJadwalKelasToefl(jadwalAktif);
+        // Simpan prodi akurat ke setiap item jadwal berdasarkan data peserta_ujian kelas tersebut
+        window.jadwalKelasToeflGlobal = jadwalAktif.map(item => {
+          const kelasVal = item.nama_kelas || item.kelas || '-';
+          return {
+            ...item,
+            prodi_akurat: dapatkanProdiAkurat(kelasVal, item.program_studi || item.prodi, dataPeserta)
+          };
+        });
 
-        // 2. Ambil daftar nama mahasiswa dari tabel 'peserta_ujian'
-        const { data: dataPeserta, error: errPeserta } = await window.supabaseClient
-          .from('peserta_ujian')
-          .select('*')
-          .order('id_meja', { ascending: true });
-
-        if (errPeserta) throw errPeserta;
-
-        // Gabungkan setiap mahasiswa dengan informasi jadwal kelasnya (tanggal, sesi, lab, prodi)
+        // Simpan seluruh data peserta untuk jadwal TOEFL aktif
         const daftarMahasiswaGabungan = [];
-        (dataPeserta || []).forEach(mhs => {
+        dataPeserta.forEach(mhs => {
           const kelasMhs = String(mhs.nama_kelas || mhs.kelas || '').trim().toUpperCase();
-          // Cocokkan dengan jadwal aktif berdasarkan jadwal_id atau nama_kelas
-          const jadwalCocok = jadwalAktif.find(j =>
+          const jadwalCocok = window.jadwalKelasToeflGlobal.find(j =>
             (mhs.jadwal_id && j.id === mhs.jadwal_id) ||
             String(j.nama_kelas || j.kelas || '').trim().toUpperCase() === kelasMhs
           );
 
-          // Hanya tampilkan mahasiswa yang kelas/jadwalnya masih aktif (belum hilang di-log)
           if (jadwalCocok) {
             daftarMahasiswaGabungan.push({
               id: mhs.id,
@@ -1243,7 +1264,7 @@
               id_meja: mhs.id_meja || '-',
               nama: mhs.nama || mhs.nama_mahasiswa || '-',
               kelas: jadwalCocok.nama_kelas || jadwalCocok.kelas || mhs.nama_kelas || '-',
-              prodi: tebakProdiDariKelas(jadwalCocok.nama_kelas || mhs.nama_kelas, jadwalCocok.program_studi || jadwalCocok.prodi || mhs.program_studi),
+              prodi: mhs.prodi || mhs.program_studi || jadwalCocok.prodi_akurat,
               tanggal: formatTanggalIndo(jadwalCocok.tanggal || jadwalCocok.tanggal_ujian),
               sesi: jadwalCocok.sesi || jadwalCocok.sesi_waktu || '-',
               lab: jadwalCocok.ruang_lab || jadwalCocok.lab || '-'
@@ -1252,14 +1273,10 @@
         });
 
         window.semuaMahasiswaToeflGlobal = daftarMahasiswaGabungan;
-        window.filterKelasToeflAktif = null;
-        updateBadgeFilterToefl();
-        renderTabelMahasiswaToefl(daftarMahasiswaGabungan);
-
+        renderTabelJadwalKelasToefl(window.jadwalKelasToeflGlobal);
       } catch (err) {
         console.error(err);
         tbodyKelas.innerHTML = `<tr><td colspan="7" class="px-5 py-8 text-center text-rose-500 font-semibold">Gagal memuat jadwal: ${err.message}</td></tr>`;
-        tbodyMhs.innerHTML = `<tr><td colspan="6" class="px-5 py-8 text-center text-rose-500 font-semibold">Gagal memuat peserta ujian: ${err.message}</td></tr>`;
       }
     }
 
@@ -1273,7 +1290,7 @@
             <td colspan="7" class="px-5 py-10 text-center text-slate-400 italic">
               ${window.currentLang === 'en'
                 ? 'No active TOEFL Prediction class schedules available.'
-                : 'Belum ada jadwal kelas TOEFL Prediction aktif saat ini (atau seluruh jadwal telah selesai dicocokkan ke log).'}
+                : 'Belum ada jadwal kelas TOEFL Prediction aktif saat ini.'}
             </td>
           </tr>
         `;
@@ -1282,7 +1299,7 @@
 
       tbody.innerHTML = list.map((item, idx) => {
         const kelasVal = item.nama_kelas || item.kelas || '-';
-        const prodiVal = tebakProdiDariKelas(kelasVal, item.program_studi || item.prodi);
+        const prodiVal = item.prodi_akurat || '-';
         const tglVal = formatTanggalIndo(item.tanggal || item.tanggal_ujian);
         const sesiVal = item.sesi || item.sesi_waktu || '-';
         const labVal = item.ruang_lab || item.lab || '-';
@@ -1291,7 +1308,7 @@
           <tr onclick="pilihKelasDetailToefl('${kelasVal.replace(/'/g, "\\'")}', ${item.id})" class="cursor-pointer hover:bg-emerald-50/60 transition-colors group">
             <td class="px-4 py-4 font-bold text-slate-400">${idx + 1}</td>
             <td class="px-4 py-4 font-extrabold text-slate-900 group-hover:text-[#169C53]">${kelasVal}</td>
-            <td class="px-4 py-4 text-slate-600 font-medium">${prodiVal}</td>
+            <td class="px-4 py-4 text-slate-700 font-semibold">${prodiVal}</td>
             <td class="px-4 py-4 font-bold text-slate-800">${tglVal}</td>
             <td class="px-4 py-4 text-sky-600 font-bold text-xs">${sesiVal}</td>
             <td class="px-4 py-4 text-center">
@@ -1310,57 +1327,43 @@
       }).join('');
     }
 
+    // Saat baris jadwal atau tombol Lihat Peserta diklik -> munculkan kotak peserta khusus kelas itu saja
     function pilihKelasDetailToefl(namaKelas, jadwalId) {
-      window.filterKelasToeflAktif = { namaKelas, jadwalId };
-      document.getElementById('inputCariMahasiswaToefl').value = '';
-      updateBadgeFilterToefl();
+      const boxDetail = document.getElementById('boxDetailPesertaToefl');
+      const badge = document.getElementById('badgeFilterKelasToefl');
+      const inputCari = document.getElementById('inputCariMahasiswaToefl');
+      if (!boxDetail) return;
+
+      if (inputCari) inputCari.value = '';
 
       const filtered = window.semuaMahasiswaToeflGlobal.filter(m =>
         (jadwalId && m.jadwal_id === jadwalId) ||
-        String(m.kelas).toUpperCase() === String(namaKelas).toUpperCase()
+        String(m.kelas).trim().toUpperCase() === String(namaKelas).trim().toUpperCase()
       );
-      renderTabelMahasiswaToefl(filtered);
 
-      const boxDetail = document.getElementById('boxDetailPesertaToefl');
-      if (boxDetail) boxDetail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
+      window.mahasiswaKelasTerpilihToefl = filtered;
 
-    function resetFilterKelasToefl() {
-      window.filterKelasToeflAktif = null;
-      document.getElementById('inputCariMahasiswaToefl').value = '';
-      updateBadgeFilterToefl();
-      renderTabelMahasiswaToefl(window.semuaMahasiswaToeflGlobal);
-    }
-
-    function updateBadgeFilterToefl() {
-      const badge = document.getElementById('badgeFilterKelasToefl');
-      const btnReset = document.getElementById('btnResetFilterToefl');
-      if (!badge || !btnReset) return;
-
-      if (window.filterKelasToeflAktif) {
-        badge.textContent = `Kelas Terpilih: ${window.filterKelasToeflAktif.namaKelas}`;
-        btnReset.classList.remove('hidden');
-      } else {
-        badge.textContent = `Semua Jadwal Aktif (${window.semuaMahasiswaToeflGlobal.length} Mahasiswa)`;
-        btnReset.classList.add('hidden');
+      if (badge) {
+        badge.textContent = `Kelas: ${namaKelas} (${filtered.length} Peserta)`;
       }
+
+      boxDetail.classList.remove('hidden');
+      renderTabelMahasiswaToefl(filtered);
+      boxDetail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function tutupDetailPesertaToefl() {
+      const boxDetail = document.getElementById('boxDetailPesertaToefl');
+      if (boxDetail) boxDetail.classList.add('hidden');
+      window.mahasiswaKelasTerpilihToefl = [];
     }
 
     function filterDaftarMahasiswaToefl() {
       const q = (document.getElementById('inputCariMahasiswaToefl')?.value || '').trim().toLowerCase();
-
-      // Jika mahasiswa mengetik nama di search, cari di seluruh jadwal aktif agar langsung ketemu tanggal/sesi/lab-nya
-      if (q.length > 0) {
-        window.filterKelasToeflAktif = null;
-        updateBadgeFilterToefl();
-      }
-
-      const filtered = window.semuaMahasiswaToeflGlobal.filter(m =>
+      const filtered = window.mahasiswaKelasTerpilihToefl.filter(m =>
         String(m.nama || '').toLowerCase().includes(q) ||
         String(m.nim || '').toLowerCase().includes(q) ||
-        String(m.kelas || '').toLowerCase().includes(q) ||
-        String(m.prodi || '').toLowerCase().includes(q) ||
-        String(m.lab || '').toLowerCase().includes(q)
+        String(m.id_meja || '').toLowerCase().includes(q)
       );
       renderTabelMahasiswaToefl(filtered);
     }
@@ -1373,7 +1376,7 @@
         tbody.innerHTML = `
           <tr>
             <td colspan="6" class="px-5 py-10 text-center text-slate-400 italic">
-              Belum ada data mahasiswa pada kelas/pencarian ini di tabel peserta_ujian.
+              Tidak ada data peserta yang cocok pada kelas ini.
             </td>
           </tr>
         `;
@@ -1445,7 +1448,7 @@
 
       tbody.innerHTML = list.map((item, idx) => {
         const kelasVal = item.nama_kelas || item.kelas || '-';
-        const prodiVal = tebakProdiDariKelas(kelasVal, item.program_studi || item.prodi);
+        const prodiVal = dapatkanProdiAkurat(kelasVal, item.program_studi || item.prodi, []);
         const tglVal = formatTanggalIndo(item.tanggal || item.tanggal_ujian);
         const sesiVal = item.sesi || item.sesi_waktu || 'Menunggu Jadwal Staff';
         const labVal = item.ruang_lab || item.lab || 'REMEDIAL';
@@ -1575,18 +1578,16 @@
       }
     }
 
-    // ==================== 6. JADWAL KELAS & DAFTAR MAHASISWA SSPECT (2 TABEL) ====================
+    // ==================== 6. JADWAL KELAS & DAFTAR MAHASISWA SSPECT ====================
     window.jadwalKelasSspectGlobal = [];
     window.semuaMahasiswaSspectGlobal = [];
-    window.filterKelasSspectAktif = null;
+    window.mahasiswaKelasTerpilihSspect = [];
 
     async function muatDataSspect() {
       const tbodyKelas = document.getElementById('tbodyJadwalKelasSspect');
-      const tbodyMhs = document.getElementById('tbodyMahasiswaSspect');
-      if (!tbodyKelas || !tbodyMhs) return;
+      if (!tbodyKelas) return;
 
-      tbodyKelas.innerHTML = `<tr><td colspan="7" class="px-5 py-8 text-center text-slate-400 italic">Memuat jadwal kelas SSPECT dari database staff...</td></tr>`;
-      tbodyMhs.innerHTML = `<tr><td colspan="6" class="px-5 py-8 text-center text-slate-400 italic">Memuat daftar mahasiswa SSPECT dari tabel peserta_ujian...</td></tr>`;
+      tbodyKelas.innerHTML = `<tr><td colspan="7" class="px-5 py-8 text-center text-slate-400 italic">Memuat jadwal kelas SSPECT...</td></tr>`;
 
       try {
         if (!window.supabaseClient) {
@@ -1594,33 +1595,35 @@
           return;
         }
 
-        const { data: dataJadwal, error: errJadwal } = await window.supabaseClient
-          .from('jadwal_log')
-          .select('*')
-          .order('tanggal', { ascending: true });
+        const [resJadwal, resPeserta] = await Promise.all([
+          window.supabaseClient.from('jadwal_log').select('*').order('tanggal', { ascending: true }),
+          window.supabaseClient.from('peserta_ujian').select('*').order('id_meja', { ascending: true })
+        ]);
 
-        if (errJadwal) throw errJadwal;
+        if (resJadwal.error) throw resJadwal.error;
+        if (resPeserta.error) throw resPeserta.error;
 
-        const sspectAktif = (dataJadwal || []).filter(item => {
+        const dataJadwal = resJadwal.data || [];
+        const dataPeserta = resPeserta.data || [];
+
+        const sspectAktif = dataJadwal.filter(item => {
           if (isJadwalSudahDiLog(item)) return false;
           const jenis = String(item.jenis_tes || item.jenis_ujian || item.kategori || '').toUpperCase();
           return jenis.includes('SSPECT');
         });
 
-        window.jadwalKelasSspectGlobal = sspectAktif;
-        renderTabelJadwalKelasSspect(sspectAktif);
-
-        const { data: dataPeserta, error: errPeserta } = await window.supabaseClient
-          .from('peserta_ujian')
-          .select('*')
-          .order('id_meja', { ascending: true });
-
-        if (errPeserta) throw errPeserta;
+        window.jadwalKelasSspectGlobal = sspectAktif.map(item => {
+          const kelasVal = item.nama_kelas || item.kelas || '-';
+          return {
+            ...item,
+            prodi_akurat: dapatkanProdiAkurat(kelasVal, item.program_studi || item.prodi, dataPeserta)
+          };
+        });
 
         const daftarMahasiswaSspect = [];
-        (dataPeserta || []).forEach(mhs => {
+        dataPeserta.forEach(mhs => {
           const kelasMhs = String(mhs.nama_kelas || mhs.kelas || '').trim().toUpperCase();
-          const jadwalCocok = sspectAktif.find(j =>
+          const jadwalCocok = window.jadwalKelasSspectGlobal.find(j =>
             (mhs.jadwal_id && j.id === mhs.jadwal_id) ||
             String(j.nama_kelas || j.kelas || '').trim().toUpperCase() === kelasMhs
           );
@@ -1633,7 +1636,7 @@
               id_meja: mhs.id_meja || '-',
               nama: mhs.nama || mhs.nama_mahasiswa || '-',
               kelas: jadwalCocok.nama_kelas || jadwalCocok.kelas || mhs.nama_kelas || '-',
-              prodi: tebakProdiDariKelas(jadwalCocok.nama_kelas || mhs.nama_kelas, jadwalCocok.program_studi || jadwalCocok.prodi || mhs.program_studi),
+              prodi: mhs.prodi || mhs.program_studi || jadwalCocok.prodi_akurat,
               tanggal: formatTanggalIndo(jadwalCocok.tanggal || jadwalCocok.tanggal_ujian),
               sesi: jadwalCocok.sesi || jadwalCocok.sesi_waktu || '-',
               lab: jadwalCocok.ruang_lab || jadwalCocok.lab || '-'
@@ -1642,9 +1645,7 @@
         });
 
         window.semuaMahasiswaSspectGlobal = daftarMahasiswaSspect;
-        window.filterKelasSspectAktif = null;
-        updateBadgeFilterSspect();
-        renderTabelMahasiswaSspect(daftarMahasiswaSspect);
+        renderTabelJadwalKelasSspect(window.jadwalKelasSspectGlobal);
       } catch (err) {
         console.error(err);
         tbodyKelas.innerHTML = `<tr><td colspan="7" class="px-5 py-8 text-center text-rose-500 font-semibold">Gagal memuat jadwal SSPECT: ${err.message}</td></tr>`;
@@ -1661,7 +1662,7 @@
             <td colspan="7" class="px-5 py-10 text-center text-slate-400 italic">
               ${window.currentLang === 'en'
                 ? 'No active SSPECT class schedules available.'
-                : 'Belum ada jadwal kelas SSPECT aktif saat ini (atau seluruh jadwal telah selesai dicocokkan ke log).'}
+                : 'Belum ada jadwal kelas SSPECT aktif saat ini.'}
             </td>
           </tr>
         `;
@@ -1670,7 +1671,7 @@
 
       tbody.innerHTML = list.map((item, idx) => {
         const kelasVal = item.nama_kelas || item.kelas || '-';
-        const prodiVal = tebakProdiDariKelas(kelasVal, item.program_studi || item.prodi);
+        const prodiVal = item.prodi_akurat || '-';
         const tglVal = formatTanggalIndo(item.tanggal || item.tanggal_ujian);
         const sesiVal = item.sesi || item.sesi_waktu || '-';
         const labVal = item.ruang_lab || item.lab || '-';
@@ -1679,7 +1680,7 @@
           <tr onclick="pilihKelasDetailSspect('${kelasVal.replace(/'/g, "\\'")}', ${item.id})" class="cursor-pointer hover:bg-emerald-50/60 transition-colors group">
             <td class="px-4 py-4 font-bold text-slate-400">${idx + 1}</td>
             <td class="px-4 py-4 font-extrabold text-slate-900 group-hover:text-[#169C53]">${kelasVal}</td>
-            <td class="px-4 py-4 text-slate-600 font-medium">${prodiVal}</td>
+            <td class="px-4 py-4 text-slate-700 font-semibold">${prodiVal}</td>
             <td class="px-4 py-4 font-bold text-slate-800">${tglVal}</td>
             <td class="px-4 py-4 text-sky-600 font-bold text-xs">${sesiVal}</td>
             <td class="px-4 py-4 text-center">
@@ -1699,55 +1700,41 @@
     }
 
     function pilihKelasDetailSspect(namaKelas, jadwalId) {
-      window.filterKelasSspectAktif = { namaKelas, jadwalId };
-      document.getElementById('inputCariMahasiswaSspect').value = '';
-      updateBadgeFilterSspect();
+      const boxDetail = document.getElementById('boxDetailPesertaSspect');
+      const badge = document.getElementById('badgeFilterKelasSspect');
+      const inputCari = document.getElementById('inputCariMahasiswaSspect');
+      if (!boxDetail) return;
+
+      if (inputCari) inputCari.value = '';
 
       const filtered = window.semuaMahasiswaSspectGlobal.filter(m =>
         (jadwalId && m.jadwal_id === jadwalId) ||
-        String(m.kelas).toUpperCase() === String(namaKelas).toUpperCase()
+        String(m.kelas).trim().toUpperCase() === String(namaKelas).trim().toUpperCase()
       );
-      renderTabelMahasiswaSspect(filtered);
 
-      const boxDetail = document.getElementById('boxDetailPesertaSspect');
-      if (boxDetail) boxDetail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
+      window.mahasiswaKelasTerpilihSspect = filtered;
 
-    function resetFilterKelasSspect() {
-      window.filterKelasSspectAktif = null;
-      document.getElementById('inputCariMahasiswaSspect').value = '';
-      updateBadgeFilterSspect();
-      renderTabelMahasiswaSspect(window.semuaMahasiswaSspectGlobal);
-    }
-
-    function updateBadgeFilterSspect() {
-      const badge = document.getElementById('badgeFilterKelasSspect');
-      const btnReset = document.getElementById('btnResetFilterSspect');
-      if (!badge || !btnReset) return;
-
-      if (window.filterKelasSspectAktif) {
-        badge.textContent = `Kelas Terpilih: ${window.filterKelasSspectAktif.namaKelas}`;
-        btnReset.classList.remove('hidden');
-      } else {
-        badge.textContent = `Semua Jadwal Aktif (${window.semuaMahasiswaSspectGlobal.length} Mahasiswa)`;
-        btnReset.classList.add('hidden');
+      if (badge) {
+        badge.textContent = `Kelas: ${namaKelas} (${filtered.length} Peserta)`;
       }
+
+      boxDetail.classList.remove('hidden');
+      renderTabelMahasiswaSspect(filtered);
+      boxDetail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function tutupDetailPesertaSspect() {
+      const boxDetail = document.getElementById('boxDetailPesertaSspect');
+      if (boxDetail) boxDetail.classList.add('hidden');
+      window.mahasiswaKelasTerpilihSspect = [];
     }
 
     function filterDaftarMahasiswaSspect() {
       const q = (document.getElementById('inputCariMahasiswaSspect')?.value || '').trim().toLowerCase();
-
-      if (q.length > 0) {
-        window.filterKelasSspectAktif = null;
-        updateBadgeFilterSspect();
-      }
-
-      const filtered = window.semuaMahasiswaSspectGlobal.filter(m =>
+      const filtered = window.mahasiswaKelasTerpilihSspect.filter(m =>
         String(m.nama || '').toLowerCase().includes(q) ||
         String(m.nim || '').toLowerCase().includes(q) ||
-        String(m.kelas || '').toLowerCase().includes(q) ||
-        String(m.prodi || '').toLowerCase().includes(q) ||
-        String(m.lab || '').toLowerCase().includes(q)
+        String(m.id_meja || '').toLowerCase().includes(q)
       );
       renderTabelMahasiswaSspect(filtered);
     }
@@ -1760,7 +1747,7 @@
         tbody.innerHTML = `
           <tr>
             <td colspan="6" class="px-5 py-10 text-center text-slate-400 italic">
-              Belum ada data mahasiswa SSPECT pada kelas/pencarian ini di tabel peserta_ujian.
+              Tidak ada data peserta SSPECT yang cocok pada kelas ini.
             </td>
           </tr>
         `;
@@ -1792,7 +1779,7 @@
       `).join('');
     }
 
-    // ==================== 7. PENGUMUMAN & FILE TOEIC GAYA BERITA (DARI DATABASE STAFF) ====================
+    // ==================== 7. PENGUMUMAN & FILE TOEIC GAYA BERITA ====================
     window.daftarFileToeicGlobal = [];
     const DEFAULT_IMG_TOEIC = "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=1200&q=80";
 
