@@ -3,671 +3,682 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rekapan & Arsip Master - UPA Bahasa POLNES</title>
-  
+  <title>Rekapan Induk & Sertifikat - UPA Bahasa POLNES</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-
   <script>
     tailwind.config = {
       theme: {
         extend: {
-          fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
-          colors: { polnes: { main: '#10C35D', dark: '#0B8A42', light: '#E8F8EF' } }
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+            serif: ['Playfair Display', 'Georgia', 'serif']
+          },
+          colors: {
+            polnes: {
+              main: '#169C53',
+              dark: '#0E7A3F',
+              darker: '#0B4628',
+              light: '#E8F8EF'
+            }
+          }
         }
       }
     }
   </script>
+  <style>
+    .custom-scrollbar::-webkit-scrollbar { height: 6px; width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 9999px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+    @media print {
+      @page {
+        size: A4 landscape;
+        margin: 0;
+      }
+      body * {
+        visibility: hidden;
+      }
+      #printCertificateArea, #printCertificateArea * {
+        visibility: visible;
+      }
+      #printCertificateArea {
+        position: fixed;
+        inset: 0;
+        width: 297mm;
+        height: 210mm;
+        margin: 0;
+        padding: 0;
+        z-index: 99999;
+        background: white !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+    }
+  </style>
 </head>
-<body class="bg-slate-50 font-sans text-slate-800 antialiased flex h-screen overflow-hidden">
+<body class="bg-slate-50 font-sans text-slate-800 antialiased flex min-h-screen">
 
-  <!-- ==================== SIDEBAR KONSISTEN ==================== -->
-  <aside class="w-[260px] bg-white border-r border-slate-200 flex flex-col flex-shrink-0 h-full overflow-y-auto z-20">
-    <div class="p-6 flex items-center gap-3 border-b border-slate-100 sticky top-0 bg-white z-10">
-      <img src="./img/polnes.png" alt="Logo Polnes" class="w-8 h-8 object-contain">
-      <span class="font-extrabold text-slate-900 tracking-wide text-sm">UPA BAHASA</span>
+  <!-- ==================== SIDEBAR STAFF ==================== -->
+  <aside class="w-64 bg-white border-r border-slate-200 hidden lg:flex flex-col justify-between shrink-0 sticky top-0 h-screen">
+    <div class="p-6 space-y-6">
+      <div class="flex items-center gap-3 pb-4 border-b border-slate-100">
+        <img src="./img/polnes.png" onerror="this.style.display='none'" alt="POLNES" class="w-10 h-10 object-contain">
+        <div>
+          <div class="font-extrabold text-slate-900 text-sm tracking-tight">UPA BAHASA</div>
+          <div class="text-[10px] font-bold text-[#169C53] uppercase tracking-wider">STAFF PORTAL</div>
+        </div>
+      </div>
+
+      <nav class="space-y-1 text-xs font-bold text-slate-600">
+        <a href="dashboard.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-50 hover:text-[#169C53] transition-colors">
+          <i class="ri-dashboard-line text-base"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="jadwal-test.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-50 hover:text-[#169C53] transition-colors">
+          <i class="ri-calendar-event-line text-base"></i>
+          <span>Jadwal Tes</span>
+        </a>
+        <a href="jadwal-remedial.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-50 hover:text-[#169C53] transition-colors">
+          <i class="ri-calendar-check-line text-base"></i>
+          <span>Jadwal Remedial</span>
+        </a>
+        <a href="kalkulasi-score.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-50 hover:text-[#169C53] transition-colors">
+          <i class="ri-calculator-line text-base"></i>
+          <span>Kalkulasi & Konversi</span>
+        </a>
+        <a href="rekapan.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-emerald-50 text-[#169C53] font-extrabold">
+          <i class="ri-award-line text-base"></i>
+          <span>Rekapan & Sertifikat</span>
+        </a>
+      </nav>
     </div>
-    
-    <div class="p-4 space-y-1 flex-1">
-      <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
-        <i class="ri-layout-grid-line text-lg text-slate-500"></i> Dashboard
-      </a>
-      
-      <div class="pt-4 pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider px-4">LAYANAN TEST</div>
-      
-      <div class="space-y-1">
-        <div onclick="document.getElementById('subPenjadwalan').classList.toggle('hidden'); document.getElementById('arrowPenjadwalan').classList.toggle('rotate-180')" class="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-slate-50 text-slate-600 font-medium text-[13px] cursor-pointer transition-all">
-          <div class="flex items-center gap-3"><i class="ri-calendar-line text-lg text-slate-500"></i> Penjadwalan</div>
-          <i id="arrowPenjadwalan" class="ri-arrow-down-s-line text-slate-400 text-lg"></i>
-        </div>
-        <div id="subPenjadwalan" class="pl-7 space-y-1 pt-1 pb-1 hidden">
-          <a href="jadwal-test.html" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 transition-all font-medium text-[13px]">
-            <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div> Jadwal Test
-          </a>
-          <a href="jadwal-remedial.html" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 transition-all font-medium text-[13px]">
-            <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div> Jadwal Remedial
-          </a>
-          <a href="jadwal-kursus.html" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 transition-all font-medium text-[13px]">
-            <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div> Jadwal Kursus
-          </a>
-        </div>
+
+    <div class="p-6 border-t border-slate-100 space-y-2">
+      <div class="p-3 rounded-xl bg-emerald-50/70 border border-emerald-200/80 text-[10px] text-slate-600 leading-relaxed">
+        <span class="font-extrabold text-[#0E7A3F] block">Auto-Routing 2 Digit NIM:</span>
+        NIM <b>24</b>xxxx $\rightarrow$ Tahun 2024<br>
+        NIM <b>21</b>xxxx $\rightarrow$ Tahun 2021
       </div>
-
-      <div class="space-y-1">
-        <div onclick="document.getElementById('subHasilTest').classList.toggle('hidden'); document.getElementById('arrowHasilTest').classList.toggle('rotate-180')" class="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-slate-50 text-slate-600 font-medium text-[13px] cursor-pointer transition-all">
-          <div class="flex items-center gap-3"><i class="ri-file-upload-line text-lg text-slate-500"></i> Hasil Test</div>
-          <i id="arrowHasilTest" class="ri-arrow-down-s-line text-slate-400 text-lg"></i>
-        </div>
-        <div id="subHasilTest" class="pl-7 space-y-1 pt-1 pb-1 hidden">
-          <a href="toefl.html" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 transition-all font-medium text-[13px]">
-            <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div> TOEFL
-          </a>
-          <a href="sspect.html" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 transition-all font-medium text-[13px]">
-            <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div> SSPECT
-          </a>
-        </div>
-      </div>
-
-      <a href="kalkulasi-score.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
-        <i class="ri-calculator-line text-lg text-slate-500"></i> Kalkulasi Score
-      </a>
-
-      <!-- Rekapan (AKTIF) -->
-      <a href="rekapan.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-polnes-light text-polnes-main font-bold transition-all text-[13px]">
-        <i class="ri-folder-history-line text-lg"></i> Rekapan
-      </a>
-
-      <a href="pusat-informasi.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
-        <i class="ri-information-line text-lg text-slate-500"></i> Pusat Informasi
-      </a>
-
-      <div class="pt-4 pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider px-4">MANAJEMEN KONTEN</div>
-      <a href="konten-utama.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
-        <i class="ri-article-line text-lg text-slate-500"></i> Konten Utama
-      </a>
-      <a href="layanan-tambahan.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
-        <i class="ri-heart-pulse-line text-lg text-slate-500"></i> Layanan Tambahan
-      </a>
-      <a href="pembelajaran.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
-        <i class="ri-book-open-line text-lg text-slate-500"></i> Pembelajaran
-      </a>
-      <a href="pengaduan.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
-        <i class="ri-message-2-line text-lg text-slate-500"></i> Pengaduan
-      </a>
-      <a href="survei.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
-        <i class="ri-clipboard-line text-lg text-slate-500"></i> Survei
+      <a href="index.html" class="w-full py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center justify-center gap-2 transition-colors">
+        <i class="ri-external-link-line"></i>
+        <span>Lihat Web Utama</span>
       </a>
     </div>
   </aside>
 
-  <!-- ==================== MAIN CONTENT ==================== -->
-  <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
-    
-    <header class="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between sticky top-0 z-10 shrink-0">
+  <!-- ==================== KONTEN UTAMA REKAPAN ==================== -->
+  <main class="flex-1 flex flex-col min-w-0">
+    <!-- Top Header -->
+    <header class="bg-white border-b border-slate-200 px-6 py-4 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-30">
       <div>
-        <p class="text-[10px] uppercase tracking-wider font-extrabold text-slate-400">REKAPAN / ARSIP MASTER</p>
+        <div class="text-[11px] font-extrabold uppercase tracking-wider text-[#169C53]">
+          ALUR SISTEM (JADWAL $\rightarrow$ PENCOCOKAN $\rightarrow$ KONVERSI) & ARSIP UPLOAD
+        </div>
+        <h1 class="text-lg sm:text-xl font-extrabold text-slate-900">Rekapan Induk Mahasiswa & Sertifikat</h1>
       </div>
-      <div class="flex items-center gap-4">
-         <div class="w-9 h-9 rounded-full bg-polnes-light border border-polnes-main text-polnes-main flex items-center justify-center font-bold text-xs shadow-sm">ST</div>
+
+      <div class="flex flex-wrap items-center gap-2.5">
+        <!-- Tombol Sinkronisasi Jalur Alur Sistem (Jadwal / Pencocokan / Konversi) -->
+        <button type="button" id="btnSinkronAlurSistem" onclick="sinkronkanSemuaAlurSistemKeRekapan(true)" class="px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-extrabold flex items-center gap-2 shadow-sm transition-all" title="Tarik & gabungkan data terbaru dari modul Jadwal, Pencocokan, dan Konversi">
+          <i class="ri-loop-left-line text-base"></i>
+          <span>Sinkron Alur Sistem</span>
+        </button>
+
+        <!-- Tombol Import Excel Jalur Arsip Terdahulu / Remedial -->
+        <button type="button" onclick="bukaModalUploadExcel()" class="px-4 py-2.5 rounded-xl bg-[#169C53] hover:bg-[#0E7A3F] text-white text-xs font-extrabold flex items-center gap-2 shadow-sm transition-all">
+          <i class="ri-file-excel-2-line text-base"></i>
+          <span>Import Excel Arsip</span>
+        </button>
+
+        <button type="button" onclick="bukaModalTambahManual()" class="px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-extrabold flex items-center gap-1.5 transition-all">
+          <i class="ri-user-add-line text-base"></i>
+          <span>Input Manual</span>
+        </button>
+
+        <button type="button" onclick="muatDataRekapan()" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-all" title="Segarkan Tabel">
+          <i class="ri-refresh-line text-base"></i>
+        </button>
       </div>
     </header>
 
-    <div class="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 pb-12">
-      
-      <!-- Navigasi Folder Tahun & Tombol Tambah -->
-      <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h3 class="text-base font-bold text-slate-800">Folder Angkatan / Tahun Akademik</h3>
-            <p class="text-xs text-slate-500 mt-0.5">Pilih tahun arsip atau buat folder tahun baru untuk pengelompokan rekap nilai.</p>
+    <div class="p-6 space-y-5 max-w-[1600px] w-full mx-auto">
+
+      <!-- BARIS NAVIGASI TAHUN ANGKATAN RINGKAS (AUTO DARI 2 DIGIT DEPAN NIM) -->
+      <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-2xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs font-extrabold text-slate-500 uppercase tracking-wider mr-1 flex items-center gap-1.5">
+            <i class="ri-folder-3-line text-[#169C53] text-base"></i>
+            <span>Tahun Angkatan (Auto-NIM):</span>
+          </span>
+          <div id="containerTabTahun" class="flex flex-wrap items-center gap-1.5">
+            <button type="button" class="px-3.5 py-1.5 rounded-full bg-[#169C53] text-white text-xs font-extrabold">Semua Tahun</button>
           </div>
-          <button onclick="tambahTahunBaru()" class="px-4 py-2.5 bg-polnes-main hover:bg-polnes-dark text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-2 transition-all">
-            <i class="ri-folder-add-line text-sm"></i> Tambah Tahun Angkatan
-          </button>
+          <select id="selectTahunLainnya" onchange="pilihTahunAngkatan(this.value)" class="hidden px-3 py-1.5 rounded-full border border-slate-200 bg-slate-50 text-xs font-bold text-slate-700 outline-none focus:border-[#169C53]">
+            <option value="ALL">Pilih Tahun Lain...</option>
+          </select>
         </div>
 
-        <div id="containerFolderTahun" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4 pt-2">
-          <!-- Folder dinamis -->
-        </div>
-      </div>
-
-      <!-- Panel Upload Master (8 Kategori Pilihan) -->
-      <div id="panelUploadMaster" class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-6 hidden">
-        <div class="flex justify-between items-center border-b border-slate-100 pb-4">
-          <div>
-            <h3 id="judulPanelUpload" class="text-base font-bold text-slate-800">Arsip Master</h3>
-            <p class="text-xs text-slate-500 mt-0.5">Pilih kategori tes master, unggah file Excel, dan sistem akan otomatis memprosesnya.</p>
+        <!-- Ringkasan Statistik Cepat -->
+        <div class="flex flex-wrap items-center gap-2.5 text-xs">
+          <div class="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 font-bold text-slate-600">
+            Total: <span id="statTotalMhs" class="font-extrabold text-slate-900">0</span>
           </div>
-          <span id="badgeTahunAktif" class="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-extrabold rounded-lg uppercase"></span>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-          <div>
-            <label class="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">PILIH KATEGORI TES (8 OPSI)</label>
-            <select id="selectKategoriTes" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-[13px] font-semibold text-slate-700 outline-none focus:border-polnes-main">
-              <option value="SSPECT">SSPECT (Semester 2)</option>
-              <option value="TOEFL LATIHAN D3">TOEFL LATIHAN D3 (Semester 4)</option>
-              <option value="TOEFL LATIHAN D4">TOEFL LATIHAN D4 (Semester 6)</option>
-              <option value="TOEFL D3">TOEFL D3 (Semester 6)</option>
-              <option value="TOEFL D4">TOEFL D4 (Semester 8)</option>
-              <option value="REMEDIAL 1">REMEDIAL 1</option>
-              <option value="REMEDIAL 2">REMEDIAL 2</option>
-              <option value="REMEDIAL 3">REMEDIAL 3</option>
-            </select>
+          <div class="px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 font-bold text-[#0E7A3F]">
+            Lulus TOEFL: <span id="statLulusToefl" class="font-extrabold">0</span>
           </div>
-          <div>
-            <label class="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">FILE EXCEL MASTER (.XLS / .XLSX)</label>
-            <input type="file" id="fileRekapInput" accept=".xlsx, .xls" class="hidden" onchange="handleFileRekapChange(this)">
-            <button onclick="document.getElementById('fileRekapInput').click()" class="w-full px-4 py-3 border border-slate-200 bg-slate-50 rounded-xl text-[13px] font-semibold text-slate-600 hover:bg-slate-100 transition-all flex items-center justify-between">
-              <span id="labelFileRekap" class="truncate">Klik untuk Pilih File Excel Master...</span>
-              <i class="ri-upload-cloud-line text-lg"></i>
-            </button>
-          </div>
-          <div>
-            <button onclick="simpanDataMasterKeDatabase()" class="w-full px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[13px] font-bold shadow-sm flex items-center justify-center gap-2 transition-all">
-              <i class="ri-save-line"></i> Simpan ke Arsip Master
-            </button>
+          <div class="px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 font-bold text-amber-700">
+            Belum Lulus: <span id="statBelumLulus" class="font-extrabold">0</span>
           </div>
         </div>
       </div>
 
-      <!-- Pratinjau Tabel Terkelompok per Prodi dengan Tombol Unduh -->
-      <div id="panelTabelProdi" class="space-y-6 hidden">
-        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-6">
-          <div class="flex justify-between items-center">
-            <div>
-              <h3 class="text-base font-bold text-slate-800">Pratinjau Rekap Berdasarkan Program Studi</h3>
-              <p class="text-xs text-slate-500 mt-0.5">Klik pada nama mahasiswa untuk melihat kotak-kotak riwayat nilai lengkap & sertifikat.</p>
-            </div>
-          </div>
-          
-          <div id="containerTabelProdi" class="space-y-8">
-            <!-- Tabel per prodi akan dirender di sini -->
-          </div>
+      <!-- FILTER JURUSAN, PRODI, STATUS & PENCARIAN -->
+      <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-2xs grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3">
+        <div class="lg:col-span-4 relative">
+          <i class="ri-search-line absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+          <input type="text" id="inputCariRekapan" onkeyup="terapkanFilterRekapan()" placeholder="Cari NIM (mis. 21... / 24...) atau Nama Mahasiswa..." class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs font-medium focus:border-[#169C53] outline-none">
+        </div>
+
+        <div class="lg:col-span-3">
+          <select id="filterJurusan" onchange="onChangeFilterJurusan()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 bg-white focus:border-[#169C53] outline-none">
+            <option value="ALL">Semua Jurusan</option>
+          </select>
+        </div>
+
+        <div class="lg:col-span-3">
+          <select id="filterProdi" onchange="terapkanFilterRekapan()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 bg-white focus:border-[#169C53] outline-none">
+            <option value="ALL">Semua Program Studi</option>
+          </select>
+        </div>
+
+        <div class="lg:col-span-2">
+          <select id="filterStatusSertif" onchange="terapkanFilterRekapan()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 bg-white focus:border-[#169C53] outline-none">
+            <option value="ALL">Semua Status</option>
+            <option value="LULUS">Lulus & Siap Sertifikat</option>
+            <option value="BELUM">Belum Lulus / Belum Lengkap</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- TABEL INDUK REKAPAN NILAI -->
+      <div class="bg-white rounded-3xl border border-slate-200 shadow-2xs overflow-hidden">
+        <div class="overflow-x-auto custom-scrollbar">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
+                <th class="px-4 py-3.5 w-12">NO</th>
+                <th class="px-4 py-3.5">NIM & NAMA MAHASISWA</th>
+                <th class="px-4 py-3.5">JURUSAN & PRODI</th>
+                <th class="px-4 py-3.5 text-center">ANGKATAN (NIM)</th>
+                <th class="px-4 py-3.5 text-center">SSPECT</th>
+                <th class="px-4 py-3.5 text-center">LATIHAN</th>
+                <th class="px-4 py-3.5 text-center">TOEFL UTAMA</th>
+                <th class="px-4 py-3.5 text-center">REM 1 / 2 / 3</th>
+                <th class="px-4 py-3.5 text-center">SKOR AKHIR</th>
+                <th class="px-4 py-3.5 text-center">STATUS</th>
+                <th class="px-4 py-3.5 text-center">AKSI & SERTIFIKAT</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyRekapanMaster" class="divide-y divide-slate-100 text-xs text-slate-700">
+              <tr>
+                <td colspan="11" class="px-6 py-12 text-center text-slate-400 italic">Memuat data rekapan mahasiswa...</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
     </div>
   </main>
 
-  <!-- MODAL DETAIL MAHASISWA & KOTAK-KOTAK SKOR (DIPISAH D3/D4) -->
-  <div id="modalDetailMhs" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
-      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-        <h3 class="text-sm font-extrabold text-slate-800 flex items-center gap-2">
-          <i class="ri-user-star-line text-polnes-main text-lg"></i> Detail Riwayat Skor Mahasiswa
-        </h3>
-        <button onclick="tutupModalDetail()" class="w-8 h-8 rounded-lg bg-slate-200 hover:bg-rose-500 hover:text-white text-slate-600 flex items-center justify-center transition-all font-bold">
+  <!-- ==================== MODAL 1: IMPORT EXCEL NILAI (ARSIP LAMA / REMEDIAL) ==================== -->
+  <div id="modalUploadExcel" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-5 max-h-[90vh] overflow-y-auto custom-scrollbar">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div>
+          <span class="text-[10px] font-extrabold uppercase tracking-wider text-[#169C53]">JALUR UPLOAD ARSIP & REMEDIAL</span>
+          <h3 class="text-lg font-extrabold text-slate-900">Import File Hasil Tes (Excel / CSV)</h3>
+        </div>
+        <button type="button" onclick="tutupModalUploadExcel()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-rose-50 text-slate-500 hover:text-rose-600 flex items-center justify-center">
           <i class="ri-close-line text-lg"></i>
         </button>
       </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-[11px] font-extrabold uppercase tracking-wider text-slate-600 mb-1.5">Jenis / Kategori Nilai *</label>
+          <select id="selectKategoriUpload" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#169C53] outline-none">
+            <option value="AUTO">Otomatis Baca Kolom Tipe_Ujian Excel</option>
+            <option value="LATIHAN">Hasil Latihan (Pra-TOEFL)</option>
+            <option value="TOEFL">Hasil TOEFL Utama (Semester Akhir)</option>
+            <option value="SSPECT">Hasil Tes SSPECT</option>
+            <option value="REMEDIAL_1">Hasil Remedial 1</option>
+            <option value="REMEDIAL_2">Hasil Remedial 2</option>
+            <option value="REMEDIAL_3">Hasil Remedial 3</option>
+          </select>
+        </div>
+
+        <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-[11px] text-slate-700">
+          <span class="font-extrabold text-[#0E7A3F] block">Penempatan Tahun Otomatis:</span>
+          Sistem membaca <b>2 angka depan NIM</b> setiap baris (contoh: NIM <b>21</b>6131039 $\rightarrow$ Tahun <b>2021</b>, NIM <b>24</b>6151048 $\rightarrow$ Tahun <b>2024</b>).
+        </div>
+      </div>
+
+      <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-[11px] text-slate-700 space-y-1">
+        <div class="font-extrabold text-slate-900">Format Kolom Excel yang Didukung Otomatis:</div>
+        <p><code>NIM</code>, <code>Nama</code>, <code>Tahun_Angkatan</code>, <code>Jenjang</code> (D3/D4), <code>Program_Studi</code>, <code>Tipe_Ujian</code>, <code>Section_1</code> (Listening), <code>Section_2</code> (Structure), <code>Section_3</code> (Reading), <code>Total_Score</code>.</p>
+      </div>
+
+      <div>
+        <label class="block text-[11px] font-extrabold uppercase tracking-wider text-slate-600 mb-1.5">Pilih File Excel (.xlsx, .xls, .csv) *</label>
+        <input type="file" id="fileInputExcelRekapan" accept=".xlsx,.xls,.csv" onchange="previewFileExcel(event)" class="w-full text-xs text-slate-600 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-extrabold file:bg-emerald-50 file:text-[#169C53] hover:file:bg-emerald-100 border border-slate-200 rounded-xl p-1.5">
+      </div>
+
+      <div id="boxPreviewExcel" class="hidden space-y-2">
+        <div class="flex items-center justify-between text-xs">
+          <span class="font-extrabold text-slate-800">Preview Data Terbaca: <span id="lblJumlahBarisExcel" class="text-[#169C53]">0</span> baris</span>
+          <span id="lblInfoDeteksiExcel" class="text-[11px] font-bold text-slate-500"></span>
+        </div>
+        <div class="max-h-48 overflow-auto border border-slate-200 rounded-xl custom-scrollbar">
+          <table class="w-full text-left text-[11px]">
+            <thead class="bg-slate-50 border-b border-slate-200 font-bold text-slate-600">
+              <tr>
+                <th class="px-3 py-2">NIM</th>
+                <th class="px-3 py-2">Nama</th>
+                <th class="px-3 py-2">Tahun (2 Digit NIM)</th>
+                <th class="px-3 py-2">Jurusan & Prodi</th>
+                <th class="px-3 py-2">Kategori</th>
+                <th class="px-3 py-2 text-right">L / S / R / Total</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyPreviewExcel" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
+        <button type="button" onclick="tutupModalUploadExcel()" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold">Batal</button>
+        <button type="button" id="btnSimpanExcelDb" onclick="simpanExcelKeDatabase()" disabled class="px-5 py-2.5 rounded-xl bg-[#169C53] hover:bg-[#0E7A3F] disabled:opacity-40 text-white text-xs font-extrabold flex items-center gap-1.5 shadow-sm">
+          <i class="ri-save-3-line"></i>
+          <span>Simpan & Gabungkan ke Database</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 2: DETAIL RIWAYAT NILAI, EDIT & CETAK SERTIFIKAT ==================== -->
+  <div id="modalDetailMahasiswa" class="hidden fixed inset-0 bg-slate-900/55 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-4xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-6 max-h-[92vh] overflow-y-auto custom-scrollbar">
       
-      <div class="p-6 space-y-6">
-        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex justify-between items-center">
-          <div>
-            <h4 id="modalNamaMhs" class="text-base font-bold text-slate-900">-</h4>
-            <p id="modalNimMhs" class="text-xs font-semibold text-slate-500 mt-0.5">-</p>
+      <!-- Header Modal -->
+      <div class="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
+        <div>
+          <div class="flex flex-wrap items-center gap-2">
+            <span id="detBadgeAngkatan" class="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[11px] font-extrabold">Angkatan -</span>
+            <span id="detBadgeJenjang" class="px-2.5 py-0.5 rounded-full bg-emerald-50 text-[#169C53] border border-emerald-200 text-[11px] font-extrabold">D3 / D4</span>
+            <span id="detBadgeStatusLulus" class="px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 text-[11px] font-extrabold">Status</span>
           </div>
-          <div class="text-right">
-            <span id="modalProdiMhs" class="text-[11px] font-extrabold text-sky-700 bg-sky-50 px-2.5 py-1 rounded-lg uppercase border border-sky-200">-</span>
+          <h3 id="detNamaMahasiswa" class="text-xl font-extrabold text-slate-900 mt-1.5">NAMA MAHASISWA</h3>
+          <p id="detInfoProdiJurusan" class="text-xs text-slate-500 font-semibold mt-0.5">NIM • Jurusan • Program Studi</p>
+        </div>
+
+        <button type="button" onclick="tutupModalDetailMahasiswa()" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-rose-50 text-slate-500 hover:text-rose-600 flex items-center justify-center shrink-0">
+          <i class="ri-close-line text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Kotak-Kotak Riwayat Nilai Test -->
+      <div class="space-y-2.5">
+        <div class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">KOTAK-KOTAK RIWAYAT NILAI TEST</div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3" id="gridKotakRiwayatNilai">
+          <!-- Diisi via JS -->
+        </div>
+      </div>
+
+      <!-- Syarat Kelulusan & Tombol Unduh Sertifikat (TOEFL & SSPECT) -->
+      <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="space-y-1">
+            <div class="text-xs font-extrabold text-slate-900">Status Penerbitan Sertifikat Resmi</div>
+            <p id="detKeteranganSertifikat" class="text-xs text-slate-600 leading-relaxed">
+              Memeriksa kelengkapan nilai Latihan & TOEFL...
+            </p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+            <!-- Tombol Unduh Sertifikat SSPECT -->
+            <button type="button" id="btnUnduhSertifSspect" onclick="bukaPreviewSertifikat('SSPECT')" class="hidden px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-extrabold items-center gap-2 shadow-sm transition-all">
+              <i class="ri-award-fill text-base"></i>
+              <span>Unduh Sertifikat SSPECT</span>
+            </button>
+
+            <!-- Tombol Unduh Sertifikat TOEFL -->
+            <button type="button" id="btnUnduhSertifToefl" onclick="bukaPreviewSertifikat('TOEFL')" class="hidden px-4 py-2.5 rounded-xl bg-[#169C53] hover:bg-[#0E7A3F] text-white text-xs font-extrabold items-center gap-2 shadow-sm transition-all">
+              <i class="ri-award-fill text-base"></i>
+              <span>Unduh Sertifikat TOEFL</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Pengaturan Data Tambahan Sertifikat -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-slate-200/80">
+          <div>
+            <label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Place, Date of Birth (Untuk Sertifikat)</label>
+            <input type="text" id="inputDetTtl" placeholder="Contoh: Samarinda, 12 May 2003" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-semibold focus:border-[#169C53] outline-none">
+          </div>
+          <div>
+            <label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Date of Test Taken</label>
+            <input type="text" id="inputDetTglTes" placeholder="Contoh: 04 May 2026" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-semibold focus:border-[#169C53] outline-none">
+          </div>
+          <div>
+            <label class="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1">Nomor Sertifikat</label>
+            <input type="text" id="inputDetNoSertif" placeholder="Otomatis / Edit Nomor..." class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-mono font-bold focus:border-[#169C53] outline-none">
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Edit / Input Nilai Manual Mahasiswa Ini -->
+      <details class="group rounded-2xl border border-slate-200 bg-white">
+        <summary class="cursor-pointer px-5 py-3.5 text-xs font-extrabold text-slate-800 flex items-center justify-between select-none">
+          <span class="flex items-center gap-2">
+            <i class="ri-edit-box-line text-[#169C53] text-base"></i>
+            <span>Edit Rincian Nilai & Identitas Mahasiswa Ini</span>
+          </span>
+          <i class="ri-arrow-down-s-line text-base group-open:rotate-180 transition-transform"></i>
+        </summary>
+        <form onsubmit="simpanPerubahanMahasiswa(event)" class="p-5 pt-2 border-t border-slate-100 space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Nama Mahasiswa</label>
+              <input type="text" id="editMhsNama" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold">
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Jenjang & Prodi</label>
+              <input type="text" id="editMhsProdi" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold">
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Tahun Angkatan (Auto 2 Digit NIM)</label>
+              <input type="number" id="editMhsAngkatan" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold bg-slate-50">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-6 gap-3">
+            <div>
+              <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Skor SSPECT</label>
+              <input type="number" id="editSkorSspect" placeholder="-" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-mono font-bold">
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Skor Latihan</label>
+              <input type="number" id="editSkorLatihan" placeholder="-" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-mono font-bold">
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">TOEFL Utama</label>
+              <input type="number" id="editSkorToefl" placeholder="-" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-mono font-bold">
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Remedial 1</label>
+              <input type="number" id="editSkorRem1" placeholder="-" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-mono font-bold">
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Remedial 2</label>
+              <input type="number" id="editSkorRem2" placeholder="-" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-mono font-bold">
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Remedial 3</label>
+              <input type="number" id="editSkorRem3" placeholder="-" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-mono font-bold">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-3">
+            <div>
+              <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Section 1 (Listening)</label>
+              <input type="number" id="editSec1" placeholder="-" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-mono font-bold">
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Section 2 (Structure)</label>
+              <input type="number" id="editSec2" placeholder="-" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-mono font-bold">
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Section 3 (Reading)</label>
+              <input type="number" id="editSec3" placeholder="-" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-mono font-bold">
+            </div>
+          </div>
+
+          <div class="flex justify-end">
+            <button type="submit" class="px-5 py-2.5 rounded-xl bg-[#169C53] hover:bg-[#0E7A3F] text-white text-xs font-extrabold shadow-sm">
+              Simpan Perubahan Data
+            </button>
+          </div>
+        </form>
+      </details>
+
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 3: TAMBAH MAHASISWA MANUAL ==================== -->
+  <div id="modalTambahManual" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-5">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="text-lg font-extrabold text-slate-900">Tambah Data Mahasiswa Manual</h3>
+        <button type="button" onclick="tutupModalTambahManual()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-rose-50 text-slate-500 flex items-center justify-center">
+          <i class="ri-close-line"></i>
+        </button>
+      </div>
+
+      <form onsubmit="submitTambahManual(event)" class="space-y-4">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[11px] font-bold uppercase text-slate-600 mb-1">NIM *</label>
+            <input type="text" id="addNim" oninput="autoIsiAngkatanDariNimInput(this.value)" required placeholder="246151048" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-mono font-bold">
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold uppercase text-slate-600 mb-1">Tahun Angkatan (Auto NIM) *</label>
+            <input type="number" id="addAngkatan" required placeholder="2024" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold bg-slate-50">
           </div>
         </div>
 
         <div>
-          <h5 class="text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-3">Kotak-Kotak Riwayat Nilai Test</h5>
-          <div id="modalGridSkor" class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-            <!-- Kotak skor dinamis berdasar D3/D4 -->
+          <label class="block text-[11px] font-bold uppercase text-slate-600 mb-1">Nama Lengkap *</label>
+          <input type="text" id="addNama" required placeholder="NAMA LENGKAP MAHASISWA" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold">
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block text-[11px] font-bold uppercase text-slate-600 mb-1">Jenjang *</label>
+            <select id="addJenjang" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold bg-white">
+              <option value="D3">D3</option>
+              <option value="D4">D4</option>
+            </select>
+          </div>
+          <div class="col-span-2">
+            <label class="block text-[11px] font-bold uppercase text-slate-600 mb-1">Program Studi *</label>
+            <input type="text" id="addProdi" required placeholder="D4- Teknologi Rekayasa Komputer" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold">
           </div>
         </div>
 
-        <div id="containerSertifikat" class="pt-2">
-          <!-- Tombol unduh sertifikat aktif jika lulus -->
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="tutupModalTambahManual()" class="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold">Batal</button>
+          <button type="submit" class="px-5 py-2.5 rounded-xl bg-[#169C53] text-white text-xs font-extrabold">Simpan Mahasiswa</button>
         </div>
-      </div>
+      </form>
     </div>
   </div>
 
-  <!-- MODAL PREVIEW / PRATINJAU CETAK ATAU UNDUH TABEL PRODI -->
-  <div id="modalPreviewTabel" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200 p-8 space-y-6">
-      <!-- Kop Surat Resmi UPA Bahasa POLNES -->
-      <div class="border-b-2 border-slate-800 pb-4 flex items-center justify-between">
-        <img src="./img/polnes.png" alt="Logo Polnes" class="w-14 h-14 object-contain">
-        <div class="text-center flex-1 mx-4">
-          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-600">Kementerian Pendidikan Tinggi, Sains, dan Teknologi</h2>
-          <h1 class="text-base font-extrabold uppercase text-slate-900">Politeknik Negeri Samarinda</h1>
-          <h2 class="text-sm font-extrabold text-polnes-dark uppercase">UPA Bahasa</h2>
-          <p class="text-[10px] text-slate-500 mt-0.5">Jl. Dr. Ciptomangunkusumo Kampus Gunung Panjang Samarinda | Website: www.polnes.ac.id</p>
-        </div>
-        <div class="w-14"></div>
+  <!-- ==================== MODAL 4: PREVIEW & CETAK / PDF SERTIFIKAT RESMI UPA BAHASA ==================== -->
+  <div id="modalPreviewSertifikat" class="hidden fixed inset-0 bg-slate-900/75 backdrop-blur-xs z-[60] flex flex-col items-center justify-center p-4 overflow-y-auto">
+    <div class="max-w-[1050px] w-full bg-white rounded-2xl px-5 py-3 mb-4 flex flex-wrap items-center justify-between gap-3 shadow-xl">
+      <div class="flex items-center gap-2.5">
+        <span class="px-3 py-1 rounded-full bg-emerald-50 text-[#169C53] text-xs font-extrabold" id="badgeJenisSertifPreview">
+          SERTIFIKAT TOEFL PREDICTION
+        </span>
+        <span class="text-xs text-slate-500 hidden sm:inline">Gunakan opsi <b>Save as PDF</b> pada dialog cetak untuk menyimpan file PDF.</span>
       </div>
-
-      <div class="text-center space-y-1">
-        <h3 id="previewJudulProdi" class="text-sm font-extrabold text-slate-900 uppercase">REKAPITULASI NILAI KELULUSAN BAHASA</h3>
-        <p id="previewSubProdi" class="text-xs text-slate-500 font-semibold"></p>
-      </div>
-
-      <div id="previewTabelKonten" class="overflow-x-auto">
-        <!-- Tabel preview -->
-      </div>
-
-      <div class="flex justify-end gap-3 pt-4 border-t border-slate-200">
-        <button onclick="tutupModalPreview()" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition-all">
+      <div class="flex items-center gap-2">
+        <button type="button" onclick="cetakSertifikatPdf()" class="px-5 py-2 rounded-xl bg-[#169C53] hover:bg-[#0E7A3F] text-white text-xs font-extrabold flex items-center gap-2 shadow-sm">
+          <i class="ri-printer-line text-base"></i>
+          <span>Cetak / Unduh PDF</span>
+        </button>
+        <button type="button" onclick="tutupPreviewSertifikat()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-700 hover:text-rose-600 text-xs font-bold">
           Tutup
         </button>
-        <button onclick="window.print()" class="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold flex items-center gap-2 transition-all">
-          <i class="ri-printer-line"></i> Cetak Dokumen
-        </button>
-        <button onclick="eksekusiUnduhExcelProdi()" class="px-5 py-2.5 bg-polnes-main hover:bg-polnes-dark text-white rounded-xl text-xs font-bold flex items-center gap-2 transition-all">
-          <i class="ri-download-cloud-line"></i> Unduh File Excel
-        </button>
+      </div>
+    </div>
+
+    <!-- KANVAS SERTIFIKAT LANDSCAPE -->
+    <div class="overflow-x-auto max-w-full pb-4">
+      <div id="printCertificateArea" class="w-[1050px] h-[742px] bg-white relative overflow-hidden shadow-2xl border border-slate-300 select-none text-slate-900">
+        
+        <img src="./img/sertif.jpg" alt="Background Gedung POLNES" class="absolute inset-0 w-full h-full object-cover opacity-[0.17] pointer-events-none">
+        
+        <div class="absolute inset-5 border-[1.5px] border-emerald-800/40 pointer-events-none"></div>
+        <div class="absolute inset-6 border border-emerald-700/25 pointer-events-none"></div>
+
+        <div class="relative z-10 h-full flex flex-col justify-between px-14 py-9">
+          
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <img src="./img/polnes.png" alt="Logo POLNES" class="w-16 h-16 object-contain">
+              <div class="leading-snug">
+                <div class="text-[13px] font-extrabold tracking-wide text-slate-800 uppercase">
+                  KEMENTERIAN PENDIDIKAN TINGGI, SAINS, DAN TEKNOLOGI
+                </div>
+                <div class="text-[15px] font-extrabold tracking-wide text-slate-900 uppercase">
+                  POLITEKNIK NEGERI SAMARINDA
+                </div>
+                <div class="text-[14px] font-extrabold tracking-wider text-slate-800 uppercase">
+                  UPA. BAHASA
+                </div>
+              </div>
+            </div>
+            <div class="text-[10px] font-mono text-slate-500 self-start pt-1">
+              FM-Polnes-14-01-016/R1
+            </div>
+          </div>
+
+          <div class="text-center space-y-1 -mt-1">
+            <h1 class="text-[26px] font-extrabold tracking-[0.14em] text-slate-900 uppercase">
+              CERTIFICATE OF ACHIEVEMENT
+            </h1>
+            <div class="text-xs font-semibold text-slate-700 tracking-wide">
+              No: <span id="certNomor">0846 / PL7.18 / UPA.BAHASA / TOEFL-P / 2026</span>
+            </div>
+            <div class="pt-2 text-sm italic font-serif text-slate-700">
+              This is presented to
+            </div>
+          </div>
+
+          <div class="max-w-2xl mx-auto w-full pl-12 space-y-1.5 text-[13px]">
+            <div class="grid grid-cols-12 items-baseline">
+              <div class="col-span-4 font-serif italic text-slate-700">Name</div>
+              <div class="col-span-8 font-extrabold text-[15px] tracking-wide text-slate-900 uppercase">
+                : &nbsp; <span id="certNama">MUHAMMAD ILHAM MAULANA</span>
+              </div>
+            </div>
+            <div class="grid grid-cols-12 items-baseline">
+              <div class="col-span-4 font-serif italic text-slate-700">NIM</div>
+              <div class="col-span-8 font-bold text-slate-900">
+                : &nbsp; <span id="certNim">236211031</span>
+              </div>
+            </div>
+            <div class="grid grid-cols-12 items-baseline">
+              <div class="col-span-4 font-serif italic text-slate-700">Place, date of birth</div>
+              <div class="col-span-8 font-semibold text-slate-800">
+                : &nbsp; <span id="certTtl">Samarinda, 28 May 2003</span>
+              </div>
+            </div>
+            <div class="grid grid-cols-12 items-baseline">
+              <div class="col-span-4 font-serif italic text-slate-700">Program Study</div>
+              <div class="col-span-8 font-semibold text-slate-800">
+                : &nbsp; <span id="certProdi">D3 - Accounting</span>
+              </div>
+            </div>
+            <div class="grid grid-cols-12 items-baseline">
+              <div class="col-span-4 font-serif italic text-slate-700">Date of test taken</div>
+              <div class="col-span-8 font-semibold text-slate-800">
+                : &nbsp; <span id="certTglTes">04 May 2026</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="text-center space-y-2.5">
+            <div id="certSubJudulTes" class="text-[14px] font-serif italic font-semibold text-slate-800">
+              Achieved the following score on Toefl Prediction Test
+            </div>
+
+            <div class="max-w-xl mx-auto">
+              <table class="w-full border-collapse border border-slate-700 text-center bg-white/65">
+                <thead>
+                  <tr class="text-[12px] font-serif italic text-slate-800">
+                    <th class="border border-slate-700 py-1.5 px-3 w-1/3 font-semibold">
+                      Listening<br>Comprehension
+                    </th>
+                    <th class="border border-slate-700 py-1.5 px-3 w-1/3 font-semibold">
+                      Structure and<br>Written Expression
+                    </th>
+                    <th class="border border-slate-700 py-1.5 px-3 w-1/3 font-semibold">
+                      Reading<br>Comprehension
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="text-[15px] font-extrabold text-slate-900">
+                    <td class="border border-slate-700 py-1.5" id="certSec1">45</td>
+                    <td class="border border-slate-700 py-1.5" id="certSec2">44</td>
+                    <td class="border border-slate-700 py-1.5" id="certSec3">46</td>
+                  </tr>
+                  <tr class="text-[14px] font-extrabold text-slate-900">
+                    <td colspan="2" class="border border-slate-700 py-1.5 text-center tracking-wide">
+                      Total Score
+                    </td>
+                    <td class="border border-slate-700 py-1.5 text-[16px]" id="certTotalSkor">
+                      450
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="flex justify-center pt-1">
+            <div class="text-center text-[12px] leading-snug relative">
+              <div class="text-slate-800 font-medium">
+                Samarinda, <span id="certTanggalCetak">05 August 2026</span>
+              </div>
+              <div class="text-slate-800 font-semibold">
+                Head of UPA. Bahasa
+              </div>
+              <div class="h-14 flex items-center justify-center"></div>
+              <div class="font-bold underline text-slate-900">
+                Dwi Titi Maesaroh, S.Pd., M.Pd.
+              </div>
+              <div class="font-semibold text-slate-800">
+                NIP. 198901172024062002
+              </div>
+            </div>
+          </div>
+
+          <div class="text-[9.5px] text-slate-600 leading-tight border-t border-slate-300/80 pt-2">
+            <div>Jalan Dr. Ciptomangunkusumo Kampus Gunung Lipan, Samarinda 75131</div>
+            <div>Telepon : PABX (0541) 260588-260553-262018 FAX (0541) 260355</div>
+            <div>Laman : www.polnes.ac.id &nbsp; Surel : humas@polnes.ac.id - pusatbahasa@polnes.ac.id</div>
+          </div>
+
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- SCRIPT SUPABASE & LOGIKA LENGKAP REKAPAN -->
+  <!-- ==================== SCRIPT SUPABASE & MODUL REKAPAN ==================== -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./js/supabase-config.js"></script>
-  <script>
-    let daftarFolderTahun = ["2024", "2025", "2026"];
-    let tahunArsipAktif = "2024";
-    let dataArsipMasterParsed = [];
-    let prodiAktifPreview = "";
-
-    document.addEventListener('DOMContentLoaded', async () => {
-      renderFolderTahunUI();
-      await pilihFolderTahun(tahunArsipAktif);
-    });
-
-    function renderFolderTahunUI() {
-      const container = document.getElementById('containerFolderTahun');
-      if (!container) return;
-
-      container.innerHTML = daftarFolderTahun.map(th => {
-        const isActive = tahunArsipAktif === th;
-        return `
-          <div onclick="pilihFolderTahun('${th}')" class="cursor-pointer p-4 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-2 ${isActive ? 'border-polnes-main bg-polnes-light text-polnes-dark font-extrabold shadow-sm' : 'border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600'}">
-            <i class="ri-folder-shared-line text-2xl ${isActive ? 'text-polnes-main' : 'text-slate-400'}"></i>
-            <span class="text-sm">Tahun ${th}</span>
-          </div>
-        `;
-      }).join('');
-    }
-
-    function tambahTahunBaru() {
-      const input = prompt("Masukkan Tahun Angkatan Baru (Contoh: 2027):");
-      if (!input) return;
-      const thBersih = input.trim();
-      if (thBersih && !daftarFolderTahun.includes(thBersih)) {
-        daftarFolderTahun.push(thBersih);
-      }
-      pilihFolderTahun(thBersih);
-    }
-
-    async function pilihFolderTahun(th) {
-      tahunArsipAktif = th;
-      renderFolderTahunUI();
-      
-      const panelUpload = document.getElementById('panelUploadMaster');
-      if (panelUpload) panelUpload.classList.remove('hidden');
-      
-      const judul = document.getElementById('judulPanelUpload');
-      if (judul) judul.innerText = `Arsip Master: Tahun Angkatan ${th}`;
-      
-      const badge = document.getElementById('badgeTahunAktif');
-      if (badge) badge.innerText = `Tahun ${th}`;
-
-      // RESET BERSIH DATA LAMA SAAT PINDAH FOLDER
-      dataArsipMasterParsed = [];
-      const containerTabel = document.getElementById('containerTabelProdi');
-      if (containerTabel) containerTabel.innerHTML = '';
-      const panelTabel = document.getElementById('panelTabelProdi');
-      if (panelTabel) panelTabel.classList.add('hidden');
-      const labelFile = document.getElementById('labelFileRekap');
-      if (labelFile) labelFile.innerText = "Klik untuk Pilih File Excel Master...";
-      const inputfile = document.getElementById('fileRekapInput');
-      if (inputfile) inputfile.value = "";
-
-      // Muat data khusus tahun tersebut dari database Supabase
-      await muatArsipDariSupabase();
-    }
-
-    function handleFileRekapChange(input) {
-      const file = input.files[0];
-      if (!file) return;
-      
-      const label = document.getElementById('labelFileRekap');
-      if (label) label.innerText = file.name;
-
-      const kategoriDipilih = document.getElementById('selectKategoriTes').value;
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const data = new Uint8Array(e.target.result);
-          const workbook = XLSX.read(data, { type: 'array' });
-          const sheetName = workbook.SheetNames[0];
-          const worksheet = workbook.Sheets[sheetName];
-          const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
-
-          let parsedList = [];
-          let currentJurusan = "TEKNOLOGI INFORMASI";
-          let currentProdi = "D3 - TEKNIK ALAT BERAT";
-
-          rows.forEach((row) => {
-            let rowText = row.join(" ").toUpperCase();
-            rowText = rowText.replace(/DII\b/g, "D3");
-
-            if (rowText.includes("TEKNIK") || rowText.includes("AKUNTANSI") || rowText.includes("ADMINISTRASI") || rowText.includes("JURUSAN") || rowText.includes("D3") || rowText.includes("D4") || rowText.includes("DIV")) {
-              const cleaned = row.find(cell => cell && String(cell).length > 3 && !String(cell).includes("KEMENTERIAN") && !String(cell).includes("POLITEKNIK"));
-              if (cleaned) {
-                let cleanStr = String(cleaned).toUpperCase().replace(/DII\b/g, "D3");
-                if (rowText.includes("JURUSAN") || rowText.includes("FAKULTAS")) {
-                  currentJurusan = cleanStr;
-                } else {
-                  currentProdi = cleanStr;
-                }
-              }
-            }
-
-            let nimVal = "";
-            let namaVal = "";
-            let skorVal = "-";
-
-            row.forEach((cell, idx) => {
-              const strCell = String(cell).trim();
-              if (/^\d{8,10}$/.test(strCell)) {
-                nimVal = strCell;
-                namaVal = String(row[idx - 1] || row[idx - 2] || row[1] || "MAHASISWA").trim();
-                skorVal = parseInt(row[row.length - 1]) || parseInt(row[idx + 4]) || 400;
-              }
-            });
-
-            if (nimVal && namaVal && namaVal.toUpperCase() !== "NAMA" && namaVal.toUpperCase() !== "NIM") {
-              parsedList.push({
-                nim: nimVal,
-                nama: namaVal.toUpperCase(),
-                jurusan: currentJurusan,
-                prodi: currentProdi,
-                tahun: tahunArsipAktif,
-                kategori: kategoriDipilih,
-                skor: skorVal,
-                riwayat: {
-                  sspect: kategoriDipilih === 'SSPECT' ? skorVal : '-',
-                  latihanD3: kategoriDipilih === 'TOEFL LATIHAN D3' ? skorVal : '-',
-                  latihanD4: kategoriDipilih === 'TOEFL LATIHAN D4' ? skorVal : '-',
-                  toeflD3: kategoriDipilih === 'TOEFL D3' ? skorVal : '-',
-                  toeflD4: kategoriDipilih === 'TOEFL D4' ? skorVal : '-',
-                  remedial1: kategoriDipilih === 'REMEDIAL 1' ? skorVal : '-',
-                  remedial2: kategoriDipilih === 'REMEDIAL 2' ? skorVal : '-',
-                  remedial3: kategoriDipilih === 'REMEDIAL 3' ? skorVal : '-'
-                }
-              });
-            }
-          });
-
-          if (parsedList.length === 0) {
-            alert("Format Excel tidak terdeteksi otomatis. Pastikan kolom NIM dan Nama tersedia.");
-            return;
-          }
-
-          dataArsipMasterParsed = parsedList;
-          renderTabelProdiUI();
-          
-          const panelTabel = document.getElementById('panelTabelProdi');
-          if (panelTabel) panelTabel.classList.remove('hidden');
-
-          alert(`Sukses! Membaca ${parsedList.length} data mahasiswa.`);
-
-        } catch (err) {
-          alert("Gagal membaca file Excel: " + err.message);
-        }
-      };
-      reader.readAsArrayBuffer(file);
-    }
-
-    function renderTabelProdiUI() {
-      const container = document.getElementById('containerTabelProdi');
-      if (!container) return;
-
-      const groupedJurusan = {};
-      dataArsipMasterParsed.forEach(item => {
-        const jur = item.jurusan || 'JURUSAN UMUM';
-        if (!groupedJurusan[jur]) groupedJurusan[jur] = {};
-        const prd = item.prodi || 'PROGRAM STUDI UMUM';
-        if (!groupedJurusan[jur][prd]) groupedJurusan[jur][prd] = [];
-        groupedJurusan[jur][prd].push(item);
-      });
-
-      let html = '';
-      for (const [jurusan, mapProdi] of Object.entries(groupedJurusan)) {
-        html += `
-          <div class="space-y-4">
-            <div class="bg-polnes-dark text-white px-5 py-3 rounded-xl font-extrabold text-sm uppercase tracking-wider flex items-center justify-between">
-              <span><i class="ri-building-line mr-2"></i> JURUSAN: ${jurusan}</span>
-              <span class="text-xs bg-white/20 px-2.5 py-1 rounded-md">Tahun ${tahunArsipAktif}</span>
-            </div>
-        `;
-
-        for (const [prodiName, listMhs] of Object.entries(mapProdi)) {
-          html += `
-            <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm ml-2 md:ml-4">
-              <div class="bg-slate-100 px-5 py-3 border-b border-slate-200 flex justify-between items-center">
-                <h5 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-                  <i class="ri-graduation-cap-line text-polnes-main text-base"></i> Prodi: ${prodiName}
-                </h5>
-                <div class="flex items-center gap-3">
-                  <span class="text-[11px] font-bold text-slate-500 bg-white px-2.5 py-1 rounded-md border border-slate-200">${listMhs.length} Mahasiswa</span>
-                  <button onclick="bukaPreviewProdi('${prodiName}')" class="px-3 py-1.5 bg-polnes-main hover:bg-polnes-dark text-white rounded-lg text-xs font-bold shadow-sm flex items-center gap-1.5 transition-all">
-                    <i class="ri-eye-line"></i> Pratinjau & Unduh
-                  </button>
-                </div>
-              </div>
-              
-              <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                  <thead>
-                    <tr class="bg-slate-50/70 text-slate-500 text-[11px] border-b border-slate-200 uppercase tracking-wider">
-                      <th class="px-4 py-3 font-bold border-r border-slate-200 text-center w-12">NO</th>
-                      <th class="px-4 py-3 font-bold border-r border-slate-200 w-36 text-center">NIM</th>
-                      <th class="px-4 py-3 font-bold border-r border-slate-200">NAMA MAHASISWA (KLIK UNTUK DETAIL KOTAK SKOR)</th>
-                      <th class="px-4 py-3 font-bold text-center w-36">SCORE / TOTAL</th>
-                    </tr>
-                  </thead>
-                  <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
-          `;
-
-          listMhs.forEach((m, idx) => {
-            html += `
-              <tr class="hover:bg-slate-50 transition-colors">
-                <td class="px-4 py-3 text-center text-xs font-semibold border-r border-slate-100">${idx + 1}</td>
-                <td class="px-4 py-3 text-center text-xs font-bold text-slate-800 border-r border-slate-100 font-mono">${m.nim}</td>
-                <td class="px-4 py-3 text-xs font-bold text-polnes-dark border-r border-slate-100 cursor-pointer hover:underline" onclick='bukaDetailMhs(${JSON.stringify(m)})'>
-                  <i class="ri-user-line mr-1 text-slate-400"></i> ${m.nama}
-                </td>
-                <td class="px-4 py-3 text-center text-xs font-extrabold text-emerald-600 bg-emerald-50/30 font-mono">${m.skor}</td>
-              </tr>
-            `;
-          });
-
-          html += `
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          `;
-        }
-        html += `</div>`;
-      }
-
-      container.innerHTML = html;
-    }
-
-    function bukaDetailMhs(mhs) {
-      document.getElementById('modalNamaMhs').innerText = mhs.nama;
-      document.getElementById('modalNimMhs').innerText = `NIM: ${mhs.nim}`;
-      document.getElementById('modalProdiMhs').innerText = mhs.prodi;
-
-      const isD3 = mhs.prodi.includes("D3") || mhs.prodi.includes("DIII");
-      const gridSkor = document.getElementById('modalGridSkor');
-
-      if (isD3) {
-        gridSkor.innerHTML = `
-          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">SSPECT</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.sspect}</span></div>
-          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">LAT. D3</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.latihanD3}</span></div>
-          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">TOEFL D3</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.toeflD3}</span></div>
-          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">REMEDIAL 1</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.remedial1}</span></div>
-          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">REMEDIAL 2</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.remedial2}</span></div>
-          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">REMEDIAL 3</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.remedial3}</span></div>
-        `;
-      } else {
-        gridSkor.innerHTML = `
-          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">SSPECT</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.sspect}</span></div>
-          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">LAT. D4</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.latihanD4}</span></div>
-          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">TOEFL D4</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.toeflD4}</span></div>
-          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">REMEDIAL 1</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.remedial1}</span></div>
-          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">REMEDIAL 2</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.remedial2}</span></div>
-          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="text-[10px] text-slate-400 block font-bold">REMEDIAL 3</span><span class="text-sm font-extrabold text-slate-800">${mhs.riwayat.remedial3}</span></div>
-        `;
-      }
-
-      const isLulus = parseInt(mhs.skor) >= 400;
-      const containerSertif = document.getElementById('containerSertifikat');
-      
-      if (isLulus) {
-        containerSertif.innerHTML = `
-          <button onclick="unduhSertifikatResmi('${mhs.nama}')" class="w-full py-3 bg-polnes-main hover:bg-polnes-dark text-white rounded-xl text-xs font-bold shadow-sm flex items-center justify-center gap-2 transition-all">
-            <i class="ri-award-line text-base"></i> Unduh Sertifikat Kelulusan (Resmi Lulus)
-          </button>
-        `;
-      } else {
-        containerSertif.innerHTML = `
-          <div class="p-3 bg-amber-50 border border-amber-200 text-amber-700 rounded-xl text-xs font-semibold text-center">
-            Status: Belum Lulus (Skor belum memenuhi ambang batas minimum sertifikasi).
-          </div>
-        `;
-      }
-
-      document.getElementById('modalDetailMhs').classList.remove('hidden');
-    }
-
-    function tutupModalDetail() {
-      document.getElementById('modalDetailMhs').classList.add('hidden');
-    }
-
-    function bukaPreviewProdi(prodi) {
-      prodiAktifPreview = prodi;
-      document.getElementById('previewJudulProdi').innerText = `REKAPITULASI NILAI KELULUSAN BAHASA`;
-      document.getElementById('previewSubProdi').innerText = `PROGRAM STUDI: ${prodi} — TAHUN ANGKATAN ${tahunArsipAktif}`;
-
-      const listMhs = dataArsipMasterParsed.filter(m => m.prodi === prodi);
-      let html = `
-        <table class="w-full text-left border-collapse border border-slate-300 text-xs">
-          <thead>
-            <tr class="bg-slate-100 text-slate-700 uppercase">
-              <th class="border border-slate-300 px-3 py-2 text-center w-12">No</th>
-              <th class="border border-slate-300 px-3 py-2 text-center w-36">NIM</th>
-              <th class="border border-slate-300 px-3 py-2">Nama Mahasiswa</th>
-              <th class="border border-slate-300 px-3 py-2 text-center w-32">Skor / Total</th>
-            </tr>
-          </thead>
-          <tbody>
-      `;
-
-      listMhs.forEach((m, idx) => {
-        html += `
-          <tr>
-            <td class="border border-slate-300 px-3 py-2 text-center">${idx + 1}</td>
-            <td class="border border-slate-300 px-3 py-2 text-center font-mono">${m.nim}</td>
-            <td class="border border-slate-300 px-3 py-2 font-bold">${m.nama}</td>
-            <td class="border border-slate-300 px-3 py-2 text-center font-extrabold text-emerald-700">${m.skor}</td>
-          </tr>
-        `;
-      });
-
-      html += `</tbody></table>`;
-      document.getElementById('previewTabelKonten').innerHTML = html;
-      document.getElementById('modalPreviewTabel').classList.remove('hidden');
-    }
-
-    function tutupModalPreview() {
-      document.getElementById('modalPreviewTabel').classList.add('hidden');
-    }
-
-    function eksekusiUnduhExcelProdi() {
-      alert(`Berhasil mengunduh dokumen rekap untuk program studi: ${prodiAktifPreview}`);
-      tutupModalPreview();
-    }
-
-    function unduhSertifikatResmi(nama) {
-      alert(`Sertifikat kelulusan resmi berhasil diunduh untuk mahasiswa: ${nama}!`);
-    }
-
-    async function simpanDataMasterKeDatabase() {
-      if (dataArsipMasterParsed.length === 0) {
-        alert("Tidak ada data master rekap untuk disimpan.");
-        return;
-      }
-
-      try {
-        const payload = dataArsipMasterParsed.map(item => ({
-          nim: item.nim,
-          nama: item.nama,
-          jurusan: item.jurusan,
-          prodi: item.prodi,
-          tahun_angkatan: item.tahun,
-          kategori_tes: item.kategori,
-          skor_total: String(item.skor),
-          riwayat_json: JSON.stringify(item.riwayat)
-        }));
-
-        const { error } = await window.supabaseClient
-          .from('arsip_master_rekapan')
-          .insert(payload);
-
-        if (error) throw error;
-
-        alert(`Sukses! ${dataArsipMasterParsed.length} data rekap arsip master tahun ${tahunArsipAktif} berhasil disimpan ke database.`);
-        await muatArsipDariSupabase();
-
-      } catch (err) {
-        alert("Gagal menyimpan ke database Supabase: " + err.message);
-      }
-    }
-
-    async function muatArsipDariSupabase() {
-      try {
-        const { data, error } = await window.supabaseClient
-          .from('arsip_master_rekapan')
-          .select('*')
-          .eq('tahun_angkatan', tahunArsipAktif);
-
-        if (error) throw error;
-
-        if (data && data.length > 0) {
-          dataArsipMasterParsed = data.map(d => ({
-            nim: d.nim,
-            nama: d.nama,
-            jurusan: d.jurusan,
-            prodi: d.prodi,
-            tahun: d.tahun_angkatan,
-            kategori: d.kategori_tes,
-            skor: d.skor_total,
-            riwayat: d.riwayat_json ? JSON.parse(d.riwayat_json) : {}
-          }));
-          renderTabelProdiUI();
-          const panelTabel = document.getElementById('panelTabelProdi');
-          if (panelTabel) panelTabel.classList.remove('hidden');
-        }
-      } catch (err) {
-        console.error("Belum ada data arsip untuk tahun ini di Supabase:", err);
-      }
-    }
-  </script>
+  <script src="./js/modul-rekapan.js"></script>
 </body>
 </html>

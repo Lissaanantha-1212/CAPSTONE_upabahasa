@@ -1,769 +1,1107 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Modul 3: Upload Nilai TOEFL - UPA Bahasa POLNES</title>
-  
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+// ============================================================================
+// MODUL MAPPING & PENCOCOKAN HASIL UJIAN (UAT-3.1 S/D UAT-3.8 READY)
+// - UAT-3.1: Validasi & Opsi Ruang Lab & Sesi Ujian
+// - UAT-3.2: Validasi Rentang Jam Nama File terhadap Sesi Terpilih
+// - UAT-3.3: Validasi Urutan & Nama Section (Sec 1, Sec 2, Sec 3)
+// - UAT-3.4: Validasi Kesamaan Tanggal Antar File Section 1, 2, dan 3
+// - UAT-3.5: Pencegahan Double Mapping (Cek Database & Sesi Tersimpan)
+// - UAT-3.6: Auto-Mapping Otomatis dengan Data Modul Jadwal
+// - UAT-3.7: Penanganan Peserta Susulan (Fast-Add & Bind Langsung di Baris Unmapped)
+// - UAT-3.8: Penyimpanan Permanen ke Database & Rekapan Master (Auto 2 Digit NIM)
+// UPA BAHASA - POLITEKNIK NEGERI SAMARINDA
+// ============================================================================
 
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+// ==================== 1. KONFIGURASI SESI UJIAN & RUANG LAB (UAT-3.1 & UAT-3.2) ====================
+const DAFTAR_RUANG_LAB = [
+  { kode: "Lab A", label: "Lab A (Gedung UPA Bahasa Lt. 1)" },
+  { kode: "Lab B", label: "Lab B (Gedung UPA Bahasa Lt. 2)" },
+  { kode: "Lab C", label: "Lab C (Gedung TIK)" }
+];
 
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
-          colors: { polnes: { main: '#10C35D', dark: '#0B8A42', light: '#E8F8EF' } }
+const DAFTAR_SESI_UJIAN = [
+  { kode: "SESI 1", label: "SESI 1 (08.00 - 10.00 WITA)", startMenit: 8 * 60, endMenit: 10 * 60 },
+  { kode: "SESI 2", label: "SESI 2 (10.15 - 12.15 WITA)", startMenit: 10 * 60 + 15, endMenit: 12 * 60 + 15 },
+  { kode: "SESI 3", label: "SESI 3 (13.30 - 15.30 WITA)", startMenit: 13 * 60 + 30, endMenit: 15 * 60 + 30 },
+  { kode: "SESI 4", label: "SESI 4 (15.45 - 17.45 WITA)", startMenit: 15 * 60 + 45, endMenit: 17 * 60 + 45 }
+];
+
+// ==================== 2. EKSTRAKSI TAHUN ANGKATAN DARI 2 DIGIT DEPAN NIM ====================
+function ekstrakTahunAngkatanDariNimMapping(nimRaw, fallbackTahun = null) {
+  const nimBersih = String(nimRaw || "").replace(/\D/g, "");
+  if (nimBersih.length >= 2) {
+    const duaDigit = parseInt(nimBersih.substring(0, 2), 10);
+    if (!isNaN(duaDigit) && duaDigit >= 10 && duaDigit <= 99) {
+      return 2000 + duaDigit;
+    }
+  }
+  if (fallbackTahun && !isNaN(parseInt(fallbackTahun, 10))) {
+    const thn = parseInt(fallbackTahun, 10);
+    return thn < 100 ? 2000 + thn : thn;
+  }
+  return new Date().getFullYear();
+}
+
+// ==================== 3. KAMUS JURUSAN & PROGRAM STUDI BAKU POLNES ====================
+const KAMUS_JURUSAN_PRODI_MAPPING = [
+  {
+    jurusan: "AKUNTANSI",
+    prodiList: [
+      { label: "D3 - AKUNTANSI", jenjang: "D3", aliases: ["D3 AKUNTANSI", "D3- AKUNTANSI", "D3 - ACCOUNTING", "AKUNTANSI"] },
+      { label: "D4 - AKUNTANSI MANAJERIAL", jenjang: "D4", aliases: ["D4 AKUNTANSI MANAJERIAL", "D4- AKUNTANSI MANAJERIAL", "AKUNTANSI MANAJERIAL"] },
+      { label: "D4 - KEUANGAN PERBANKAN", jenjang: "D4", aliases: ["D4 KEUANGAN PERBANKAN", "D4- KEUANGAN PERBANKAN", "KEUANGAN PERBANKAN"] }
+    ]
+  },
+  {
+    jurusan: "ADMINISTRASI BISNIS",
+    prodiList: [
+      { label: "D4 - MANAJEMEN PEMASARAN", jenjang: "D4", aliases: ["D4 MANAJEMEN PEMASARAN", "D4- MANAJEMEN PEMASARAN", "MANAJEMEN PEMASARAN"] },
+      { label: "D4 - BISNIS DIGITAL", jenjang: "D4", aliases: ["D4 BISNIS DIGITAL", "D4- BISNIS DIGITAL", "BISNIS DIGITAL"] },
+      { label: "D3 - ADMINISTRASI BISNIS", jenjang: "D3", aliases: ["D3 ADMINISTRASI BISNIS", "D3- ADMINISTRASI BISNIS", "ADMINISTRASI BISNIS"] }
+    ]
+  },
+  {
+    jurusan: "KEMARITIMAN",
+    prodiList: [
+      {
+        label: "D3 - KETATALAKSANAAN PELAYARAN DAN NIAGA KEPELABUHAN",
+        jenjang: "D3",
+        aliases: [
+          "D3- KPNK", "D3 - KPNK", "D3 KPNK", "KPNK",
+          "KETATALAKSANAAN PELAYARAN DAN NIAGA KEPELABUHAN",
+          "D3 - KETATALAKSANAAN PELAYARAN DAN NIAGA KEPELABUHAN"
+        ]
+      },
+      { label: "D3 - TEKNIKA", jenjang: "D3", aliases: ["D3- TEKNIKA", "D3 - TEKNIKA", "D3 TEKNIKA", "TEKNIKA"] },
+      { label: "D3 - NAUTIKA", jenjang: "D3", aliases: ["D3- NAUTIKA", "D3 - NAUTIKA", "D3 NAUTIKA", "NAUTIKA"] }
+    ]
+  },
+  {
+    jurusan: "PARIWISATA",
+    prodiList: [
+      { label: "D3 - PARIWISATA", jenjang: "D3", aliases: ["D3- PARIWISATA", "D3 - PARIWISATA", "D3 PARIWISATA", "PARIWISATA"] },
+      { label: "D4 - USAHA PERJALANAN WISATA", jenjang: "D4", aliases: ["D4- USAHA PERJALANAN WISATA", "D4 - USAHA PERJALANAN WISATA", "USAHA PERJALANAN WISATA"] },
+      { label: "D4 - PENGELOLAAN PERHOTELAN", jenjang: "D4", aliases: ["D4- PENGELOLAAN PERHOTELAN", "PENGELOLAAN PERHOTELAN"] }
+    ]
+  },
+  {
+    jurusan: "TEKNIK SIPIL",
+    prodiList: [
+      { label: "D3 - TEKNIK SIPIL", jenjang: "D3", aliases: ["D3- TEKNIK SIPIL", "D3 TEKNIK SIPIL", "TEKNIK SIPIL"] },
+      { label: "D4 - REKAYASA JALAN DAN JEMBATAN", jenjang: "D4", aliases: ["D4- REKAYASA JALAN DAN JEMBATAN", "REKAYASA JALAN DAN JEMBATAN"] },
+      { label: "D4 - TEKNOLOGI REKAYASA KONSTRUKSI BANGUNAN GEDUNG", jenjang: "D4", aliases: ["D4- TEKNOLOGI REKAYASA KONSTRUKSI", "TEKNOLOGI REKAYASA KONSTRUKSI"] },
+      { label: "D4 - ARSITEKTUR BANGUNAN GEDUNG", jenjang: "D4", aliases: ["D4- ARSITEKTUR BANGUNAN GEDUNG", "D4 - ARSITEKTUR BANGUNAN GEDUNG", "ARSITEKTUR BANGUNAN GEDUNG"] }
+    ]
+  },
+  {
+    jurusan: "TEKNIK ELEKTRO",
+    prodiList: [
+      { label: "D3 - TEKNIK LISTRIK", jenjang: "D3", aliases: ["D3- TEKNIK LISTRIK", "D3 TEKNIK LISTRIK"] },
+      { label: "D4 - TEKNIK LISTRIK", jenjang: "D4", aliases: ["D4- TEKNIK LISTRIK", "D4 TEKNIK LISTRIK"] }
+    ]
+  },
+  {
+    jurusan: "TEKNIK MESIN",
+    prodiList: [
+      { label: "D3 - PERAWATAN DAN PERBAIKAN MESIN", jenjang: "D3", aliases: ["D3- PERAWATAN DAN PERBAIKAN MESIN", "PERAWATAN DAN PERBAIKAN MESIN"] },
+      { label: "D3 - TEKNIK ALAT BERAT", jenjang: "D3", aliases: ["D3- TEKNIK ALAT BERAT", "TEKNIK ALAT BERAT"] },
+      { label: "D4 - TEKNIK MESIN PRODUKSI DAN PERAWATAN", jenjang: "D4", aliases: ["D4- TEKNIK MESIN PRODUKSI DAN PERAWATAN", "TEKNIK MESIN PRODUKSI"] }
+    ]
+  },
+  {
+    jurusan: "TEKNIK KIMIA",
+    prodiList: [
+      { label: "D3 - PETRO DAN OLEO KIMIA", jenjang: "D3", aliases: ["D3- PETRO DAN OLEO KIMIA", "PETRO DAN OLEO KIMIA"] },
+      { label: "D4 - TEKNOLOGI KIMIA INDUSTRI", jenjang: "D4", aliases: ["D4- TEKNOLOGI KIMIA INDUSTRI", "TEKNOLOGI KIMIA INDUSTRI"] }
+    ]
+  },
+  {
+    jurusan: "TEKNOLOGI INFORMASI",
+    prodiList: [
+      { label: "D3 - TEKNIK INFORMATIKA", jenjang: "D3", aliases: ["D3- TEKNIK INFORMATIKA", "TEKNIK INFORMATIKA"] },
+      { label: "D3 - TEKNIK KOMPUTER", jenjang: "D3", aliases: ["D3- TEKNIK KOMPUTER", "TEKNIK KOMPUTER"] },
+      { label: "D4 - TEKNIK INFORMATIKA MULTIMEDIA", jenjang: "D4", aliases: ["D4- TEKNIK INFORMATIKA MULTIMEDIA", "TEKNIK INFORMATIKA MULTIMEDIA"] },
+      { label: "D4 - TEKNOLOGI REKAYASA KOMPUTER", jenjang: "D4", aliases: ["D4- TEKNOLOGI REKAYASA KOMPUTER", "TEKNOLOGI REKAYASA KOMPUTER"] }
+    ]
+  }
+];
+
+function petakanJurusanProdiMapping(prodiRaw, jenjangRaw = "") {
+  const clean = String(prodiRaw || "").trim().toUpperCase().replace(/\s+/g, " ");
+  const jenjClean = String(jenjangRaw || "").trim().toUpperCase();
+
+  for (const grp of KAMUS_JURUSAN_PRODI_MAPPING) {
+    for (const p of grp.prodiList) {
+      for (const alias of p.aliases) {
+        const aNorm = alias.toUpperCase().replace(/\s+/g, " ");
+        if (clean === aNorm || clean.includes(aNorm) || (aNorm.includes(clean) && clean.length >= 6)) {
+          if (clean.includes("TEKNIK LISTRIK")) {
+            const isD4 = clean.startsWith("D4") || jenjClean === "D4";
+            return {
+              jurusan: "TEKNIK ELEKTRO",
+              prodi: isD4 ? "D4 - TEKNIK LISTRIK" : "D3 - TEKNIK LISTRIK",
+              jenjang: isD4 ? "D4" : "D3"
+            };
+          }
+          return {
+            jurusan: grp.jurusan,
+            prodi: p.label,
+            jenjang: jenjClean || p.jenjang
+          };
         }
       }
     }
-  </script>
-</head>
-<body class="bg-slate-50 font-sans text-slate-800 antialiased flex h-screen overflow-hidden">
+  }
 
-  <!-- ==================== SIDEBAR KONSISTEN ==================== -->
-  <aside class="w-[260px] bg-white border-r border-slate-200 flex flex-col flex-shrink-0 h-full overflow-y-auto z-20">
-    <div class="p-6 flex items-center gap-3 border-b border-slate-100 sticky top-0 bg-white z-10">
-      <img src="./img/polnes.png" alt="Logo Polnes" class="w-8 h-8 object-contain">
-      <span class="font-extrabold text-slate-900 tracking-wide text-sm">UPA BAHASA</span>
-    </div>
-    
-    <div class="p-4 space-y-1 flex-1">
-      <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
-        <i class="ri-layout-grid-line text-lg text-slate-500"></i> Dashboard
-      </a>
-      
-      <div class="pt-4 pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider px-4">LAYANAN TEST</div>
-      
-      <div class="space-y-1">
-        <div onclick="document.getElementById('subPenjadwalan').classList.toggle('hidden'); document.getElementById('arrowPenjadwalan').classList.toggle('rotate-180')" class="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-slate-50 text-slate-600 font-medium text-[13px] cursor-pointer transition-all">
-          <div class="flex items-center gap-3"><i class="ri-calendar-line text-lg text-slate-500"></i> Penjadwalan</div>
-          <i id="arrowPenjadwalan" class="ri-arrow-down-s-line text-slate-400 text-lg"></i>
-        </div>
-        <div id="subPenjadwalan" class="pl-7 space-y-1 pt-1 pb-1 hidden">
-          <a href="jadwal-test.html" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 transition-all font-medium text-[13px]">
-            <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div> Jadwal Test
-          </a>
-          <a href="jadwal-remedial.html" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 transition-all font-medium text-[13px]">
-            <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div> Jadwal Remedial
-          </a>
-          <a href="jadwal-kursus.html" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 transition-all font-medium text-[13px]">
-            <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div> Jadwal Kursus
-          </a>
-        </div>
-      </div>
+  return {
+    jurusan: "JURUSAN LAINNYA",
+    prodi: clean || "-",
+    jenjang: jenjClean || (clean.startsWith("D4") ? "D4" : "D3")
+  };
+}
 
-      <!-- Hasil Test (AKTIF) -->
-      <div class="space-y-1">
-        <div onclick="document.getElementById('subHasilTest').classList.toggle('hidden'); document.getElementById('arrowHasilTest').classList.toggle('rotate-180')" class="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-slate-50 text-slate-600 font-medium text-[13px] cursor-pointer transition-all">
-          <div class="flex items-center gap-3"><i class="ri-file-upload-line text-lg text-slate-500"></i> Hasil Test</div>
-          <i id="arrowHasilTest" class="ri-arrow-down-s-line text-slate-400 text-lg rotate-180"></i>
-        </div>
-        <div id="subHasilTest" class="pl-7 space-y-1 pt-1 pb-1">
-          <a href="toefl.html" class="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-polnes-light text-polnes-main font-bold transition-all text-[13px]">
-            <div class="w-1.5 h-1.5 rounded-full bg-polnes-main"></div> TOEFL
-          </a>
-          <a href="sspect.html" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 transition-all font-medium text-[13px]">
-            <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div> SSPECT
-          </a>
-        </div>
-      </div>
+// ==================== 4. TABEL KONVERSI SKOR TOEFL PBT STANDAR ====================
+const TABEL_KONVERSI_TOEFL = {
+  s1: [
+    24,25,26,27,28,29,30,31,32,32,33,35,37,38,39,41,41,42,43,44,
+    45,45,46,47,47,48,48,49,49,50,51,51,52,52,53,54,54,55,56,57,
+    57,58,59,60,61,62,63,65,66,67,68
+  ],
+  s2: [
+    20,20,21,22,23,25,26,27,29,31,33,35,36,37,38,40,40,41,42,43,
+    44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,60,61,63,65,67,68
+  ],
+  s3: [
+    21,22,23,23,24,25,26,27,28,28,29,30,31,32,34,35,36,37,38,39,
+    40,41,42,43,43,44,45,46,46,47,48,48,49,50,51,52,52,53,54,54,
+    55,56,57,58,59,60,61,63,65,66,67
+  ]
+};
 
-      <a href="kalkulasi-score.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
-        <i class="ri-calculator-line text-lg text-slate-500"></i> Kalkulasi Score
-      </a>
+function hitungSkorKonversiToefl(benarS1, benarS2, benarS3, gunakanKonversi = true) {
+  const b1 = Math.max(0, parseInt(benarS1) || 0);
+  const b2 = Math.max(0, parseInt(benarS2) || 0);
+  const b3 = Math.max(0, parseInt(benarS3) || 0);
 
-      <a href="rekapan.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
-        <i class="ri-folder-history-line text-lg text-slate-500"></i> Rekapan
-      </a>
+  if (!gunakanKonversi) {
+    const totalLangsung = Math.round(((b1 + b2 + b3) * 10) / 3);
+    return { sec1: b1, sec2: b2, sec3: b3, total: totalLangsung };
+  }
 
-      <a href="pusat-informasi.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
-        <i class="ri-information-line text-lg text-slate-500"></i> Pusat Informasi
-      </a>
+  const idx1 = Math.min(b1, TABEL_KONVERSI_TOEFL.s1.length - 1);
+  const idx2 = Math.min(b2, TABEL_KONVERSI_TOEFL.s2.length - 1);
+  const idx3 = Math.min(b3, TABEL_KONVERSI_TOEFL.s3.length - 1);
 
-      <div class="pt-4 pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider px-4">MANAJEMEN KONTEN</div>
-      <a href="konten-utama.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
-        <i class="ri-article-line text-lg text-slate-500"></i> Konten Utama
-      </a>
-      <a href="layanan-tambahan.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
-        <i class="ri-heart-pulse-line text-lg text-slate-500"></i> Layanan Tambahan
-      </a>
-      <a href="pembelajaran.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
-        <i class="ri-book-open-line text-lg text-slate-500"></i> Pembelajaran
-      </a>
-      <a href="pengaduan.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
-        <i class="ri-message-2-line text-lg text-slate-500"></i> Pengaduan
-      </a>
-      <a href="survei.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
-        <i class="ri-clipboard-line text-lg text-slate-500"></i> Survei
-      </a>
-    </div>
-  </aside>
+  const k1 = b1 > 0 ? TABEL_KONVERSI_TOEFL.s1[idx1] : 0;
+  const k2 = b2 > 0 ? TABEL_KONVERSI_TOEFL.s2[idx2] : 0;
+  const k3 = b3 > 0 ? TABEL_KONVERSI_TOEFL.s3[idx3] : 0;
 
-  <!-- ==================== MAIN CONTENT ==================== -->
-  <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
-    
-    <header class="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between sticky top-0 z-10 shrink-0">
-      <div>
-        <p class="text-[10px] uppercase tracking-wider font-extrabold text-slate-400">HASIL TEST / TOEFL</p>
-      </div>
-      <div class="flex items-center gap-4">
-         <div class="w-9 h-9 rounded-full bg-polnes-light border border-polnes-main text-polnes-main flex items-center justify-center font-bold text-xs shadow-sm">ST</div>
-      </div>
-    </header>
+  const total = Math.round(((k1 + k2 + k3) * 10) / 3);
+  return { sec1: k1, sec2: k2, sec3: k3, total };
+}
 
-    <div class="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 pb-12">
-      
-      <!-- Panel Upload -->
-      <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-6">
-        <div>
-          <h3 class="text-base font-bold text-slate-800">Modul 3: Upload Nilai TOEFL & Auto-Mapping Engine</h3>
-          <p class="text-xs text-slate-500 mt-0.5">Validasi rentang jam, pencocokan jadwal (Tanggal, Lab, Sesi) dari database, dan pemetaan ID Meja peserta.</p>
-        </div>
+// ==================== 5. PARSER METADATA NAMA FILE (TANGGAL, JAM, KODE RUANG/KELAS) ====================
+/**
+ * Membaca metadata dari nama file hasil tes UPA Bahasa, contoh:
+ * "SECTION 1 K03 30-10-2026 08-29-23.xlsx"
+ * -> tanggalStr: "30-10-2026", tanggalIso: "2026-10-30"
+ * -> jamStr: "08:29", totalMenit: 509
+ * -> kodeRuang: "K03"
+ */
+function ekstrakMetadataDariNamaFile(namaFile) {
+  const namaClean = String(namaFile || "").trim();
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">PILIH RUANG LAB UJIAN</label>
-            <select id="selectLabToefl" onchange="cekUlangSinkronisasi()" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-[13px] font-semibold text-slate-700 outline-none focus:border-polnes-main">
-              <option value="Lab A">Lab A</option>
-              <option value="Lab B">Lab B</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">PILIH SESI & WAKTU</label>
-            <select id="selectSesiToefl" onchange="cekUlangSinkronisasi()" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-[13px] font-semibold text-slate-700 outline-none focus:border-polnes-main">
-              <option value="SESI 1 (08.00 - 10.00 WITA)">SESI 1 (08.00 - 10.00 WITA)</option>
-              <option value="SESI 2 (10.00 - 12.00 WITA)">SESI 2 (10.00 - 12.00 WITA)</option>
-              <option value="SESI 3 (14.00 - 16.00 WITA)">SESI 3 (14.00 - 16.00 WITA)</option>
-            </select>
-          </div>
-        </div>
+  // 1. Ekstrak Tanggal: DD-MM-YYYY atau DD_MM_YYYY atau YYYY-MM-DD
+  let tanggalStr = null;
+  let tanggalIso = null;
 
-        <!-- 3 File Section Upload -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-          <div class="border-2 border-dashed border-slate-200 p-5 rounded-2xl text-center hover:border-polnes-main transition-all bg-slate-50">
-            <input type="file" id="fileSec1" accept=".xlsx, .xls" class="hidden" onchange="handleFileSection(1, this)">
-            <button onclick="document.getElementById('fileSec1').click()" class="w-full py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold shadow-sm flex items-center justify-center gap-2">
-              <i class="ri-upload-cloud-line"></i> Unggah Excel Sec. 1
-            </button>
-            <p id="labelSec1" class="text-[11px] text-slate-500 mt-2 truncate">Belum ada file dipilih</p>
-          </div>
+  const matchDmy = namaClean.match(/(\d{2})[-_](\d{2})[-_](\d{4})/);
+  const matchYmd = namaClean.match(/(\d{4})[-_](\d{2})[-_](\d{2})/);
 
-          <div class="border-2 border-dashed border-slate-200 p-5 rounded-2xl text-center hover:border-purple-500 transition-all bg-slate-50">
-            <input type="file" id="fileSec2" accept=".xlsx, .xls" class="hidden" onchange="handleFileSection(2, this)">
-            <button onclick="document.getElementById('fileSec2').click()" class="w-full py-2 bg-purple-600 text-white rounded-xl text-xs font-bold shadow-sm flex items-center justify-center gap-2">
-              <i class="ri-upload-cloud-line"></i> Unggah Excel Sec. 2
-            </button>
-            <p id="labelSec2" class="text-[11px] text-slate-500 mt-2 truncate">Belum ada file dipilih</p>
-          </div>
+  if (matchDmy) {
+    const [, dd, mm, yyyy] = matchDmy;
+    tanggalStr = `${dd}-${mm}-${yyyy}`;
+    tanggalIso = `${yyyy}-${mm}-${dd}`;
+  } else if (matchYmd) {
+    const [, yyyy, mm, dd] = matchYmd;
+    tanggalStr = `${dd}-${mm}-${yyyy}`;
+    tanggalIso = `${yyyy}-${mm}-${dd}`;
+  }
 
-          <div class="border-2 border-dashed border-slate-200 p-5 rounded-2xl text-center hover:border-amber-500 transition-all bg-slate-50">
-            <input type="file" id="fileSec3" accept=".xlsx, .xls" class="hidden" onchange="handleFileSection(3, this)">
-            <button onclick="document.getElementById('fileSec3').click()" class="w-full py-2 bg-amber-600 text-white rounded-xl text-xs font-bold shadow-sm flex items-center justify-center gap-2">
-              <i class="ri-upload-cloud-line"></i> Unggah Excel Sec. 3
-            </button>
-            <p id="labelSec3" class="text-[11px] text-slate-500 mt-2 truncate">Belum ada file dipilih</p>
-          </div>
-        </div>
+  // 2. Ekstrak Jam: HH-MM-SS atau HH:MM atau HH-MM (biasanya setelah tanggal)
+  let jamStr = null;
+  let totalMenit = null;
 
-        <!-- Info Hasil Pencocokan Jadwal -->
-        <div id="infoJadwalMatched" class="hidden p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between text-xs">
-          <div class="flex items-center gap-2.5 text-emerald-800 font-semibold">
-            <i class="ri-checkbox-circle-fill text-lg text-emerald-600"></i>
-            <span id="textJadwalMatched">Jadwal cocok ditemukan.</span>
-          </div>
-          <span id="badgePesertaJadwal" class="px-2.5 py-1 bg-white border border-emerald-200 rounded-lg font-bold text-emerald-700">0 Terjadwal</span>
-        </div>
-      </div>
+  const tanpaTanggal = namaClean
+    .replace(/\d{2}[-_]\d{2}[-_]\d{4}/g, " ")
+    .replace(/\d{4}[-_]\d{2}[-_]\d{2}/g, " ");
 
-      <!-- Tombol Aksi Target Rekapan -->
-      <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div>
-          <h4 class="text-xs font-bold text-slate-700 uppercase">Target Kategori Rekapan Master</h4>
-          <p class="text-[11px] text-slate-500">Pilih kategori tujuan agar nilai masuk ke kotak yang tepat di halaman Rekapan.</p>
-        </div>
-        
-        <div class="flex items-center gap-3 w-full sm:w-auto">
-          <select id="selectKategoriTargetToefl" class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-polnes-main">
-            <option value="TOEFL D3">TOEFL D3 (Semester 6)</option>
-            <option value="TOEFL D4">TOEFL D4 (Semester 8)</option>
-            <option value="TOEFL LATIHAN D3">TOEFL LATIHAN D3 (Semester 4)</option>
-            <option value="TOEFL LATIHAN D4">TOEFL LATIHAN D4 (Semester 6)</option>
-            <option value="REMEDIAL 1">REMEDIAL 1</option>
-            <option value="REMEDIAL 2">REMEDIAL 2</option>
-            <option value="REMEDIAL 3">REMEDIAL 3</option>
-          </select>
-          <button id="btnSimpanToefl" onclick="simpanKeArsipMasterDariToefl()" class="px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-2 transition-all shrink-0">
-            <i class="ri-save-line text-sm"></i> Simpan Permanen ke Database
-          </button>
-        </div>
-      </div>
+  const matchJam = tanpaTanggal.match(/\b([01]?\d|2[0-3])[-:.]([0-5]\d)(?:[-:.]([0-5]\d))?\b/);
+  if (matchJam) {
+    const hh = parseInt(matchJam[1], 10);
+    const mm = parseInt(matchJam[2], 10);
+    jamStr = `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
+    totalMenit = hh * 60 + mm;
+  }
 
-      <!-- Pratinjau Sinkronisasi -->
-      <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
-        <div class="flex justify-between items-center">
-          <h3 class="text-base font-bold text-slate-800">Pratinjau Hasil Sinkronisasi Nilai TOEFL</h3>
-          <span id="badgeJumlahMhs" class="text-xs font-extrabold text-polnes-main bg-polnes-light px-3 py-1 rounded-lg">0 Peserta</span>
-        </div>
-        
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="bg-slate-50 text-slate-500 text-[11px] border-b border-slate-200 uppercase tracking-wider">
-                <th class="px-4 py-3 font-bold border-r border-slate-200 text-center w-28">ID Meja</th>
-                <th class="px-4 py-3 font-bold border-r border-slate-200 w-32 text-center">NIM</th>
-                <th class="px-4 py-3 font-bold border-r border-slate-200">Nama Mahasiswa</th>
-                <th class="px-4 py-3 font-bold border-r border-slate-200">Program Studi / Kelas</th>
-                <th class="px-4 py-3 font-bold border-r border-slate-200 text-center w-16">S. 1</th>
-                <th class="px-4 py-3 font-bold border-r border-slate-200 text-center w-16">S. 2</th>
-                <th class="px-4 py-3 font-bold border-r border-slate-200 text-center w-16">S. 3</th>
-                <th class="px-4 py-3 font-bold text-center w-24 border-r border-slate-200">Total Skor</th>
-                <th class="px-4 py-3 font-bold text-center w-28">Aksi / Bind</th>
-              </tr>
-            </thead>
-            <tbody id="tabelPreviewToefl" class="divide-y divide-slate-100 text-sm text-slate-700">
-              <tr>
-                <td colspan="9" class="px-5 py-10 text-center text-slate-400 text-sm italic">Unggah 3 file Excel Section untuk mencocokkan jadwal & menampilkan peserta.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+  // 3. Ekstrak Kode Lab / Ruang (misal K03, LAB A, LAB B)
+  const matchKode = namaClean.toUpperCase().match(/\b(K\d{2}|LAB[\s_-]*[A-Z0-9])\b/);
+  const kodeRuang = matchKode ? matchKode[1].replace(/[_-]/g, " ") : "";
 
-    </div>
-  </main>
+  return {
+    namaFile: namaClean,
+    tanggalStr,
+    tanggalIso,
+    jamStr,
+    totalMenit,
+    kodeRuang
+  };
+}
 
-  <!-- SCRIPT SUPABASE & LOGIKA AUTO-MAPPING -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./js/supabase-config.js"></script>
-  <script>
-    let fileSec1Info = { data: null, jam: "", tanggal: "" };
-    let fileSec2Info = { data: null, jam: "", tanggal: "" };
-    let fileSec3Info = { data: null, jam: "", tanggal: "" };
-    window.previewDataGlobal = [];
-    window.activeJadwalLogId = null;
+// ==================== 6. ENGINE VALIDASI UAT-3.1 S/D UAT-3.5 ====================
+const STORAGE_KEY_RIWAYAT_FILE_MAPPING = "upa_riwayat_file_mapping_uat_v2";
 
-    function handleFileSection(secNum, input) {
-      const file = input.files[0];
-      if (!file) return;
+function ambilRiwayatMappingTersimpan() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY_RIWAYAT_FILE_MAPPING) || "[]");
+  } catch {
+    return [];
+  }
+}
 
-      document.getElementById(`labelSec${secNum}`).innerText = file.name;
+function simpanRiwayatMappingTersimpan(daftarKode) {
+  const lama = ambilRiwayatMappingTersimpan();
+  const baru = [...new Set([...lama, ...daftarKode.filter(Boolean)])];
+  localStorage.setItem(STORAGE_KEY_RIWAYAT_FILE_MAPPING, JSON.stringify(baru));
+}
 
-      const fileName = file.name;
-      const tglMatch = fileName.match(/(\d{2}-\d{2}-\d{4})/);
-      const jamMatch = fileName.match(/(\d{2}-\d{2}-\d{2})/g);
+function ambilParameterLabDanSesiAktif() {
+  const elLab = document.getElementById("selectLabMapping") ||
+    document.getElementById("pilihLab") ||
+    document.getElementById("filterLab");
+  const elSesi = document.getElementById("selectSesiMapping") ||
+    document.getElementById("pilihSesi") ||
+    document.getElementById("filterSesi");
 
-      let fileTanggal = tglMatch ? tglMatch[1] : "";
-      let fileJamStr = jamMatch ? jamMatch[jamMatch.length - 1].replace(/-/g, ':') : "";
+  const labKode = String(elLab?.value || "").trim();
+  const sesiKode = String(elSesi?.value || "").trim().toUpperCase();
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
+  const sesiObj = DAFTAR_SESI_UJIAN.find(s =>
+    sesiKode.includes(s.kode) || s.label.toUpperCase() === sesiKode
+  ) || null;
 
-        if ((!fileTanggal || !fileJamStr) && rows[1] && rows[1][3]) {
-          const d2 = String(rows[1][3]).trim();
-          const m = d2.match(/(\d{4})[\/\-](\d{2})[\/\-](\d{2})\s+(\d{2}:\d{2}:\d{2})/);
-          if (m) {
-            if (!fileTanggal) fileTanggal = `${m[3]}-${m[2]}-${m[1]}`;
-            if (!fileJamStr) fileJamStr = m[4];
-          }
-        }
+  return {
+    adaDropdownLab: Boolean(elLab),
+    adaDropdownSesi: Boolean(elSesi),
+    labKode,
+    sesiObj
+  };
+}
 
-        if (secNum === 1) fileSec1Info = { data: rows, jam: fileJamStr, tanggal: fileTanggal };
-        if (secNum === 2) fileSec2Info = { data: rows, jam: fileJamStr, tanggal: fileTanggal };
-        if (secNum === 3) fileSec3Info = { data: rows, jam: fileJamStr, tanggal: fileTanggal };
+/**
+ * Validasi Menyeluruh Sebelum File Diterima:
+ * - UAT-3.1: Memastikan Lab & Sesi sudah dipilih jika dropdown tersedia
+ * - UAT-3.2: Validasi Rentang Jam File terhadap Sesi yang Dipilih
+ * - UAT-3.3: Validasi Urutan & Nama Section (Section 1 vs 2 vs 3)
+ * - UAT-3.4: Validasi Kesamaan Tanggal antar File Section 1, 2, dan 3
+ * - UAT-3.5: Pencegahan Double Mapping (File / Jadwal / Kelas sudah pernah disimpan)
+ */
+async function validasiUploadFileUat(file, nomorSectionTarget, workbook, rows) {
+  const meta = ekstrakMetadataDariNamaFile(file.name);
+  const paramAwal = ambilParameterLabDanSesiAktif();
 
-        cekUlangSinkronisasi();
+  // --- UAT-3.1: Validasi Pemilihan Ruang Lab & Sesi Ujian di Awal Modul ---
+  if (paramAwal.adaDropdownLab && !paramAwal.labKode) {
+    return {
+      valid: false,
+      pesan: "VALIDASI UAT-3.1 DITOLAK:\nSilakan pilih Ruang Lab terlebih dahulu sebelum mengunggah file Excel!"
+    };
+  }
+  if (paramAwal.adaDropdownSesi && !paramAwal.sesiObj) {
+    return {
+      valid: false,
+      pesan: "VALIDASI UAT-3.1 DITOLAK:\nSilakan pilih Sesi Ujian terlebih dahulu sebelum mengunggah file Excel!"
+    };
+  }
+
+  // --- UAT-3.2: Validasi Rentang Jam File Terhadap Sesi yang Dipilih ---
+  // Beri toleransi 15 menit sebelum sesi dimulai agar file yang dibuka sedikit lebih awal tetap valid
+  if (paramAwal.sesiObj && meta.totalMenit !== null) {
+    const batasAwal = paramAwal.sesiObj.startMenit - 15;
+    const batasAkhir = paramAwal.sesiObj.endMenit;
+
+    if (meta.totalMenit < batasAwal || meta.totalMenit > batasAkhir) {
+      return {
+        valid: false,
+        pesan:
+          `VALIDASI UAT-3.2 DITOLAK (JAM FILE DI LUAR RENTANG SESI):\n` +
+          `• Sesi Dipilih : ${paramAwal.sesiObj.label}\n` +
+          `• Jam pada File: Pukul ${meta.jamStr} WITA (${file.name})\n\n` +
+          `Jam pengerjaan pada nama file berada di luar rentang waktu ${paramAwal.sesiObj.kode}. Silakan unggah file yang sesuai dengan sesi terpilih!`
       };
-      reader.readAsArrayBuffer(file);
     }
+  }
 
-    function cekUlangSinkronisasi() {
-      if (fileSec1Info.data && fileSec2Info.data && fileSec3Info.data) {
-        validasiDanSinkronisasiToefl();
+  // --- UAT-3.3: Validasi Urutan & Nama Section (Section 1, Section 2, Section 3) ---
+  const namaUpper = file.name.toUpperCase();
+  const sheetUpper = (workbook?.SheetNames || []).join(" ").toUpperCase();
+  const headerUpper = rows && rows.length > 0 ? Object.keys(rows[0]).join(" ").toUpperCase() : "";
+  const gabunganInfo = `${namaUpper} ${sheetUpper} ${headerUpper}`;
+
+  const isSec1 = /\b(SECTION[\s_-]*1|SEC[\s_-]*1|S1|LISTENING)\b/.test(gabunganInfo);
+  const isSec2 = /\b(SECTION[\s_-]*2|SEC[\s_-]*2|S2|STRUCTURE)\b/.test(gabunganInfo);
+  const isSec3 = /\b(SECTION[\s_-]*3|SEC[\s_-]*3|S3|READING)\b/.test(gabunganInfo);
+
+  const jmlTerdeteksi = [isSec1, isSec2, isSec3].filter(Boolean).length;
+  let sectionFile = null;
+  if (jmlTerdeteksi === 1) {
+    if (isSec1) sectionFile = 1;
+    if (isSec2) sectionFile = 2;
+    if (isSec3) sectionFile = 3;
+  }
+
+  if (sectionFile !== null && sectionFile !== nomorSectionTarget) {
+    const namaBagian = {
+      1: "Section 1 (Listening)",
+      2: "Section 2 (Structure)",
+      3: "Section 3 (Reading)"
+    };
+    return {
+      valid: false,
+      pesan:
+        `VALIDASI UAT-3.3 DITOLAK (SALAH URUTAN / NAMA SECTION):\n` +
+        `• File Diunggah : "${file.name}" (Terdeteksi sebagai ${namaBagian[sectionFile]})\n` +
+        `• Kolom Tujuan  : ${namaBagian[nomorSectionTarget]}\n\n` +
+        `Penempatan section tidak sesuai! Silakan unggah file ini pada tombol ${namaBagian[sectionFile]}.`
+    };
+  }
+
+  // Validasi tambahan khusus Section 2 (Structure maks 40 soal)
+  if (nomorSectionTarget === 2 && Array.isArray(rows) && rows.length > 0) {
+    const nilaiMentah = rows.map(r => parseFloat(r.Score || r.Skor || r.Nilai || r.Correct || r.Benar || 0) || 0).filter(v => v > 0);
+    if (nilaiMentah.some(v => v >= 41 && v <= 50) && nilaiMentah.every(v => v <= 50)) {
+      return {
+        valid: false,
+        pesan:
+          `VALIDASI UAT-3.3 DITOLAK (JUMLAH SOAL TIDAK COCOK):\n` +
+          `File "${file.name}" memiliki skor benar > 40 (maksimal soal Structure adalah 40). File ini bukan milik Section 2.`
+      };
+    }
+  }
+
+  // --- UAT-3.4: Validasi Kesamaan Tanggal Antar File Section 1, 2, dan 3 ---
+  if (meta.tanggalStr) {
+    const slotLain = [1, 2, 3].filter(s => s !== nomorSectionTarget);
+    for (const s of slotLain) {
+      const metaSlotLain = window.mappingState.metaPerSection[s];
+      if (metaSlotLain && metaSlotLain.tanggalStr && metaSlotLain.tanggalStr !== meta.tanggalStr) {
+        return {
+          valid: false,
+          pesan:
+            `VALIDASI UAT-3.4 DITOLAK (TANGGAL ANTAR SECTION BERBEDA):\n` +
+            `• Tanggal pada Section ${s} : ${metaSlotLain.tanggalStr} (${metaSlotLain.namaFile})\n` +
+            `• Tanggal pada Section ${nomorSectionTarget} : ${meta.tanggalStr} (${file.name})\n\n` +
+            `Tanggal pelaksanaan tes antar Section 1, 2, dan 3 wajib sama! Proses sinkronisasi ditolak.`
+        };
       }
     }
+  }
 
-    function extractPureScore(cellValue) {
-      if (!cellValue && cellValue !== 0) return 0;
-      const str = String(cellValue).trim();
-      if (str.includes('/')) {
-        return parseInt(str.split('/')[0].trim(), 10) || 0;
-      }
-      return parseInt(str, 10) || 0;
+  // --- UAT-3.5: Pencegahan Double Mapping (Cek File Ganda & Riwayat Tersimpan di Database) ---
+  for (const s of [1, 2, 3].filter(x => x !== nomorSectionTarget)) {
+    const fileLain = window.mappingState.metaPerSection[s]?.namaFile;
+    if (fileLain && fileLain.toUpperCase() === file.name.toUpperCase()) {
+      return {
+        valid: false,
+        pesan: `VALIDASI UAT-3.5 DITOLAK (FILE DUPLIKAT):\nFile "${file.name}" sudah terpasang di Section ${s}.`
+      };
+    }
+  }
+
+  const riwayatLokal = ambilRiwayatMappingTersimpan();
+  if (riwayatLokal.some(item => item.toUpperCase() === file.name.toUpperCase())) {
+    return {
+      valid: false,
+      pesan:
+        `VALIDASI UAT-3.5 DITOLAK (PENCEGAHAN DOUBLE MAPPING):\n` +
+        `File "${file.name}" terdeteksi sudah pernah dicocokkan dan disimpan permanen ke database sebelumnya.\n` +
+        `Sistem menolak pencocokan ulang untuk mencegah duplikasi data nilai.`
+    };
+  }
+
+  return { valid: true, meta };
+}
+
+// ==================== 7. STATE GLOBAL MODUL MAPPING ====================
+window.mappingState = {
+  sec1Raw: {},
+  sec2Raw: {},
+  sec3Raw: {},
+  metaPerSection: { 1: null, 2: null, 3: null },
+  daftarJadwalDb: [],
+  jadwalTerpilih: null,
+  pesertaTerjadwalDb: [],
+  hasilSinkronisasiList: []
+};
+
+// ==================== 8. INISIALISASI OPSI LAB, SESI & JADWAL (UAT-3.1) ====================
+function inisialisasiOpsiLabDanSesiUat() {
+  const elLab = document.getElementById("selectLabMapping") ||
+    document.getElementById("pilihLab") ||
+    document.getElementById("filterLab");
+  const elSesi = document.getElementById("selectSesiMapping") ||
+    document.getElementById("pilihSesi") ||
+    document.getElementById("filterSesi");
+
+  if (elLab && elLab.options.length <= 1) {
+    elLab.innerHTML = `<option value="">-- Pilih Ruang Lab --</option>` +
+      DAFTAR_RUANG_LAB.map(l => `<option value="${l.kode}">${l.label}</option>`).join("");
+  }
+
+  if (elSesi && elSesi.options.length <= 1) {
+    elSesi.innerHTML = `<option value="">-- Pilih Sesi Ujian --</option>` +
+      DAFTAR_SESI_UJIAN.map(s => `<option value="${s.kode}">${s.label}</option>`).join("");
+  }
+}
+
+async function muatJadwalUntukMapping() {
+  if (!window.supabaseClient) return;
+
+  try {
+    const { data: dataJadwal, error } = await window.supabaseClient
+      .from("jadwal_tes")
+      .select("*")
+      .order("tanggal", { ascending: false });
+
+    if (!error && Array.isArray(dataJadwal)) {
+      window.mappingState.daftarJadwalDb = dataJadwal;
+      isiDropdownJadwalMapping(dataJadwal);
+    }
+  } catch (err) {
+    console.warn("Info muat jadwal mapping:", err.message);
+  }
+}
+
+function isiDropdownJadwalMapping(listJadwal) {
+  const selJadwal = document.getElementById("selectJadwalMapping") || document.getElementById("filterJadwalTes");
+  if (!selJadwal) return;
+
+  selJadwal.innerHTML = `<option value="">-- Otomatis Cocokkan Jadwal dari File / Pilih Kelas --</option>` +
+    listJadwal.map(j => {
+      const label = `${j.jenis_tes || "TOEFL"} • ${j.kelas || "-"} • ${j.ruangan || j.lab || "-"} • ${j.tanggal || "-"} • ${j.sesi || "-"}`;
+      return `<option value="${j.id}">${label}</option>`;
+    }).join("");
+}
+
+async function onChangeJadwalMapping(jadwalId) {
+  const jadwal = window.mappingState.daftarJadwalDb.find(j => String(j.id) === String(jadwalId)) || null;
+  window.mappingState.jadwalTerpilih = jadwal;
+
+  if (jadwal) {
+    // Sinkronkan juga dropdown Lab & Sesi jika ada di halaman
+    const elLab = document.getElementById("selectLabMapping") || document.getElementById("pilihLab");
+    const elSesi = document.getElementById("selectSesiMapping") || document.getElementById("pilihSesi");
+    if (elLab && (jadwal.ruangan || jadwal.lab)) elLab.value = jadwal.ruangan || jadwal.lab;
+    if (elSesi && jadwal.sesi) {
+      const sesiMatch = DAFTAR_SESI_UJIAN.find(s => String(jadwal.sesi).toUpperCase().includes(s.kode));
+      if (sesiMatch) elSesi.value = sesiMatch.kode;
     }
 
-    function extractStudentRow(rows) {
-      const students = [];
-      for (let i = 0; i < rows.length; i++) {
-        const r = rows[i];
-        const studentColIdx = r.findIndex(c => /^STUDENT\s*0*(\d+)$/i.test(String(c).trim()));
-        
-        if (studentColIdx !== -1) {
-          const rawId = String(r[studentColIdx]).trim().toUpperCase().replace(/\s+/g, '');
-          const numMatch = rawId.match(/^STUDENT0*(\d+)$/i);
-          const seatNumber = numMatch ? parseInt(numMatch[1], 10) : (students.length + 1);
-          const formattedId = `STUDENT${String(seatNumber).padStart(2, '0')}`;
+    // Cek UAT-3.5: Apakah kelas/jadwal ini sudah terkunci & tersimpan di database?
+    await cekStatusDoubleMappingJadwalDb(jadwal);
 
-          let score = 0;
-          const scoreColIdx = r.findIndex(c => String(c).includes('/'));
-          if (scoreColIdx !== -1) {
-            score = extractPureScore(r[scoreColIdx]);
-          } else {
-            for (let k = r.length - 1; k > studentColIdx; k--) {
-              if (!isNaN(parseInt(r[k], 10))) {
-                score = parseInt(r[k], 10);
-                break;
-              }
-            }
-          }
-          students.push({ id: formattedId, seat: seatNumber, score: score });
-        }
-      }
-      return students;
-    }
+    const peserta = await muatPesertaByJadwalId(jadwal.id);
+    window.mappingState.pesertaTerjadwalDb = peserta;
+    updateBannerJadwalCocok(jadwal, Object.keys(window.mappingState.sec1Raw).length, peserta.length);
+  }
+}
 
-    function deteksiSesiDariJam(jamStr) {
-      if (!jamStr) return null;
-      const [hours, minutes] = jamStr.split(':').map(Number);
-      if (isNaN(hours) || isNaN(minutes)) return null;
-      const totalMinutes = hours * 60 + minutes;
+async function cekStatusDoubleMappingJadwalDb(jadwal) {
+  if (!window.supabaseClient || !jadwal) return false;
+  const targetKategori = deteksiTargetKategoriRekapan();
 
-      if (totalMinutes >= 480 && totalMinutes < 600) return "SESI 1";
-      if (totalMinutes >= 600 && totalMinutes < 720) return "SESI 2";
-      if (totalMinutes >= 840 && totalMinutes < 960) return "SESI 3";
-      return "DILUAR_SESI";
-    }
+  const { data } = await window.supabaseClient
+    .from("hasil_tes_toefl")
+    .select("id")
+    .eq("tanggal_tes", jadwal.tanggal)
+    .eq("tipe_ujian", targetKategori)
+    .ilike("program_studi", `%${jadwal.kelas || ""}%`)
+    .limit(1);
 
-    function validasiDanSinkronisasiToefl() {
-      const selectedSesiFull = document.getElementById('selectSesiToefl').value;
-      const selectedSesiKode = selectedSesiFull.split('(')[0].trim();
-      const selectedLab = document.getElementById('selectLabToefl').value;
+  if (Array.isArray(data) && data.length > 0) {
+    alert(
+      `PERINGATAN DOUBLE MAPPING (UAT-3.5):\n` +
+      `Jadwal kelas "${jadwal.kelas}" pada tanggal ${jadwal.tanggal} untuk kategori "${targetKategori}" sudah pernah dicocokkan & disimpan di database!\n` +
+      `Sistem akan menolak penyimpanan ganda untuk kelas ini.`
+    );
+    return true;
+  }
+  return false;
+}
 
-      const filesCheck = [
-        { label: "Section 1", jam: fileSec1Info.jam },
-        { label: "Section 2", jam: fileSec2Info.jam },
-        { label: "Section 3", jam: fileSec3Info.jam }
-      ];
+async function muatPesertaByJadwalId(jadwalId) {
+  if (!window.supabaseClient || !jadwalId) return [];
 
-      for (const f of filesCheck) {
-        if (!f.jam) {
-          alert(`Format stempel jam pada ${f.label} tidak ditemukan.`);
-          return;
-        }
-        const detected = deteksiSesiDariJam(f.jam);
-        if (detected !== selectedSesiKode) {
-          resetPreview(`Ditolak: Jam ${f.label} (${f.jam}) tidak masuk rentang ${selectedSesiFull}.`);
-          alert(`DITOLAK: File ${f.label} tercatat pukul ${f.jam} (${detected === 'DILUAR_SESI' ? 'di luar jam sesi resmi' : detected}), tidak sesuai dengan ${selectedSesiFull} yang Anda pilih!`);
-          return;
-        }
-      }
+  const { data, error } = await window.supabaseClient
+    .from("peserta_jadwal_tes")
+    .select("*")
+    .eq("jadwal_id", jadwalId)
+    .order("no_meja", { ascending: true });
 
-      let formattedDate = fileSec1Info.tanggal;
-      if (formattedDate.includes('-')) {
-        const p = formattedDate.split('-');
-        if (p[0].length === 2) formattedDate = `${p[2]}-${p[1]}-${p[0]}`;
-      }
+  if (error) return [];
+  return data || [];
+}
 
-      if (!formattedDate) {
-        alert("Tanggal ujian tidak terbaca dari nama file maupun isi Excel.");
+// ==================== 9. HANDLER UPLOAD EXCEL SECTION 1, 2, 3 ====================
+function normalisasiIdMeja(rawId) {
+  const str = String(rawId || "").trim().toUpperCase();
+  if (!str) return "";
+  const angka = str.replace(/\D/g, "");
+  if (angka && (str.startsWith("STUDENT") || str.startsWith("PC") || str.startsWith("MEJA") || /^\d+$/.test(str))) {
+    return "STUDENT" + angka.padStart(2, "0");
+  }
+  return str;
+}
+
+function handleUploadExcelSection(event, nomorSection) {
+  const inputEl = event.target;
+  const file = inputEl.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = async function(e) {
+    try {
+      const workbook = XLSX.read(e.target.result, { type: "binary" });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+
+      if (!rows || rows.length === 0) {
+        alert(`UNGGAHAN DITOLAK:\nFile "${file.name}" kosong atau tidak memiliki baris data.`);
+        inputEl.value = "";
         return;
       }
 
-      tarikDataJadwalDanPeserta(formattedDate, selectedLab, selectedSesiKode);
-    }
-
-    function resetPreview(pesan) {
-      window.previewDataGlobal = [];
-      window.activeJadwalLogId = null;
-      document.getElementById('infoJadwalMatched').classList.add('hidden');
-      document.getElementById('badgeJumlahMhs').innerText = "0 Peserta";
-      document.getElementById('tabelPreviewToefl').innerHTML = `<tr><td colspan="9" class="px-5 py-10 text-center text-rose-500 text-sm font-bold">${pesan}</td></tr>`;
-    }
-
-    async function tarikDataJadwalDanPeserta(tanggal, lab, sesiKode) {
-      try {
-        const sec1Students = extractStudentRow(fileSec1Info.data);
-        const sec2Students = extractStudentRow(fileSec2Info.data);
-        const sec3Students = extractStudentRow(fileSec3Info.data);
-
-        if (sec1Students.length === 0) {
-          resetPreview("Tidak ditemukan baris STUDENT01, STUDENT02, dst. di dalam file Excel.");
-          return;
-        }
-
-        const { data: logData, error: logErr } = await window.supabaseClient
-          .from('jadwal_log')
-          .select('*')
-          .eq('tanggal', tanggal);
-
-        if (logErr) throw logErr;
-
-        const matchedJadwal = (logData || []).find(j => {
-          const jLab = String(j.ruang_lab || j.lab || j.ruangan || "").trim().toLowerCase();
-          const jSesi = String(j.sesi || "").trim().toUpperCase();
-          return jLab === lab.toLowerCase() && jSesi.includes(sesiKode);
-        });
-
-        if (!matchedJadwal) {
-          resetPreview(`Tidak ada jadwal terkunci di database pada tanggal ${tanggal}, ${lab}, ${sesiKode}.`);
-          alert(`Jadwal tidak ditemukan di database untuk Tanggal ${tanggal}, ${lab}, ${sesiKode}. Pastikan jadwal sudah terkunci di halaman Penjadwalan.`);
-          return;
-        }
-
-        window.activeJadwalLogId = matchedJadwal.id;
-        const namaKelas = matchedJadwal.nama_kelas || matchedJadwal.kelas || "-";
-
-        let dbPeserta = [];
-
-        const rawJsonField = matchedJadwal.peserta_json || matchedJadwal.daftar_peserta || matchedJadwal.peserta;
-        if (rawJsonField) {
-          try {
-            const parsed = typeof rawJsonField === 'string' ? JSON.parse(rawJsonField) : rawJsonField;
-            if (Array.isArray(parsed)) dbPeserta = parsed;
-          } catch (_) {}
-        }
-
-        if (dbPeserta.length === 0) {
-          const { data: puData } = await window.supabaseClient
-            .from('peserta_ujian')
-            .select('*');
-
-          if (puData && puData.length > 0) {
-            dbPeserta = puData.filter(p =>
-              String(p.jadwal_id || p.id_jadwal || p.log_id || "") === String(matchedJadwal.id) ||
-              (String(p.tanggal || "") === tanggal &&
-               String(p.ruang_lab || p.lab || "").toLowerCase() === lab.toLowerCase() &&
-               String(p.sesi || "").toUpperCase().includes(sesiKode))
-            );
-          }
-        }
-
-        if (dbPeserta.length === 0) {
-          const { data: pjData } = await window.supabaseClient
-            .from('PesertaJadwal')
-            .select('*');
-
-          if (pjData && pjData.length > 0) {
-            dbPeserta = pjData.filter(p =>
-              String(p.jadwal_id || p.id_jadwal || p.log_id || "") === String(matchedJadwal.id)
-            );
-          }
-        }
-
-        if (dbPeserta.length === 0 && namaKelas !== "-") {
-          const { data: mhsData } = await window.supabaseClient
-            .from('Mahasiswa')
-            .select('*');
-
-          if (mhsData && mhsData.length > 0) {
-            dbPeserta = mhsData.filter(m =>
-              String(m.kelas || m.nama_kelas || "").trim().toUpperCase() === namaKelas.trim().toUpperCase()
-            );
-          }
-        }
-
-        dbPeserta.sort((a, b) => {
-          const mejaA = parseInt(String(a.id_meja || a.nomor_meja || a.no_meja || a.meja || "0").replace(/\D/g, ''), 10);
-          const mejaB = parseInt(String(b.id_meja || b.nomor_meja || b.no_meja || b.meja || "0").replace(/\D/g, ''), 10);
-          if (mejaA && mejaB) return mejaA - mejaB;
-          return String(a.id || a.nim || "").localeCompare(String(b.id || b.nim || ""));
-        });
-
-        document.getElementById('infoJadwalMatched').classList.remove('hidden');
-        document.getElementById('textJadwalMatched').innerText =
-          `Jadwal Cocok: ${matchedJadwal.jenis_tes || 'TOEFL'} • Kelas ${namaKelas} • ${lab} • ${tanggal} • ${matchedJadwal.sesi}`;
-        document.getElementById('badgePesertaJadwal').innerText = `${dbPeserta.length} Terjadwal di DB`;
-
-        const parsedPeserta = [];
-
-        for (let i = 0; i < sec1Students.length; i++) {
-          const s1 = sec1Students[i];
-          const s2 = sec2Students.find(x => x.id === s1.id) || sec2Students[i] || { score: 0 };
-          const s3 = sec3Students.find(x => x.id === s1.id) || sec3Students[i] || { score: 0 };
-
-          const totalSkor = Math.round(((s1.score + s2.score + s3.score) * 10) / 3);
-
-          const mhsDb = dbPeserta.find(p => {
-            const dbSeat = parseInt(String(p.id_meja || p.nomor_meja || p.no_meja || p.meja || "0").replace(/\D/g, ''), 10);
-            return dbSeat === s1.seat;
-          }) || dbPeserta[i];
-
-          const mappedNim = mhsDb ? String(mhsDb.nim || "").trim() : "";
-          const mappedNama = mhsDb ? String(mhsDb.nama || mhsDb.nama_mahasiswa || "").trim().toUpperCase() : "";
-          const mappedProdi = mhsDb ? String(mhsDb.prodi || mhsDb.program_studi || namaKelas).trim().toUpperCase() : namaKelas;
-          
-          let idMejaLabel = s1.id;
-          if (mhsDb && (mhsDb.id_meja || mhsDb.nomor_meja || mhsDb.no_meja || mhsDb.meja)) {
-            const rawSeat = String(mhsDb.id_meja || mhsDb.nomor_meja || mhsDb.no_meja || mhsDb.meja).trim().toUpperCase();
-            if (rawSeat.startsWith('STUDENT')) {
-              idMejaLabel = rawSeat;
-            } else {
-              const numOnly = parseInt(rawSeat.replace(/\D/g, ''), 10);
-              if (!isNaN(numOnly) && numOnly > 0) {
-                idMejaLabel = `STUDENT${String(numOnly).padStart(2, '0')}`;
-              }
-            }
-          }
-
-          parsedPeserta.push({
-            id_excel: s1.id,
-            id_meja: idMejaLabel,
-            nim: mappedNim,
-            nama: mappedNama,
-            prodi: mappedProdi,
-            sec1: s1.score,
-            sec2: s2.score,
-            sec3: s3.score,
-            totalSkor: totalSkor
-          });
-        }
-
-        window.previewDataGlobal = parsedPeserta;
-        document.getElementById('badgeJumlahMhs').innerText = `${parsedPeserta.length} Peserta (Excel) / ${dbPeserta.length} Jadwal`;
-        renderTabelPreview(parsedPeserta);
-
-      } catch (err) {
-        console.error(err);
-        alert("Gagal menarik data jadwal dari Supabase: " + err.message);
+      // Jalankan seluruh rangkaian validasi UAT-3.1 s/d UAT-3.5
+      const hasilValidasi = await validasiUploadFileUat(file, nomorSection, workbook, rows);
+      if (!hasilValidasi.valid) {
+        alert(hasilValidasi.pesan);
+        inputEl.value = "";
+        return;
       }
-    }
 
-    function renderTabelPreview(list) {
-      const tbody = document.getElementById('tabelPreviewToefl');
-      
-      tbody.innerHTML = list.map((m, idx) => `
-        <tr class="hover:bg-slate-50 transition-colors" id="row-${idx}">
-          <td class="px-4 py-3 text-center font-mono text-xs border-r font-extrabold text-slate-700">${m.id_meja}</td>
-          <td class="px-4 py-3 text-center font-mono text-xs border-r font-bold" id="nim-${idx}">${m.nim || '-'}</td>
-          <td class="px-4 py-3 text-xs font-bold border-r ${m.nama ? 'text-polnes-dark' : 'text-rose-600 italic'}" id="nama-${idx}">
-            ${m.nama || `Peserta Extra (${m.id_meja}) — Belum Terdaftar di Jadwal`}
+      // Lolos semua validasi! Simpan metadata file & tampilkan nama file di UI
+      window.mappingState.metaPerSection[nomorSection] = hasilValidasi.meta;
+      const labelFileEl = document.getElementById(`labelFileSec${nomorSection}`) ||
+        document.getElementById(`namaFileSec${nomorSection}`);
+      if (labelFileEl) {
+        labelFileEl.textContent = file.name;
+      }
+
+      const mapHasilSec = {};
+
+      rows.forEach((row, idx) => {
+        const rawMeja = row.ID_Meja || row.ID_MEJA || row.Student_ID || row.User || row.Username ||
+          row.PC || row.No_Meja || row.Meja || `STUDENT${String(idx + 1).padStart(2, "0")}`;
+        const idMeja = normalisasiIdMeja(rawMeja);
+
+        const rawNilai = row.Score || row.Skor || row.Nilai || row.Correct || row.Benar ||
+          row.Total || row[`Section_${nomorSection}`] || row[`S${nomorSection}`] || 0;
+        const skorNum = parseFloat(rawNilai) || 0;
+
+        const nimExcel = String(row.NIM || row.nim || "").trim();
+        const namaExcel = String(row.Nama || row.NAMA || row.nama || "").trim().toUpperCase();
+        const prodiExcel = String(row.Program_Studi || row.Prodi || row.Kelas || "").trim();
+
+        if (idMeja) {
+          mapHasilSec[idMeja] = {
+            idMeja,
+            skor: skorNum,
+            nimExcel,
+            namaExcel,
+            prodiExcel
+          };
+        }
+      });
+
+      if (nomorSection === 1) window.mappingState.sec1Raw = mapHasilSec;
+      if (nomorSection === 2) window.mappingState.sec2Raw = mapHasilSec;
+      if (nomorSection === 3) window.mappingState.sec3Raw = mapHasilSec;
+
+      // Jalankan UAT-3.6 (Auto-Mapping dengan Data Jadwal)
+      await otomatisCocokkanJadwalDanGabungkan(hasilValidasi.meta);
+    } catch (err) {
+      alert(`Gagal membaca Excel Section ${nomorSection}: ` + err.message);
+      inputEl.value = "";
+    }
+  };
+  reader.readAsBinaryString(file);
+}
+
+// ==================== 10. AUTO-MAPPING DENGAN DATA MODUL JADWAL (UAT-3.6) ====================
+async function otomatisCocokkanJadwalDanGabungkan(metaFileTerbaru = null) {
+  const { sec1Raw, sec2Raw, sec3Raw, daftarJadwalDb } = window.mappingState;
+
+  const semuaIdMeja = [...new Set([
+    ...Object.keys(sec1Raw),
+    ...Object.keys(sec2Raw),
+    ...Object.keys(sec3Raw)
+  ])].sort();
+
+  const paramAwal = ambilParameterLabDanSesiAktif();
+
+  // Cari jadwal di DB yang cocok berdasarkan Tanggal File + Lab + Sesi
+  let jadwalAktif = window.mappingState.jadwalTerpilih;
+  if (!jadwalAktif && daftarJadwalDb.length > 0) {
+    jadwalAktif = daftarJadwalDb.find(j => {
+      const cocokTgl = metaFileTerbaru?.tanggalIso ? String(j.tanggal) === metaFileTerbaru.tanggalIso : true;
+      const cocokLab = paramAwal.labKode ? String(j.ruangan || j.lab || "").toUpperCase().includes(paramAwal.labKode.toUpperCase()) : true;
+      const cocokSesi = paramAwal.sesiObj ? String(j.sesi || "").toUpperCase().includes(paramAwal.sesiObj.kode) : true;
+      return cocokTgl && cocokLab && cocokSesi;
+    }) || daftarJadwalDb.find(j => metaFileTerbaru?.tanggalIso && String(j.tanggal) === metaFileTerbaru.tanggalIso) || daftarJadwalDb[0];
+
+    window.mappingState.jadwalTerpilih = jadwalAktif;
+  }
+
+  let pesertaDb = window.mappingState.pesertaTerjadwalDb;
+  if (jadwalAktif && (!pesertaDb || pesertaDb.length === 0)) {
+    pesertaDb = await muatPesertaByJadwalId(jadwalAktif.id);
+    window.mappingState.pesertaTerjadwalDb = pesertaDb;
+  }
+
+  updateBannerJadwalCocok(jadwalAktif, semuaIdMeja.length, pesertaDb.length);
+
+  // Gabungkan skor S1, S2, S3 dengan peserta jadwal DB (UAT-3.6)
+  // Baris meja tambahan/cadangan yang tidak ada NIM di DB ditandai `unmapped: true` untuk UAT-3.7
+  const hasilGabungan = semuaIdMeja.map((idMeja) => {
+    const d1 = sec1Raw[idMeja] || {};
+    const d2 = sec2Raw[idMeja] || {};
+    const d3 = sec3Raw[idMeja] || {};
+
+    const cocokDb = pesertaDb.find(p => normalisasiIdMeja(p.no_meja || p.id_meja) === idMeja) || null;
+
+    const nim = String(cocokDb?.nim || d1.nimExcel || d2.nimExcel || d3.nimExcel || "").trim();
+    const nama = String(cocokDb?.nama_mahasiswa || cocokDb?.nama || d1.namaExcel || d2.namaExcel || d3.namaExcel || "").trim().toUpperCase();
+    const isUnmapped = !nim || !nama;
+
+    const prodiRaw = String(cocokDb?.program_studi || cocokDb?.prodi || jadwalAktif?.kelas || d1.prodiExcel || "-").trim();
+    const infoProdi = petakanJurusanProdiMapping(prodiRaw, cocokDb?.jenjang);
+    const tahunAngkatan = nim ? ekstrakTahunAngkatanDariNimMapping(nim) : null;
+
+    const rawS1 = d1.skor || 0;
+    const rawS2 = d2.skor || 0;
+    const rawS3 = d3.skor || 0;
+
+    const sudahKonversi = rawS1 > 50 || rawS2 > 40 || rawS3 > 50;
+    const hasilSkor = hitungSkorKonversiToefl(rawS1, rawS2, rawS3, !sudahKonversi);
+
+    return {
+      id_meja: idMeja,
+      nim,
+      nama_mahasiswa: isUnmapped ? "Unmapped" : nama,
+      tahun_angkatan: tahunAngkatan,
+      jenjang: infoProdi.jenjang,
+      jurusan: infoProdi.jurusan,
+      program_studi: infoProdi.prodi,
+      section_1: hasilSkor.sec1,
+      section_2: hasilSkor.sec2,
+      section_3: hasilSkor.sec3,
+      total_skor: hasilSkor.total,
+      unmapped: isUnmapped
+    };
+  });
+
+  window.mappingState.hasilSinkronisasiList = hasilGabungan;
+  renderTabelPratinjauMapping(hasilGabungan, pesertaDb.length);
+}
+
+function updateBannerJadwalCocok(jadwal, jmlExcel, jmlDb) {
+  const bannerText = document.getElementById("textJadwalCocok");
+  const badgeTerjadwal = document.getElementById("badgeJumlahTerjadwalDb");
+  const badgeRatio = document.getElementById("badgeRatioPesertaExcel");
+  const paramAwal = ambilParameterLabDanSesiAktif();
+
+  if (bannerText) {
+    if (jadwal) {
+      bannerText.textContent = `Jadwal Cocok: ${jadwal.jenis_tes || "TOEFL"} • Kelas ${jadwal.kelas || "-"} • ${jadwal.ruangan || jadwal.lab || paramAwal.labKode || "Lab"} • ${jadwal.tanggal || "-"} • ${jadwal.sesi || paramAwal.sesiObj?.label || "-"}`;
+    } else {
+      bannerText.textContent = `Sesi Aktif: ${paramAwal.labKode || "Lab"} • ${paramAwal.sesiObj?.label || "Sesi Ujian"}`;
+    }
+  }
+  if (badgeTerjadwal) {
+    badgeTerjadwal.textContent = `${jmlDb || jmlExcel} Terjadwal di DB`;
+  }
+  if (badgeRatio) {
+    badgeRatio.textContent = `${jmlExcel} Peserta (Excel) / ${jmlDb || jmlExcel} Jadwal`;
+  }
+}
+
+// ==================== 11. RENDER TABEL PRATINJAU & FAST-ADD BIND SUSULAN (UAT-3.7) ====================
+function renderTabelPratinjauMapping(list) {
+  const tbody = document.getElementById("tbodyPratinjauMapping") || document.getElementById("tbodyHasilMapping");
+  if (!tbody) return;
+
+  if (!list || list.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="9" class="px-6 py-10 text-center text-slate-400 italic">
+          Silakan pilih Ruang Lab & Sesi Ujian, lalu unggah file Excel Section 1, Section 2, dan Section 3.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = list.map((item, idx) => {
+    const duaDigitNim = item.nim ? item.nim.substring(0, 2) : "";
+
+    // UAT-3.7: Baris Unmapped (peserta tambahan/susulan) langsung menampilkan input NIM + tombol "Bind"
+    if (item.unmapped) {
+      return `
+        <tr class="bg-amber-50/60 hover:bg-amber-50 transition-colors border-b border-amber-200/70">
+          <td class="px-4 py-3.5 font-mono font-extrabold text-amber-800">${item.id_meja}</td>
+          <td class="px-4 py-3.5" colspan="2">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-extrabold uppercase">Unmapped</span>
+              <input type="text" id="inputFastBindNim_${idx}" placeholder="Masukkan NIM Peserta Susulan..." class="px-3 py-1.5 rounded-xl border border-amber-300 bg-white text-xs font-mono font-bold text-slate-800 focus:border-[#169C53] outline-none w-52">
+              <input type="text" id="inputFastBindNama_${idx}" placeholder="Nama Mahasiswa (Opsional jika ada di DB)..." class="px-3 py-1.5 rounded-xl border border-amber-300 bg-white text-xs font-bold text-slate-800 focus:border-[#169C53] outline-none w-52">
+            </div>
           </td>
-          <td class="px-4 py-3 text-xs border-r uppercase" id="prodi-${idx}">${m.prodi}</td>
-          <td class="px-4 py-3 text-center text-xs border-r">${m.sec1}</td>
-          <td class="px-4 py-3 text-center text-xs border-r">${m.sec2}</td>
-          <td class="px-4 py-3 text-center text-xs border-r">${m.sec3}</td>
-          <td class="px-4 py-3 text-center text-xs font-extrabold text-emerald-600 bg-emerald-50/40 border-r">${m.totalSkor}</td>
-          <td class="px-4 py-3 text-center">
-             <button onclick="bindNimOtomatis(${idx}, '${m.id_meja}')" class="px-3 py-1.5 ${m.nim ? 'bg-slate-200 hover:bg-slate-300 text-slate-600' : 'bg-rose-500 hover:bg-rose-600 text-white shadow-sm'} text-[10px] font-bold rounded-lg flex items-center justify-center gap-1 mx-auto transition-all">
-                <i class="ri-link"></i> ${m.nim ? 'UBAH BIND' : 'BIND NIM'}
-             </button>
+          <td class="px-4 py-3.5 text-xs font-semibold text-amber-700">${item.program_studi}</td>
+          <td class="px-4 py-3.5 text-center font-mono font-bold text-slate-700">${item.section_1}</td>
+          <td class="px-4 py-3.5 text-center font-mono font-bold text-slate-700">${item.section_2}</td>
+          <td class="px-4 py-3.5 text-center font-mono font-bold text-slate-700">${item.section_3}</td>
+          <td class="px-4 py-3.5 text-center font-mono font-extrabold text-base text-amber-700">${item.total_skor}</td>
+          <td class="px-4 py-3.5 text-center">
+           <button type="button" onclick="prosesFastAddBindSusulan('${idx}')" class="px-3.5 py-1.5 rounded-xl bg-[#169C53] hover:bg-[#0E7A3F] text-white text-[11px] font-extrabold inline-flex items-center gap-1 shadow-2xs transition-all">
+              <i class="ri-link"></i>
+              <span>Bind</span>
+            </button>
           </td>
         </tr>
-      `).join('');
+      `;
     }
 
-    async function bindNimOtomatis(index, mejaId) {
-      const bindTargetNim = prompt(`Masukkan NIM mahasiswa untuk di-bind ke ${mejaId}:`);
-      if (!bindTargetNim || bindTargetNim.trim() === "") return;
+    return `
+      <tr class="hover:bg-slate-50/90 transition-colors border-b border-slate-100">
+        <td class="px-4 py-3.5 font-mono font-extrabold text-slate-800">${item.id_meja}</td>
+        <td class="px-4 py-3.5 font-mono font-bold text-slate-800">
+          <span class="underline decoration-emerald-400">${duaDigitNim}</span>${item.nim.substring(2)}
+          <span class="block text-[10px] font-sans text-slate-400">Angkatan ${item.tahun_angkatan}</span>
+        </td>
+        <td class="px-4 py-3.5 text-[#169C53] font-extrabold uppercase">${item.nama_mahasiswa}</td>
+        <td class="px-4 py-3.5">
+          <div class="font-bold text-slate-700">${item.program_studi}</div>
+          <div class="text-[10px] font-bold text-slate-400 uppercase">${item.jurusan}</div>
+        </td>
+        <td class="px-4 py-3.5 text-center font-mono font-bold text-slate-700">${item.section_1}</td>
+        <td class="px-4 py-3.5 text-center font-mono font-bold text-slate-700">${item.section_2}</td>
+        <td class="px-4 py-3.5 text-center font-mono font-bold text-slate-700">${item.section_3}</td>
+        <td class="px-4 py-3.5 text-center font-mono font-extrabold text-base text-[#169C53]">${item.total_skor}</td>
+        <td class="px-4 py-3.5 text-center">
+          <button type="button" onclick="bukaModalUbahBind('${idx}')" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-[#169C53] border border-slate-200 text-[11px] font-extrabold inline-flex items-center gap-1.5 transition-all">
+            <i class="ri-link"></i>
+            <span>UBAH BIND</span>
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
 
-      const nimClean = bindTargetNim.trim();
-      let foundNama = "";
-      let foundProdi = window.previewDataGlobal[index].prodi;
+/**
+ * UAT-3.7: Fast-Add & Bind Peserta Susulan
+ * Mencari identitas NIM di database (`arsip_master_rekapan` / `peserta_jadwal_tes`) otomatis;
+ * jika belum terdaftar di DB, menggunakan nama/prodi yang diinput staf lalu mengikatnya ke meja ujian.
+ */
+async function prosesFastAddBindSusulan(indexBaris) {
+  const item = window.mappingState.hasilSinkronisasiList[indexBaris];
+  if (!item) return;
 
-      try {
-        const { data: mhs } = await window.supabaseClient
-          .from('Mahasiswa')
-          .select('*')
-          .eq('nim', nimClean)
-          .maybeSingle();
+  const nimInput = (document.getElementById(`inputFastBindNim_${indexBaris}`)?.value || "").trim();
+  const namaInput = (document.getElementById(`inputFastBindNama_${indexBaris}`)?.value || "").trim().toUpperCase();
 
-        if (mhs) {
-          foundNama = String(mhs.nama || mhs.nama_mahasiswa || "").trim().toUpperCase();
-          foundProdi = String(mhs.prodi || mhs.program_studi || mhs.kelas || foundProdi).trim().toUpperCase();
-        }
-      } catch (_) {}
+  if (!nimInput || nimInput.length < 4) {
+    alert("Masukkan NIM peserta susulan yang valid terlebih dahulu!");
+    return;
+  }
 
-      if (!foundNama) {
-        const inputNama = prompt(`NIM ${nimClean} tidak ditemukan otomatis di master Mahasiswa. Masukkan NAMA LENGKAP:`);
-        if (!inputNama || inputNama.trim() === "") return;
-        foundNama = inputNama.trim().toUpperCase();
-      }
+  let namaFinal = namaInput;
+  let prodiFinal = item.program_studi;
+  let jenjangFinal = item.jenjang;
 
-      window.previewDataGlobal[index].nim = nimClean;
-      window.previewDataGlobal[index].nama = foundNama;
-      window.previewDataGlobal[index].prodi = foundProdi;
-      renderTabelPreview(window.previewDataGlobal);
-      alert(`Sukses! ${mejaId} berhasil di-bind ke ${foundNama} (${nimClean}).`);
+  // Cek otomatis apakah NIM peserta susulan sudah ada di database master mahasiswa
+  if (window.supabaseClient) {
+    const { data: mhsDb } = await window.supabaseClient
+      .from("arsip_master_rekapan")
+      .select("nama_mahasiswa, program_studi, jenjang")
+      .eq("nim", nimInput)
+      .maybeSingle();
+
+    if (mhsDb) {
+      namaFinal = namaFinal || String(mhsDb.nama_mahasiswa || "").toUpperCase();
+      prodiFinal = mhsDb.program_studi || prodiFinal;
+      jenjangFinal = mhsDb.jenjang || jenjangFinal;
     }
+  }
 
-    function deteksiJurusanDariProdi(prodiStr) {
-      const p = String(prodiStr || "").toUpperCase();
-      if (p.includes("MESIN") || p.includes("ALAT BERAT")) return "TEKNIK MESIN";
-      if (p.includes("INFORMATIKA") || p.includes("KOMPUTER") || p.includes("MULTIMEDIA")) return "TEKNOLOGI INFORMASI";
-      if (p.includes("AKUNTANSI") || p.includes("KEUANGAN")) return "AKUNTANSI";
-      if (p.includes("ADMINISTRASI") || p.includes("PERJALANAN") || p.includes("PEMASARAN")) return "ADMINISTRASI BISNIS";
-      if (p.includes("ELEKTRO") || p.includes("LISTRIK")) return "TEKNIK ELEKTRO";
-      if (p.includes("SIPIL") || p.includes("JALAN") || p.includes("JEMBATAN")) return "TEKNIK SIPIL";
-      if (p.includes("KIMIA") || p.includes("PETRO")) return "TEKNIK KIMIA";
-      if (p.includes("MARITIM") || p.includes("NAUTIKA") || p.includes("TEKNIKA")) return "KEMARITIMAN";
-      if (p.includes("DESAIN") || p.includes("ARSITEK")) return "DESAIN";
-      return "TEKNOLOGI INFORMASI";
+  if (!namaFinal) {
+    const promptNama = prompt(`NIM ${nimInput} belum terdaftar di database.\nMasukkan Nama Lengkap Mahasiswa Susulan:`);
+    if (!promptNama || !promptNama.trim()) return;
+    namaFinal = promptNama.trim().toUpperCase();
+  }
+
+  const infoProdi = petakanJurusanProdiMapping(prodiFinal, jenjangFinal);
+  const tahunAuto = ekstrakTahunAngkatanDariNimMapping(nimInput);
+
+  window.mappingState.hasilSinkronisasiList[indexBaris] = {
+    ...item,
+    nim: nimInput,
+    nama_mahasiswa: namaFinal,
+    tahun_angkatan: tahunAuto,
+    jenjang: infoProdi.jenjang,
+    jurusan: infoProdi.jurusan,
+    program_studi: infoProdi.prodi,
+    unmapped: false
+  };
+
+  renderTabelPratinjauMapping(window.mappingState.hasilSinkronisasiList);
+}
+
+function bukaModalUbahBind(indexBaris) {
+  const item = window.mappingState.hasilSinkronisasiList[indexBaris];
+  if (!item) return;
+
+  const nimBaru = prompt(`Ubah Bind untuk ${item.id_meja}\nMasukkan NIM Mahasiswa:`, item.nim || "");
+  if (nimBaru === null || !nimBaru.trim()) return;
+
+  const namaBaru = prompt(`Masukkan Nama Lengkap untuk NIM ${nimBaru.trim()}:`, item.nama_mahasiswa || "");
+  if (namaBaru === null || !namaBaru.trim()) return;
+
+  const prodiBaru = prompt(`Masukkan Program Studi:`, item.program_studi || "D4 - ARSITEKTUR BANGUNAN GEDUNG");
+  if (prodiBaru === null) return;
+
+  const nimClean = nimBaru.trim();
+  const infoProdi = petakanJurusanProdiMapping(prodiBaru);
+  const tahunAuto = ekstrakTahunAngkatanDariNimMapping(nimClean);
+
+  window.mappingState.hasilSinkronisasiList[indexBaris] = {
+    ...item,
+    nim: nimClean,
+    nama_mahasiswa: namaBaru.trim().toUpperCase(),
+    tahun_angkatan: tahunAuto,
+    jenjang: infoProdi.jenjang,
+    jurusan: infoProdi.jurusan,
+    program_studi: infoProdi.prodi,
+    unmapped: false
+  };
+
+  renderTabelPratinjauMapping(window.mappingState.hasilSinkronisasiList);
+}
+
+// ==================== 12. PENYIMPANAN PERMANEN KE DATABASE (UAT-3.8) ====================
+function deteksiTargetKategoriRekapan() {
+  const selTarget = document.getElementById("selectTargetKategoriRekapan") ||
+    document.getElementById("targetKategoriRekapan");
+  const val = String(selTarget?.value || "").toUpperCase();
+
+  if (val.includes("SSPECT")) return "SSPECT";
+  if (val.includes("LATIHAN") || val.includes("PRACTICE")) return "LATIHAN";
+  if (val.includes("REM") && val.includes("3")) return "REMEDIAL_3";
+  if (val.includes("REM") && val.includes("2")) return "REMEDIAL_2";
+  if (val.includes("REM")) return "REMEDIAL_1";
+  return "TOEFL";
+}
+
+async function simpanPermanenKeDatabase() {
+  const list = window.mappingState.hasilSinkronisasiList;
+  if (!list || list.length === 0) {
+    alert("Belum ada data hasil mapping untuk disimpan.");
+    return;
+  }
+
+  // Pastikan tidak ada baris Unmapped yang tertinggal sebelum simpan permanen
+  const masihUnmapped = list.filter(i => i.unmapped);
+  if (masihUnmapped.length > 0) {
+    alert(
+      `Masih terdapat ${masihUnmapped.length} baris berstatus "Unmapped" (${masihUnmapped.map(u => u.id_meja).join(", ")}).\n` +
+      `Silakan masukkan NIM dan klik tombol "Bind" pada baris tersebut terlebih dahulu.`
+    );
+    return;
+  }
+
+  if (!window.supabaseClient) {
+    alert("Koneksi database Supabase belum tersedia.");
+    return;
+  }
+
+  const targetKategori = deteksiTargetKategoriRekapan();
+  const jadwalAktif = window.mappingState.jadwalTerpilih || {};
+  const metaSec1 = window.mappingState.metaPerSection[1] || window.mappingState.metaPerSection[2] || window.mappingState.metaPerSection[3];
+  const tanggalTes = jadwalAktif.tanggal || metaSec1?.tanggalStr || new Date().toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric"
+  });
+
+  // Kunci sesi untuk UAT-3.5 (Pencegahan Double Mapping)
+  const daftarNamaFileSesi = Object.values(window.mappingState.metaPerSection)
+    .map(m => m?.namaFile)
+    .filter(Boolean);
+  const kodeKunciJadwal = `LOCK_${jadwalAktif.id || metaSec1?.tanggalStr || "SESI"}_${jadwalAktif.kelas || ""}_${targetKategori}`.toUpperCase();
+
+  if (ambilRiwayatMappingTersimpan().includes(kodeKunciJadwal)) {
+    alert(
+      `PENYIMPANAN DITOLAK (UAT-3.5 DOUBLE MAPPING):\n` +
+      `Jadwal/kelas ini untuk kategori "${targetKategori}" sudah terkunci dan tersimpan di database.`
+    );
+    return;
+  }
+
+  const btnSimpan = document.getElementById("btnSimpanPermanenMapping") ||
+    document.querySelector("[onclick*='simpanPermanenKeDatabase']");
+  if (btnSimpan) {
+    btnSimpan.disabled = true;
+    btnSimpan.innerHTML = `<i class="ri-loader-4-line animate-spin"></i> <span>Menyimpan ${list.length} Data...</span>`;
+  }
+
+  try {
+    // 1. Simpan ke riwayat log hasil tes (`hasil_tes_toefl`)
+    const logPayloads = list.map(item => ({
+      nim: item.nim,
+      nama_mahasiswa: item.nama_mahasiswa,
+      program_studi: item.program_studi,
+      jenjang: item.jenjang,
+      tahun_angkatan: ekstrakTahunAngkatanDariNimMapping(item.nim),
+      tipe_ujian: targetKategori,
+      listening: item.section_1,
+      structure: item.section_2,
+      reading: item.section_3,
+      total_skor: item.total_skor,
+      tanggal_tes: tanggalTes
+    }));
+
+    await window.supabaseClient
+      .from("hasil_tes_toefl")
+      .insert(logPayloads)
+      .then(() => {})
+      .catch(() => {});
+
+    // 2. Merge ke Rekapan Master (`arsip_master_rekapan`) sesuai 2 digit depan NIM = Tahun Angkatan
+    const nims = [...new Set(list.map(d => d.nim))];
+    const { data: existingRows, error: errFetch } = await window.supabaseClient
+      .from("arsip_master_rekapan")
+      .select("*")
+      .in("nim", nims);
+
+    if (errFetch) throw errFetch;
+
+    const mapExisting = {};
+    (existingRows || []).forEach(r => {
+      mapExisting[String(r.nim)] = r;
+    });
+
+    const upsertRekapanPayloads = list.map(item => {
+      const lama = mapExisting[item.nim] || {};
+      const tahunAutoNim = ekstrakTahunAngkatanDariNimMapping(item.nim, lama.tahun_angkatan);
+
+      const rec = {
+        nim: item.nim,
+        nama_mahasiswa: item.nama_mahasiswa || lama.nama_mahasiswa,
+        tahun_angkatan: tahunAutoNim,
+        jenjang: item.jenjang || lama.jenjang,
+        jurusan: item.jurusan || lama.jurusan,
+        program_studi: item.program_studi || lama.program_studi,
+        skor_sspect: lama.skor_sspect || null,
+        sspect_listening: lama.sspect_listening || null,
+        sspect_structure: lama.sspect_structure || null,
+        sspect_reading: lama.sspect_reading || null,
+        skor_latihan: lama.skor_latihan || null,
+        skor_toefl: lama.skor_toefl || null,
+        remedial_1: lama.remedial_1 || null,
+        remedial_2: lama.remedial_2 || null,
+        remedial_3: lama.remedial_3 || null,
+        listening: lama.listening || null,
+        structure: lama.structure || null,
+        reading: lama.reading || null,
+        total_skor: lama.total_skor || null,
+        tanggal_tes: tanggalTes
+      };
+
+      if (targetKategori === "SSPECT") {
+        rec.skor_sspect = item.total_skor;
+        rec.sspect_listening = item.section_1;
+        rec.sspect_structure = item.section_2;
+        rec.sspect_reading = item.section_3;
+      } else if (targetKategori === "LATIHAN") {
+        rec.skor_latihan = item.total_skor;
+      } else if (targetKategori === "REMEDIAL_1") {
+        rec.remedial_1 = item.total_skor;
+        rec.listening = item.section_1;
+        rec.structure = item.section_2;
+        rec.reading = item.section_3;
+      } else if (targetKategori === "REMEDIAL_2") {
+        rec.remedial_2 = item.total_skor;
+        rec.listening = item.section_1;
+        rec.structure = item.section_2;
+        rec.reading = item.section_3;
+      } else if (targetKategori === "REMEDIAL_3") {
+        rec.remedial_3 = item.total_skor;
+        rec.listening = item.section_1;
+        rec.structure = item.section_2;
+        rec.reading = item.section_3;
+      } else {
+        rec.skor_toefl = item.total_skor;
+        rec.listening = item.section_1;
+        rec.structure = item.section_2;
+        rec.reading = item.section_3;
+      }
+
+      const kandidatAkhir = [rec.skor_toefl, rec.remedial_1, rec.remedial_2, rec.remedial_3].filter(v => v && v > 0);
+      if (kandidatAkhir.length > 0) {
+        rec.total_skor = Math.max(...kandidatAkhir);
+      }
+
+      return rec;
+    });
+
+    const { error: errUpsert } = await window.supabaseClient
+      .from("arsip_master_rekapan")
+      .upsert(upsertRekapanPayloads, { onConflict: "nim" });
+
+    if (errUpsert) throw errUpsert;
+
+    // Kunci file & jadwal ini agar lulus UAT-3.5 (tidak bisa double mapping)
+    simpanRiwayatMappingTersimpan([...daftarNamaFileSesi, kodeKunciJadwal]);
+
+    alert(
+      `BERHASIL DISIMPAN PERMANEN (UAT-3.8 PASS):\n` +
+      `${upsertRekapanPayloads.length} data hasil mapping (${targetKategori}) berhasil disimpan ke database utama & Rekapan Master!`
+    );
+  } catch (err) {
+    console.error("Gagal simpan permanen:", err);
+    alert("Gagal menyimpan permanen ke database: " + err.message);
+  } finally {
+    if (btnSimpan) {
+      btnSimpan.disabled = false;
+      btnSimpan.innerHTML = `<i class="ri-save-3-line"></i> <span>Simpan Permanen ke Database</span>`;
     }
+  }
+}
 
-    async function simpanKeArsipMasterDariToefl() {
-      const kategoriPilihan = document.getElementById('selectKategoriTargetToefl').value;
+// ==================== 13. INISIALISASI EVENT LISTENER ====================
+document.addEventListener("DOMContentLoaded", () => {
+  inisialisasiOpsiLabDanSesiUat();
+  muatJadwalUntukMapping();
 
-      if (!window.previewDataGlobal || window.previewDataGlobal.length === 0) {
-        alert("Belum ada data nilai valid untuk disimpan.");
-        return;
-      }
+  const selJadwal = document.getElementById("selectJadwalMapping") || document.getElementById("filterJadwalTes");
+  if (selJadwal) {
+    selJadwal.addEventListener("change", (e) => onChangeJadwalMapping(e.target.value));
+  }
 
-      const unbinded = window.previewDataGlobal.filter(m => !m.nim);
-      if (unbinded.length > 0) {
-        alert(`Terdapat ${unbinded.length} peserta yang belum memiliki NIM. Gunakan tombol BIND NIM terlebih dahulu.`);
-        return;
-      }
+  const inSec1 = document.getElementById("inputExcelSec1") || document.getElementById("fileSec1");
+  const inSec2 = document.getElementById("inputExcelSec2") || document.getElementById("fileSec2");
+  const inSec3 = document.getElementById("inputExcelSec3") || document.getElementById("fileSec3");
 
-      if (!confirm(`Simpan permanen ${window.previewDataGlobal.length} data ke Rekapan Master kategori: ${kategoriPilihan}? (Jadwal di log akan dihapus otomatis)`)) {
-        return;
-      }
-
-      const btnSimpan = document.getElementById('btnSimpanToefl');
-      btnSimpan.disabled = true;
-      btnSimpan.innerHTML = `<i class="ri-loader-4-line animate-spin text-sm"></i> Menyimpan...`;
-
-      try {
-        let keyMap = 'toeflD3';
-        if (kategoriPilihan === 'TOEFL D4') keyMap = 'toeflD4';
-        else if (kategoriPilihan === 'TOEFL LATIHAN D3') keyMap = 'latihanD3';
-        else if (kategoriPilihan === 'TOEFL LATIHAN D4') keyMap = 'latihanD4';
-        else if (kategoriPilihan === 'REMEDIAL 1') keyMap = 'remedial1';
-        else if (kategoriPilihan === 'REMEDIAL 2') keyMap = 'remedial2';
-        else if (kategoriPilihan === 'REMEDIAL 3') keyMap = 'remedial3';
-
-        // Ambil semua data yang sudah ada di arsip_master_rekapan agar bisa digabung (merge) per NIM
-        const nimList = window.previewDataGlobal.map(m => String(m.nim).trim());
-        const { data: existingAll, error: errFetch } = await window.supabaseClient
-          .from('arsip_master_rekapan')
-          .select('*')
-          .in('nim', nimList);
-
-        if (errFetch) throw errFetch;
-
-        const rowsToInsert = [];
-        const duplicateIdsToDelete = [];
-
-        for (const m of window.previewDataGlobal) {
-          const nimClean = String(m.nim).trim();
-          const matchedRows = (existingAll || []).filter(r => String(r.nim || "").trim() === nimClean);
-
-          // Susun objek riwayat default
-          const mergedRiwayat = {
-            sspect: '-',
-            latihanD3: '-',
-            latihanD4: '-',
-            toeflD3: '-',
-            toeflD4: '-',
-            remedial1: '-',
-            remedial2: '-',
-            remedial3: '-'
-          };
-
-          if (matchedRows.length > 0) {
-            // Gabungkan semua skor lama yang sudah tersimpan di baris-baris mahasiswa ini
-            for (const oldRow of matchedRows) {
-              if (oldRow.riwayat_json) {
-                try {
-                  const parsedOld = typeof oldRow.riwayat_json === 'string'
-                    ? JSON.parse(oldRow.riwayat_json)
-                    : oldRow.riwayat_json;
-
-                  for (const k of Object.keys(mergedRiwayat)) {
-                    if (parsedOld[k] !== undefined && parsedOld[k] !== null && String(parsedOld[k]).trim() !== '' && String(parsedOld[k]).trim() !== '-') {
-                      mergedRiwayat[k] = parsedOld[k];
-                    }
-                  }
-                } catch (_) {}
-              }
-            }
-
-            // Masukkan skor tes baru ke slot kategori yang dipilih (misal: latihanD3)
-            mergedRiwayat[keyMap] = m.totalSkor;
-
-            // Update baris utama pertama milik mahasiswa ini
-            const primaryRow = matchedRows[0];
-            const { error: errUpdate } = await window.supabaseClient
-              .from('arsip_master_rekapan')
-              .update({
-                nama: primaryRow.nama || m.nama,
-                prodi: primaryRow.prodi || m.prodi,
-                jurusan: primaryRow.jurusan || deteksiJurusanDariProdi(m.prodi),
-                kategori_tes: kategoriPilihan,
-                skor_total: String(m.totalSkor),
-                riwayat_json: JSON.stringify(mergedRiwayat)
-              })
-              .eq('id', primaryRow.id);
-
-            if (errUpdate) throw errUpdate;
-
-            // Tandai baris duplikat jika ada lebih dari 1 baris untuk NIM yang sama
-            if (matchedRows.length > 1) {
-              for (let d = 1; d < matchedRows.length; d++) {
-                if (matchedRows[d].id !== undefined && matchedRows[d].id !== null) {
-                  duplicateIdsToDelete.push(matchedRows[d].id);
-                }
-              }
-            }
-          } else {
-            // Mahasiswa belum pernah ada di arsip_master_rekapan -> buat baris baru
-            mergedRiwayat[keyMap] = m.totalSkor;
-            const angkatan = /^\d{2}/.test(nimClean) ? `20${nimClean.substring(0, 2)}` : "2024";
-
-            rowsToInsert.push({
-              nim: nimClean,
-              nama: m.nama,
-              jurusan: deteksiJurusanDariProdi(m.prodi),
-              prodi: m.prodi,
-              tahun_angkatan: angkatan,
-              kategori_tes: kategoriPilihan,
-              skor_total: String(m.totalSkor),
-              riwayat_json: JSON.stringify(mergedRiwayat)
-            });
-          }
-        }
-
-        if (rowsToInsert.length > 0) {
-          const { error: errInsert } = await window.supabaseClient
-            .from('arsip_master_rekapan')
-            .insert(rowsToInsert);
-          if (errInsert) throw errInsert;
-        }
-
-        if (duplicateIdsToDelete.length > 0) {
-          await window.supabaseClient
-            .from('arsip_master_rekapan')
-            .delete()
-            .in('id', duplicateIdsToDelete);
-        }
-
-        // Hapus jadwal terkait dari tabel jadwal_log setelah skor berhasil disimpan
-        if (window.activeJadwalLogId) {
-          const { error: errDel } = await window.supabaseClient
-            .from('jadwal_log')
-            .delete()
-            .eq('id', window.activeJadwalLogId);
-          if (errDel) console.warn("Gagal menghapus jadwal_log:", errDel.message);
-        }
-
-        alert(`SUKSES! ${window.previewDataGlobal.length} nilai berhasil digabungkan ke Rekapan Master (${kategoriPilihan}) dan jadwal terkait telah dihapus dari log.`);
-        resetPreview("Data berhasil disimpan ke Rekapan Master dan log jadwal telah dibersihkan.");
-
-      } catch (err) {
-        alert("Gagal menyimpan ke database Supabase: " + err.message);
-      } finally {
-        btnSimpan.disabled = false;
-        btnSimpan.innerHTML = `<i class="ri-save-line text-sm"></i> Simpan Permanen ke Database`;
-      }
-    }
-  </script>
-</body>
-</html>
+  if (inSec1) inSec1.addEventListener("change", (e) => handleUploadExcelSection(e, 1));
+  if (inSec2) inSec2.addEventListener("change", (e) => handleUploadExcelSection(e, 2));
+  if (inSec3) inSec3.addEventListener("change", (e) => handleUploadExcelSection(e, 3));
+});
