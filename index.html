@@ -109,13 +109,12 @@
           <span id="lineBeranda" class="nav-indicator absolute bottom-0 left-3 right-3 h-0.5 bg-[#169C53] rounded-full"></span>
         </button>
 
-        <!-- TENTANG -->
-        <button type="button" onclick="bukaHalaman('tentang')" id="navTentang" class="relative px-3.5 py-2.5 hover:text-[#169C53] transition-colors">
+        <!-- TENTANG (Tampil sebagai item menu statis sesuai arahan) -->
+        <button type="button" onclick="return false;" id="navTentang" class="relative px-3.5 py-2.5 text-slate-500 cursor-default">
           <span data-i18n="nav_tentang">TENTANG</span>
-          <span id="lineTentang" class="nav-indicator hidden absolute bottom-0 left-3 right-3 h-0.5 bg-[#169C53] rounded-full"></span>
         </button>
 
-        <!-- DROPDOWN LAYANAN (MEGA MENU) -->
+        <!-- DROPDOWN LAYANAN (MEGA MENU AKTIF) -->
         <div class="relative" id="wrapMenuLayanan">
           <button type="button" onclick="toggleMegaMenu('menuLayanan', event)" id="navLayanan" class="relative px-3.5 py-2.5 hover:text-[#169C53] transition-colors flex items-center gap-1">
             <span data-i18n="nav_layanan">Layanan</span>
@@ -125,7 +124,7 @@
 
           <!-- Isi Mega Menu Layanan -->
           <div id="menuLayanan" class="hidden mega-menu-enter absolute left-1/2 -translate-x-1/2 mt-3 w-[680px] bg-white rounded-3xl shadow-2xl border border-slate-200/80 p-7 grid grid-cols-12 gap-6 z-50">
-            <!-- Kolom Kiri: Layanan Tes -->
+            <!-- Kolom Kiri: Layanan Tes (Fokus Utama Aktif) -->
             <div class="col-span-6 space-y-4 border-r border-slate-100 pr-5">
               <div class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 pb-2 border-b border-slate-100" data-i18n="mm_layanan_tes">
                 LAYANAN TES
@@ -187,14 +186,14 @@
               </button>
             </div>
 
-            <!-- Kolom Kanan: Layanan Non-Tes -->
+            <!-- Kolom Kanan: Layanan Non-Tes (Tampil informatif tanpa harus diklik) -->
             <div class="col-span-6 space-y-4">
               <div class="flex items-center justify-between pb-2 border-b border-slate-100">
                 <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400" data-i18n="mm_layanan_nontes">LAYANAN NON-TES</span>
                 <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[10px] font-bold" data-i18n="mm_segera_hadir">Segera Hadir</span>
               </div>
 
-              <div class="space-y-3">
+              <div class="space-y-3 select-none">
                 <div class="p-3.5 rounded-2xl bg-slate-50/80 border border-slate-100">
                   <div class="font-extrabold text-slate-800 text-xs" data-i18n="mm_nontes_1">1. Kursus Bahasa Inggris</div>
                   <div class="text-[11px] text-slate-400 mt-0.5" data-i18n="mm_nontes_1_sub">Informasi, Jadwal & Pendaftaran Kursus</div>
@@ -212,70 +211,28 @@
           </div>
         </div>
 
-        <!-- DROPDOWN INFORMASI -->
-        <div class="relative" id="wrapMenuInformasi">
-          <button type="button" onclick="toggleMegaMenu('menuInformasi', event)" id="navInformasi" class="relative px-3.5 py-2.5 hover:text-[#169C53] transition-colors flex items-center gap-1">
+        <!-- MENU INFORMASI (Tampil di navbar tanpa harus berfungsi) -->
+        <div class="relative">
+          <button type="button" onclick="return false;" class="relative px-3.5 py-2.5 text-slate-500 cursor-default flex items-center gap-1">
             <span data-i18n="nav_informasi">Informasi</span>
-            <i class="ri-arrow-down-s-line text-sm transition-transform" id="iconMenuInformasi"></i>
-            <span id="lineInformasi" class="nav-indicator hidden absolute bottom-0 left-3 right-3 h-0.5 bg-[#169C53] rounded-full"></span>
+            <i class="ri-arrow-down-s-line text-sm"></i>
           </button>
-
-          <div id="menuInformasi" class="hidden mega-menu-enter absolute left-0 mt-3 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 py-2.5 z-50 text-xs">
-            <button type="button" onclick="bukaHalaman('toeic')" class="w-full text-left px-4 py-2.5 hover:bg-slate-50 flex items-center gap-2.5 font-semibold text-slate-700">
-              <i class="ri-megaphone-line text-[#169C53]"></i>
-              <span data-i18n="info_pengumuman_toeic">Pengumuman & File TOEIC</span>
-            </button>
-            <button type="button" onclick="bukaHalaman('toefl', 'sec-jadwal-toefl')" class="w-full text-left px-4 py-2.5 hover:bg-slate-50 flex items-center gap-2.5 font-semibold text-slate-700">
-              <i class="ri-calendar-check-line text-[#169C53]"></i>
-              <span data-i18n="info_jadwal_toefl">Jadwal Tes TOEFL Prediction</span>
-            </button>
-            <button type="button" onclick="bukaHalaman('sspect')" class="w-full text-left px-4 py-2.5 hover:bg-slate-50 flex items-center gap-2.5 font-semibold text-slate-700">
-              <i class="ri-group-line text-[#169C53]"></i>
-              <span data-i18n="info_peserta_sspect">Daftar Peserta SSPECT</span>
-            </button>
-          </div>
         </div>
 
-        <!-- DROPDOWN PEMBELAJARAN -->
-        <div class="relative" id="wrapMenuPembelajaran">
-          <button type="button" onclick="toggleMegaMenu('menuPembelajaran', event)" id="navPembelajaran" class="relative px-3.5 py-2.5 hover:text-[#169C53] transition-colors flex items-center gap-1">
+        <!-- MENU PEMBELAJARAN (Tampil di navbar tanpa harus berfungsi) -->
+        <div class="relative">
+          <button type="button" onclick="return false;" class="relative px-3.5 py-2.5 text-slate-500 cursor-default flex items-center gap-1">
             <span data-i18n="nav_pembelajaran">Pembelajaran</span>
-            <i class="ri-arrow-down-s-line text-sm transition-transform" id="iconMenuPembelajaran"></i>
+            <i class="ri-arrow-down-s-line text-sm"></i>
           </button>
-
-          <div id="menuPembelajaran" class="hidden mega-menu-enter absolute left-0 mt-3 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 py-2.5 z-50 text-xs">
-            <button type="button" onclick="bukaHalaman('toefl', 'sec-info-toefl')" class="w-full text-left px-4 py-2.5 hover:bg-slate-50 flex items-center gap-2.5 font-semibold text-slate-700">
-              <i class="ri-book-open-line text-[#169C53]"></i>
-              <span data-i18n="learn_toefl">Panduan Persiapan TOEFL</span>
-            </button>
-            <button type="button" onclick="bukaHalaman('toeic')" class="w-full text-left px-4 py-2.5 hover:bg-slate-50 flex items-center gap-2.5 font-semibold text-slate-700">
-              <i class="ri-global-line text-[#169C53]"></i>
-              <span data-i18n="learn_toeic">Panduan Sertifikasi TOEIC</span>
-            </button>
-          </div>
         </div>
 
-        <!-- DROPDOWN LAYANAN PENGGUNA -->
-        <div class="relative" id="wrapMenuPengguna">
-          <button type="button" onclick="toggleMegaMenu('menuPengguna', event)" id="navPengguna" class="relative px-3.5 py-2.5 hover:text-[#169C53] transition-colors flex items-center gap-1">
+        <!-- MENU LAYANAN PENGGUNA (Tampil di navbar tanpa harus berfungsi) -->
+        <div class="relative">
+          <button type="button" onclick="return false;" class="relative px-3.5 py-2.5 text-slate-500 cursor-default flex items-center gap-1">
             <span data-i18n="nav_pengguna">Layanan Pengguna</span>
-            <i class="ri-arrow-down-s-line text-sm transition-transform" id="iconMenuPengguna"></i>
+            <i class="ri-arrow-down-s-line text-sm"></i>
           </button>
-
-          <div id="menuPengguna" class="hidden mega-menu-enter absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 py-2.5 z-50 text-xs">
-            <button type="button" onclick="bukaHalaman('toefl', 'sec-daftar-remedial')" class="w-full text-left px-4 py-2.5 hover:bg-slate-50 flex items-center gap-2.5 font-semibold text-slate-700">
-              <i class="ri-edit-box-line text-[#169C53]"></i>
-              <span data-i18n="user_remedial">Form Pendaftaran Remedial</span>
-            </button>
-            <button type="button" onclick="bukaHalaman('toefl', 'sec-cek-skor')" class="w-full text-left px-4 py-2.5 hover:bg-slate-50 flex items-center gap-2.5 font-semibold text-slate-700">
-              <i class="ri-award-line text-[#169C53]"></i>
-              <span data-i18n="user_cek_skor">Cek Hasil Skor TOEFL</span>
-            </button>
-            <button type="button" onclick="bukaHalaman('toeic')" class="w-full text-left px-4 py-2.5 hover:bg-slate-50 flex items-center gap-2.5 font-semibold text-slate-700">
-              <i class="ri-download-2-line text-[#169C53]"></i>
-              <span data-i18n="user_unduh_toeic">Unduh Pengumuman TOEIC</span>
-            </button>
-          </div>
         </div>
       </nav>
 
@@ -292,13 +249,12 @@
       </div>
     </div>
 
-    <!-- Navigasi Mobile -->
+    <!-- Navigasi Mobile (Fokus Layanan Tes & Beranda) -->
     <div id="mobileNavPanel" class="hidden lg:hidden bg-white border-t border-slate-100 px-6 py-4 space-y-2 text-xs font-bold text-slate-700">
       <button type="button" onclick="bukaHalaman('beranda'); toggleMobileNav()" class="block w-full text-left py-2 text-[#169C53]" data-i18n="nav_beranda">BERANDA</button>
-      <button type="button" onclick="bukaHalaman('tentang'); toggleMobileNav()" class="block w-full text-left py-2" data-i18n="nav_tentang">TENTANG</button>
-      <button type="button" onclick="bukaHalaman('toefl'); toggleMobileNav()" class="block w-full text-left py-2">TOEFL Prediction</button>
-      <button type="button" onclick="bukaHalaman('sspect'); toggleMobileNav()" class="block w-full text-left py-2">SSPECT Test</button>
-      <button type="button" onclick="bukaHalaman('toeic'); toggleMobileNav()" class="block w-full text-left py-2 text-[#169C53]">TOEIC Information & News</button>
+      <button type="button" onclick="bukaHalaman('toefl'); toggleMobileNav()" class="block w-full text-left py-2">Layanan Tes: TOEFL Prediction</button>
+      <button type="button" onclick="bukaHalaman('sspect'); toggleMobileNav()" class="block w-full text-left py-2">Layanan Tes: SSPECT</button>
+      <button type="button" onclick="bukaHalaman('toeic'); toggleMobileNav()" class="block w-full text-left py-2 text-[#169C53]">Layanan Tes: TOEIC</button>
     </div>
   </header>
 
@@ -327,9 +283,9 @@
             <i class="ri-arrow-right-line"></i>
           </button>
 
-          <button type="button" onclick="bukaHalaman('tentang')" class="px-7 py-3.5 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/25 font-bold text-xs sm:text-sm transition-all flex items-center gap-2">
-            <i class="ri-arrow-right-up-line"></i>
-            <span data-i18n="hero_cta_secondary">Tentang Kami</span>
+          <button type="button" onclick="window.location.href='login.html'" class="px-7 py-3.5 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/25 font-bold text-xs sm:text-sm transition-all flex items-center gap-2">
+            <i class="ri-shield-user-line"></i>
+            <span data-i18n="btn_login_staff">Login Staff</span>
           </button>
         </div>
       </div>
@@ -338,7 +294,7 @@
     <!-- Ringkasan Layanan Utama di Beranda -->
     <div class="max-w-7xl w-full mx-auto px-4 md:px-10 lg:px-16 py-16 space-y-10">
       <div class="text-center max-w-2xl mx-auto space-y-2">
-        <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#169C53]" data-i18n="home_sec_badge">LAYANAN UNGGULAN</span>
+        <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#169C53]" data-i18n="home_sec_badge">LAYANAN TES UNGGULAN</span>
         <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900" data-i18n="home_sec_title">Program Pengujian & Sertifikasi Bahasa</h2>
         <p class="text-xs sm:text-sm text-slate-500" data-i18n="home_sec_desc">Pilih layanan pengujian sesuai kebutuhan akademik maupun persiapan karier internasional Anda.</p>
       </div>
@@ -351,7 +307,7 @@
           </div>
           <h3 class="text-lg font-extrabold text-slate-900">TOEFL Prediction</h3>
           <p class="text-xs text-slate-500 leading-relaxed" data-i18n="card_toefl_desc">
-            Tes standar kelulusan mahasiswa D3 & D4 Politeknik Negeri Samarinda lengkap dengan jadwal reguler, pendaftaran remedial, dan cek skor online.
+            Tes standar kelulusan mahasiswa D3 & D4 Politeknik Negeri Samarinda lengkap dengan jadwal kelas, daftar peserta per sesi, pendaftaran remedial, dan cek skor online.
           </p>
           <div class="pt-2 text-xs font-extrabold text-[#169C53] flex items-center gap-1">
             <span data-i18n="card_open_btn">Buka Halaman TOEFL</span>
@@ -366,7 +322,7 @@
           </div>
           <h3 class="text-lg font-extrabold text-slate-900">SSPECT Test</h3>
           <p class="text-xs text-slate-500 leading-relaxed" data-i18n="card_sspect_desc">
-            Pemetaan kemampuan bahasa Inggris bagi mahasiswa semester awal untuk mengetahui profil kompetensi dasar kebahasaan.
+            Pemetaan kemampuan bahasa Inggris bagi mahasiswa semester awal lengkap dengan jadwal kelas dan pencarian nama peserta ujian.
           </p>
           <div class="pt-2 text-xs font-extrabold text-[#169C53] flex items-center gap-1">
             <span data-i18n="card_open_sspect">Lihat Jadwal & Peserta SSPECT</span>
@@ -386,33 +342,6 @@
           <div class="pt-2 text-xs font-extrabold text-[#169C53] flex items-center gap-1">
             <span data-i18n="card_open_toeic">Informasi & Pengumuman TOEIC</span>
             <i class="ri-arrow-right-line group-hover:translate-x-1 transition-transform"></i>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ==================== VIEW 2: TENTANG UPA BAHASA ==================== -->
-  <section id="viewTentang" class="hidden flex-1 pb-16">
-    <div class="max-w-7xl mx-auto px-4 md:px-10 lg:px-16 pt-10 space-y-8">
-      <div class="bg-white rounded-3xl p-8 md:p-12 border border-slate-200 shadow-xs space-y-6">
-        <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#169C53]" data-i18n="about_badge">PROFIL UNIT PELAKSANA AKADEMIK</span>
-        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900" data-i18n="about_heading">Tentang UPA Bahasa Politeknik Negeri Samarinda</h2>
-        <p class="text-xs sm:text-sm text-slate-600 leading-relaxed" data-i18n="about_p1">
-          Unit Pelaksana Akademik (UPA) Bahasa Politeknik Negeri Samarinda merupakan unit penunjang akademik yang menyelenggarakan pelatihan, pengujian, sertifikasi, dan pengembangan kompetensi bahasa asing bagi mahasiswa, dosen, tenaga kependidikan, serta masyarakat umum.
-        </p>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-          <div class="p-6 rounded-2xl bg-emerald-50/60 border border-emerald-100 space-y-2">
-            <h3 class="font-extrabold text-slate-900 text-sm" data-i18n="about_visi_title">Visi Layanan</h3>
-            <p class="text-xs text-slate-600 leading-relaxed" data-i18n="about_visi_desc">
-              Menjadi pusat layanan pengujian dan pengembangan bahasa berstandar nasional dan internasional yang mendukung daya saing lulusan vokasi.
-            </p>
-          </div>
-          <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-2">
-            <h3 class="font-extrabold text-slate-900 text-sm" data-i18n="about_fasilitas_title">Fasilitas Laboratorium</h3>
-            <p class="text-xs text-slate-600 leading-relaxed" data-i18n="about_fasilitas_desc">
-              Dilengkapi Laboratorium Bahasa berbasis komputer (Lab A dan Lab B) yang mendukung pelaksanaan ujian berbasis digital secara akurat dan terjadwal.
-            </p>
           </div>
         </div>
       </div>
@@ -463,59 +392,19 @@
         </div>
       </div>
 
-      <!-- 2. Jadwal Tes & Daftar Peserta TOEFL (100% DARI DATABASE STAFF, HILANG OTOMATIS SAAT SUDAH DI-LOG) -->
+      <!-- 2. Jadwal Tes (2 Tabel: Tabel Jadwal Kelas dari jadwal_log + Tabel Daftar Mahasiswa dari peserta_ujian) -->
       <div id="sec-jadwal-toefl" class="scroll-mt-36 space-y-8">
         
-        <!-- 2A. Tabel Jadwal & Peserta Tes TOEFL Aktif (Hasil Input & Kunci Jadwal Staff) -->
+        <!-- 2A. TABEL 1: JADWAL UJIAN PER KELAS (DARI jadwal_log) -->
         <div class="bg-white rounded-3xl p-6 md:p-8 shadow-2xs border border-slate-200 space-y-5">
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
             <div>
-              <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#169C53]" data-i18n="toefl_tbl_badge">JADWAL & PESERTA AKTIF (SINKRON WEB STAFF)</span>
-              <h2 class="text-lg md:text-xl font-extrabold text-slate-900 mt-0.5" data-i18n="toefl_tbl_title">Jadwal & Daftar Peserta Ujian TOEFL Prediction</h2>
-              <p class="text-[11px] text-slate-400 mt-0.5" data-i18n="toefl_tbl_sync_note">Menampilkan jadwal ujian aktif dari web staff. Jadwal otomatis terhapus setelah selesai pencocokan & masuk log arsip.</p>
+              <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#169C53]" data-i18n="toefl_tbl1_badge">TABEL 1 • JADWAL PER KELAS (DARI JADWAL_LOG)</span>
+              <h2 class="text-lg md:text-xl font-extrabold text-slate-900 mt-0.5" data-i18n="toefl_tbl1_title">Jadwal Ujian TOEFL Prediction per Kelas</h2>
+              <p class="text-[11px] text-slate-500 mt-0.5" data-i18n="toefl_tbl1_hint">Klik baris jadwal atau tombol <b>Lihat Mahasiswa</b> untuk menampilkan daftar nama peserta pada kelas tersebut.</p>
             </div>
 
-            <div class="flex flex-wrap items-center gap-2.5">
-              <div class="relative w-full sm:w-64">
-                <input type="text" id="inputCariToefl" onkeyup="filterTabelPesertaToefl()" placeholder="Cari NIM, Nama, Kelas, atau Lab..." class="w-full px-4 py-2 rounded-full border border-slate-200 text-xs focus:border-[#169C53] outline-none">
-              </div>
-              <button type="button" onclick="muatJadwalToefl()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-all">
-                <i class="ri-refresh-line"></i>
-                <span data-i18n="btn_segarkan_data">Segarkan Data</span>
-              </button>
-            </div>
-          </div>
-
-          <div class="overflow-x-auto custom-scrollbar">
-            <table class="w-full text-left border-collapse">
-              <thead>
-                <tr class="bg-slate-50 text-slate-500 text-[11px] uppercase tracking-wider border-b border-slate-200">
-                  <th class="px-4 py-3 font-bold w-14">NO</th>
-                  <th class="px-4 py-3 font-bold">NIM / KODE</th>
-                  <th class="px-4 py-3 font-bold" data-i18n="th_nama_mhs">NAMA MAHASISWA</th>
-                  <th class="px-4 py-3 font-bold" data-i18n="th_prodi">PROGRAM STUDI</th>
-                  <th class="px-4 py-3 font-bold" data-i18n="th_kelas">KELAS / KELOMPOK</th>
-                  <th class="px-4 py-3 font-bold" data-i18n="th_tgl_sesi">TANGGAL & SESI</th>
-                  <th class="px-4 py-3 font-bold text-center" data-i18n="th_ruang_lab">RUANG LAB</th>
-                </tr>
-              </thead>
-              <tbody id="tbodyJadwalToefl" class="divide-y divide-slate-100 text-xs sm:text-sm text-slate-700">
-                <tr>
-                  <td colspan="7" class="px-5 py-8 text-center text-slate-400 italic">Memuat jadwal aktif TOEFL dari database staff...</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- 2B. Tabel Jadwal Remedial TOEFL -->
-        <div class="bg-white rounded-3xl p-6 md:p-8 shadow-2xs border border-slate-200 space-y-5">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-4">
-            <div>
-              <span class="text-[11px] font-extrabold uppercase tracking-wider text-amber-600" data-i18n="rem_tbl_badge">JADWAL PERBAIKAN NILAI</span>
-              <h2 class="text-lg md:text-xl font-extrabold text-slate-900 mt-0.5" data-i18n="rem_tbl_title">Jadwal & Daftar Peserta Remedial TOEFL</h2>
-            </div>
-            <button type="button" onclick="muatJadwalRemedial()" class="self-start sm:self-auto px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-all">
+            <button type="button" onclick="muatJadwalToefl()" class="self-start md:self-auto px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-all">
               <i class="ri-refresh-line"></i>
               <span data-i18n="btn_segarkan_jadwal">Segarkan Jadwal</span>
             </button>
@@ -526,17 +415,101 @@
               <thead>
                 <tr class="bg-slate-50 text-slate-500 text-[11px] uppercase tracking-wider border-b border-slate-200">
                   <th class="px-4 py-3 font-bold w-14">NO</th>
+                  <th class="px-4 py-3 font-bold" data-i18n="th_kelas_uji">KELAS</th>
+                  <th class="px-4 py-3 font-bold" data-i18n="th_prodi">PROGRAM STUDI</th>
+                  <th class="px-4 py-3 font-bold" data-i18n="th_tanggal">TANGGAL UJIAN</th>
+                  <th class="px-4 py-3 font-bold" data-i18n="th_sesi_jam">SESI & JAM</th>
+                  <th class="px-4 py-3 font-bold text-center" data-i18n="th_ruang_lab">RUANG LAB</th>
+                  <th class="px-4 py-3 font-bold text-center" data-i18n="th_detail">DETAIL PESERTA</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyJadwalKelasToefl" class="divide-y divide-slate-100 text-xs sm:text-sm text-slate-700">
+                <tr>
+                  <td colspan="7" class="px-5 py-8 text-center text-slate-400 italic">Memuat jadwal kelas TOEFL dari database staff...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 2B. TABEL 2: DAFTAR MAHASISWA PESERTA UJIAN (DARI peserta_ujian) -->
+        <div id="boxDetailPesertaToefl" class="bg-white rounded-3xl p-6 md:p-8 shadow-2xs border border-slate-200 space-y-5">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+            <div>
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#169C53]" data-i18n="toefl_tbl2_badge">TABEL 2 • DAFTAR MAHASISWA UJIAN (DARI PESERTA_UJIAN)</span>
+                <span id="badgeFilterKelasToefl" class="px-2.5 py-0.5 rounded-full bg-emerald-50 text-[#169C53] border border-emerald-200 text-[10px] font-extrabold">
+                  Semua Jadwal Aktif
+                </span>
+              </div>
+              <h3 class="text-lg font-extrabold text-slate-900 mt-1" data-i18n="toefl_tbl2_title">Daftar Nama Mahasiswa Peserta TOEFL Prediction</h3>
+              <p class="text-[11px] text-slate-500 mt-0.5" data-i18n="toefl_tbl2_hint">Cari nama atau NIM Anda di kolom pencarian untuk melihat tanggal, sesi & jam, ruang lab, kelas, serta program studi Anda.</p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2">
+              <div class="relative w-full sm:w-72">
+                <i class="ri-search-line absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                <input type="text" id="inputCariMahasiswaToefl" onkeyup="filterDaftarMahasiswaToefl()" placeholder="Cari Nama Mahasiswa atau NIM..." class="w-full pl-9 pr-4 py-2 rounded-full border border-slate-200 text-xs focus:border-[#169C53] outline-none">
+              </div>
+              <button type="button" id="btnResetFilterToefl" onclick="resetFilterKelasToefl()" class="hidden px-3.5 py-2 rounded-full bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 text-xs font-bold transition-all">
+                Tampilkan Semua Kelas
+              </button>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto custom-scrollbar">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50 text-slate-500 text-[11px] uppercase tracking-wider border-b border-slate-200">
+                  <th class="px-4 py-3 font-bold w-12">NO</th>
+                  <th class="px-4 py-3 font-bold">NIM / MEJA</th>
+                  <th class="px-4 py-3 font-bold" data-i18n="th_nama_mhs">NAMA MAHASISWA</th>
+                  <th class="px-4 py-3 font-bold" data-i18n="th_kelas_prodi">KELAS & PRODI</th>
+                  <th class="px-4 py-3 font-bold" data-i18n="th_tgl_sesi">TANGGAL, SESI & JAM</th>
+                  <th class="px-4 py-3 font-bold text-center" data-i18n="th_ruang_lab">RUANG LAB</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyMahasiswaToefl" class="divide-y divide-slate-100 text-xs sm:text-sm text-slate-700">
+                <tr>
+                  <td colspan="6" class="px-5 py-8 text-center text-slate-400 italic">Memuat daftar mahasiswa ujian dari tabel peserta_ujian...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 2C. TABEL JADWAL & DAFTAR MAHASISWA REMEDIAL TOEFL (LANGSUNG DAFTAR MAHASISWA CAMPURAN) -->
+        <div class="bg-white rounded-3xl p-6 md:p-8 shadow-2xs border border-slate-200 space-y-5">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+            <div>
+              <span class="text-[11px] font-extrabold uppercase tracking-wider text-amber-600" data-i18n="rem_tbl_badge">PESERTA CAMPURAN LINTAS KELAS</span>
+              <h2 class="text-lg md:text-xl font-extrabold text-slate-900 mt-0.5" data-i18n="rem_tbl_title">Daftar Mahasiswa Peserta Remedial TOEFL</h2>
+              <p class="text-[11px] text-slate-500 mt-0.5">Menampilkan langsung daftar mahasiswa peserta remedial beserta jadwal sesi dan ruang lab-nya.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <input type="text" id="inputCariRemedial" onkeyup="filterTabelRemedial()" placeholder="Cari Nama / NIM Remedial..." class="w-full sm:w-56 px-4 py-2 rounded-full border border-slate-200 text-xs focus:border-amber-500 outline-none">
+              <button type="button" onclick="muatJadwalRemedial()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-all shrink-0">
+                <i class="ri-refresh-line"></i>
+                <span data-i18n="btn_segarkan_jadwal">Segarkan</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto custom-scrollbar">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50 text-slate-500 text-[11px] uppercase tracking-wider border-b border-slate-200">
+                  <th class="px-4 py-3 font-bold w-14">NO</th>
                   <th class="px-4 py-3 font-bold">NIM</th>
                   <th class="px-4 py-3 font-bold" data-i18n="th_nama_mhs">NAMA MAHASISWA</th>
-                  <th class="px-4 py-3 font-bold" data-i18n="th_prodi">PROGRAM STUDI</th>
-                  <th class="px-4 py-3 font-bold" data-i18n="th_kelas">KELAS</th>
-                  <th class="px-4 py-3 font-bold" data-i18n="th_tgl_sesi">TANGGAL & SESI</th>
-                  <th class="px-4 py-3 font-bold text-center" data-i18n="th_status">STATUS</th>
+                  <th class="px-4 py-3 font-bold" data-i18n="th_kelas_prodi">KELAS & PRODI</th>
+                  <th class="px-4 py-3 font-bold" data-i18n="th_tgl_sesi">TANGGAL, SESI & JAM</th>
+                  <th class="px-4 py-3 font-bold text-center" data-i18n="th_ruang_lab">LAB / STATUS</th>
                 </tr>
               </thead>
               <tbody id="tbodyJadwalRemedial" class="divide-y divide-slate-100 text-xs sm:text-sm text-slate-700">
                 <tr>
-                  <td colspan="7" class="px-5 py-8 text-center text-slate-400 italic">Memuat jadwal remedial dari database...</td>
+                  <td colspan="6" class="px-5 py-8 text-center text-slate-400 italic">Memuat daftar mahasiswa remedial...</td>
                 </tr>
               </tbody>
             </table>
@@ -604,24 +577,68 @@
     </div>
   </section>
 
-  <!-- ==================== VIEW 4: LAYANAN SSPECT (100% SINKRON WEB STAFF, HILANG SAAT DI-LOG) ==================== -->
+  <!-- ==================== VIEW 4: LAYANAN SSPECT (2 TABEL: JADWAL KELAS + DAFTAR MAHASISWA) ==================== -->
   <section id="viewSspect" class="hidden flex-1 pb-16">
     <div class="max-w-7xl mx-auto px-4 md:px-10 lg:px-16 pt-8 space-y-8">
-      <div class="bg-white rounded-3xl p-6 md:p-8 shadow-2xs border border-slate-200 space-y-6">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+      
+      <!-- TABEL 1 SSPECT: JADWAL UJIAN PER KELAS (DARI jadwal_log) -->
+      <div class="bg-white rounded-3xl p-6 md:p-8 shadow-2xs border border-slate-200 space-y-5">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
           <div>
-            <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#169C53]" data-i18n="sspect_badge">JADWAL & PESERTA AKTIF (SINKRON WEB STAFF)</span>
-            <h2 class="text-xl font-extrabold text-slate-900 mt-0.5" data-i18n="sspect_title">Daftar Peserta & Jadwal Ujian SSPECT</h2>
-            <p class="text-[11px] text-slate-400 mt-0.5" data-i18n="sspect_sync_note">Menampilkan jadwal SSPECT aktif dari web staff. Jadwal otomatis hilang setelah pencocokan & masuk log arsip.</p>
+            <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#169C53]" data-i18n="sspect_tbl1_badge">TABEL 1 • JADWAL SSPECT PER KELAS (DARI JADWAL_LOG)</span>
+            <h2 class="text-xl font-extrabold text-slate-900 mt-0.5" data-i18n="sspect_tbl1_title">Jadwal Ujian SSPECT per Kelas</h2>
+            <p class="text-[11px] text-slate-500 mt-0.5">Klik baris jadwal atau tombol <b>Lihat Mahasiswa</b> untuk melihat daftar peserta ujian SSPECT pada kelas tersebut.</p>
           </div>
 
-          <div class="flex flex-wrap items-center gap-2.5">
-            <div class="w-full sm:w-64 relative">
-              <input type="text" id="inputCariSspect" onkeyup="filterTabelPesertaSspect()" placeholder="Cari NIM, Nama, atau Kelas..." class="w-full px-4 py-2 rounded-full border border-slate-200 text-xs focus:border-[#169C53] outline-none">
+          <button type="button" onclick="muatDataSspect()" class="self-start md:self-auto px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-all">
+            <i class="ri-refresh-line"></i>
+            <span data-i18n="btn_segarkan_jadwal">Segarkan Jadwal</span>
+          </button>
+        </div>
+
+        <div class="overflow-x-auto custom-scrollbar">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 text-slate-500 text-[11px] uppercase tracking-wider border-b border-slate-200">
+                <th class="px-4 py-3 font-bold w-14">NO</th>
+                <th class="px-4 py-3 font-bold" data-i18n="th_kelas_uji">KELAS</th>
+                <th class="px-4 py-3 font-bold" data-i18n="th_prodi">PROGRAM STUDI</th>
+                <th class="px-4 py-3 font-bold" data-i18n="th_tanggal">TANGGAL UJIAN</th>
+                <th class="px-4 py-3 font-bold" data-i18n="th_sesi_jam">SESI & JAM</th>
+                <th class="px-4 py-3 font-bold text-center" data-i18n="th_ruang_lab">RUANG LAB</th>
+                <th class="px-4 py-3 font-bold text-center" data-i18n="th_detail">DETAIL PESERTA</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyJadwalKelasSspect" class="divide-y divide-slate-100 text-xs sm:text-sm text-slate-700">
+              <tr>
+                <td colspan="7" class="px-5 py-8 text-center text-slate-400 italic">Memuat jadwal kelas SSPECT dari database staff...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TABEL 2 SSPECT: DAFTAR MAHASISWA PESERTA UJIAN (DARI peserta_ujian) -->
+      <div id="boxDetailPesertaSspect" class="bg-white rounded-3xl p-6 md:p-8 shadow-2xs border border-slate-200 space-y-5">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#169C53]">TABEL 2 • DAFTAR MAHASISWA SSPECT (DARI PESERTA_UJIAN)</span>
+              <span id="badgeFilterKelasSspect" class="px-2.5 py-0.5 rounded-full bg-emerald-50 text-[#169C53] border border-emerald-200 text-[10px] font-extrabold">
+                Semua Jadwal Aktif
+              </span>
             </div>
-            <button type="button" onclick="muatDataSspect()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-all">
-              <i class="ri-refresh-line"></i>
-              <span data-i18n="btn_segarkan_data">Segarkan Data</span>
+            <h3 class="text-lg font-extrabold text-slate-900 mt-1">Daftar Nama Mahasiswa Peserta Ujian SSPECT</h3>
+            <p class="text-[11px] text-slate-500 mt-0.5">Ketik nama atau NIM mahasiswa di kolom pencarian untuk mengecek tanggal, sesi, jam, dan ruang lab ujian.</p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="relative w-full sm:w-72">
+              <i class="ri-search-line absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+              <input type="text" id="inputCariMahasiswaSspect" onkeyup="filterDaftarMahasiswaSspect()" placeholder="Cari Nama Mahasiswa atau NIM..." class="w-full pl-9 pr-4 py-2 rounded-full border border-slate-200 text-xs focus:border-[#169C53] outline-none">
+            </div>
+            <button type="button" id="btnResetFilterSspect" onclick="resetFilterKelasSspect()" class="hidden px-3.5 py-2 rounded-full bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 text-xs font-bold transition-all">
+              Tampilkan Semua Kelas
             </button>
           </div>
         </div>
@@ -630,23 +647,23 @@
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="bg-slate-50 text-slate-500 text-[11px] uppercase tracking-wider border-b border-slate-200">
-                <th class="px-4 py-3 font-bold w-14">NO</th>
-                <th class="px-4 py-3 font-bold">NIM / KODE</th>
+                <th class="px-4 py-3 font-bold w-12">NO</th>
+                <th class="px-4 py-3 font-bold">NIM / MEJA</th>
                 <th class="px-4 py-3 font-bold" data-i18n="th_nama_mhs">NAMA MAHASISWA</th>
-                <th class="px-4 py-3 font-bold" data-i18n="th_prodi">PROGRAM STUDI</th>
-                <th class="px-4 py-3 font-bold" data-i18n="th_kelas">KELAS / KELOMPOK</th>
-                <th class="px-4 py-3 font-bold" data-i18n="th_tgl_sesi">TANGGAL & SESI</th>
+                <th class="px-4 py-3 font-bold" data-i18n="th_kelas_prodi">KELAS & PRODI</th>
+                <th class="px-4 py-3 font-bold" data-i18n="th_tgl_sesi">TANGGAL, SESI & JAM</th>
                 <th class="px-4 py-3 font-bold text-center" data-i18n="th_ruang_lab">RUANG LAB</th>
               </tr>
             </thead>
-            <tbody id="tbodyPesertaSspect" class="divide-y divide-slate-100 text-xs sm:text-sm text-slate-700">
+            <tbody id="tbodyMahasiswaSspect" class="divide-y divide-slate-100 text-xs sm:text-sm text-slate-700">
               <tr>
-                <td colspan="7" class="px-5 py-8 text-center text-slate-400 italic">Memuat jadwal & peserta SSPECT aktif dari database staff...</td>
+                <td colspan="6" class="px-5 py-8 text-center text-slate-400 italic">Memuat daftar mahasiswa SSPECT dari tabel peserta_ujian...</td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
+
     </div>
   </section>
 
@@ -793,7 +810,7 @@
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500 font-medium">
       <div data-i18n="footer_copyright">© 2026 UPA Bahasa • Politeknik Negeri Samarinda. Hak cipta dilindungi.</div>
       <div class="flex items-center gap-6">
-        <button type="button" onclick="bukaHalaman('tentang')" class="hover:text-[#169C53]" data-i18n="footer_about">Tentang Kami</button>
+        <button type="button" onclick="bukaHalaman('beranda')" class="hover:text-[#169C53]" data-i18n="nav_beranda">Beranda</button>
         <button type="button" onclick="bukaHalaman('toefl')" class="hover:text-[#169C53]">TOEFL Prediction</button>
         <button type="button" onclick="bukaHalaman('sspect')" class="hover:text-[#169C53]">SSPECT</button>
         <button type="button" onclick="bukaHalaman('toeic')" class="hover:text-[#169C53]">TOEIC</button>
@@ -833,35 +850,19 @@
         mm_nontes_2_sub: "Informasi, Jadwal & Pendaftaran Kursus",
         mm_nontes_3: "3. Job Seeking Skills Training (JSST)",
         mm_nontes_3_sub: "Informasi & Pendaftaran JSST",
-        info_pengumuman_toeic: "Pengumuman & File TOEIC",
-        info_jadwal_toefl: "Jadwal Tes TOEFL Prediction",
-        info_peserta_sspect: "Daftar Peserta SSPECT",
-        learn_toefl: "Panduan Persiapan TOEFL",
-        learn_toeic: "Panduan Sertifikasi TOEIC",
-        user_remedial: "Form Pendaftaran Remedial",
-        user_cek_skor: "Cek Hasil Skor TOEFL",
-        user_unduh_toeic: "Unduh Pengumuman TOEIC",
         hero_pill: "UPA BAHASA POLNES",
         hero_heading: "Mengembangkan Kompetensi Bahasa untuk Masa Depan",
         hero_subheading: "Pusat layanan dan pengembangan bahasa di Politeknik Negeri Samarinda yang mendukung peningkatan kemampuan bahasa mahasiswa dan sivitas akademika.",
         hero_cta_primary: "Jelajahi Layanan",
-        hero_cta_secondary: "Tentang Kami",
-        home_sec_badge: "LAYANAN UNGGULAN",
+        home_sec_badge: "LAYANAN TES UNGGULAN",
         home_sec_title: "Program Pengujian & Sertifikasi Bahasa",
         home_sec_desc: "Pilih layanan pengujian sesuai kebutuhan akademik maupun persiapan karier internasional Anda.",
-        card_toefl_desc: "Tes standar kelulusan mahasiswa D3 & D4 Politeknik Negeri Samarinda lengkap dengan jadwal reguler, pendaftaran remedial, dan cek skor online.",
+        card_toefl_desc: "Tes standar kelulusan mahasiswa D3 & D4 Politeknik Negeri Samarinda lengkap dengan jadwal kelas, daftar peserta per sesi, pendaftaran remedial, dan cek skor online.",
         card_open_btn: "Buka Halaman TOEFL",
-        card_sspect_desc: "Pemetaan kemampuan bahasa Inggris bagi mahasiswa semester awal untuk mengetahui profil kompetensi dasar kebahasaan.",
+        card_sspect_desc: "Pemetaan kemampuan bahasa Inggris bagi mahasiswa semester awal lengkap dengan jadwal kelas dan pencarian nama peserta ujian.",
         card_open_sspect: "Lihat Jadwal & Peserta SSPECT",
         card_toeic_desc: "Sertifikasi kemampuan bahasa Inggris komunikasi kerja internasional beserta pengumuman daftar peserta wajib & hasil tes dari pusat.",
         card_open_toeic: "Informasi & Pengumuman TOEIC",
-        about_badge: "PROFIL UNIT PELAKSANA AKADEMIK",
-        about_heading: "Tentang UPA Bahasa Politeknik Negeri Samarinda",
-        about_p1: "Unit Pelaksana Akademik (UPA) Bahasa Politeknik Negeri Samarinda merupakan unit penunjang akademik yang menyelenggarakan pelatihan, pengujian, sertifikasi, dan pengembangan kompetensi bahasa asing bagi mahasiswa, dosen, tenaga kependidikan, serta masyarakat umum.",
-        about_visi_title: "Visi Layanan",
-        about_visi_desc: "Menjadi pusat layanan pengujian dan pengembangan bahasa berstandar nasional dan internasional yang mendukung daya saing lulusan vokasi.",
-        about_fasilitas_title: "Fasilitas Laboratorium",
-        about_fasilitas_desc: "Dilengkapi Laboratorium Bahasa berbasis komputer (Lab A dan Lab B) yang mendukung pelaksanaan ujian berbasis digital secara akurat dan terjadwal.",
         pill_toefl_1: "1. Informasi Umum",
         pill_toefl_2: "2. Jadwal Tes & Remedial",
         pill_toefl_3: "3. Pendaftaran Remedial",
@@ -874,20 +875,25 @@
         toefl_box2_d: "Digunakan sebagai bukti kemampuan bahasa Inggris saat melamar pekerjaan di perusahaan nasional, multinasional, maupun instansi pemerintah.",
         toefl_box3_t: "Struktur Pengujian",
         toefl_box3_d: "Mengukur penguasaan tiga aspek utama: Listening Comprehension, Structure & Written Expression, dan Reading Comprehension.",
-        toefl_tbl_badge: "JADWAL & PESERTA AKTIF (SINKRON WEB STAFF)",
-        toefl_tbl_title: "Jadwal & Daftar Peserta Ujian TOEFL Prediction",
-        toefl_tbl_sync_note: "Menampilkan jadwal ujian aktif dari web staff. Jadwal otomatis terhapus setelah selesai pencocokan & masuk log arsip.",
-        btn_segarkan_data: "Segarkan Data",
+        toefl_tbl1_badge: "TABEL 1 • JADWAL PER KELAS (DARI JADWAL_LOG)",
+        toefl_tbl1_title: "Jadwal Ujian TOEFL Prediction per Kelas",
+        toefl_tbl1_hint: "Klik baris jadwal atau tombol Lihat Mahasiswa untuk menampilkan daftar nama peserta pada kelas tersebut.",
+        toefl_tbl2_badge: "TABEL 2 • DAFTAR MAHASISWA UJIAN (DARI PESERTA_UJIAN)",
+        toefl_tbl2_title: "Daftar Nama Mahasiswa Peserta TOEFL Prediction",
+        toefl_tbl2_hint: "Cari nama atau NIM Anda di kolom pencarian untuk melihat tanggal, sesi & jam, ruang lab, kelas, serta program studi Anda.",
         btn_segarkan_jadwal: "Segarkan Jadwal",
         btn_segarkan_file: "Segarkan Pengumuman",
-        th_nama_mhs: "NAMA MAHASISWA",
+        th_kelas_uji: "KELAS",
         th_prodi: "PROGRAM STUDI",
-        th_kelas: "KELAS / KELOMPOK",
-        th_tgl_sesi: "TANGGAL & SESI",
+        th_tanggal: "TANGGAL UJIAN",
+        th_sesi_jam: "SESI & JAM",
         th_ruang_lab: "RUANG LAB",
-        th_status: "STATUS",
-        rem_tbl_badge: "JADWAL PERBAIKAN NILAI",
-        rem_tbl_title: "Jadwal & Daftar Peserta Remedial TOEFL",
+        th_detail: "DETAIL PESERTA",
+        th_nama_mhs: "NAMA MAHASISWA",
+        th_kelas_prodi: "KELAS & PRODI",
+        th_tgl_sesi: "TANGGAL, SESI & JAM",
+        rem_tbl_badge: "PESERTA CAMPURAN LINTAS KELAS",
+        rem_tbl_title: "Daftar Mahasiswa Peserta Remedial TOEFL",
         form_rem_badge: "PENGAJUAN MANDIRI",
         form_rem_title: "Formulir Pendaftaran Remedial TOEFL",
         form_rem_sub: "Lengkapi data NIM, Nama Lengkap, Program Studi, dan Kelas Anda untuk didaftarkan ke sesi ujian remedial.",
@@ -899,9 +905,8 @@
         skor_title: "Cek Hasil Skor TOEFL Prediction",
         skor_sub: "Masukkan NIM Anda untuk memeriksa rincian nilai Listening, Structure, Reading, dan Total Skor.",
         btn_cek_skor: "Cek Skor Sekarang",
-        sspect_badge: "JADWAL & PESERTA AKTIF (SINKRON WEB STAFF)",
-        sspect_title: "Daftar Peserta & Jadwal Ujian SSPECT",
-        sspect_sync_note: "Menampilkan jadwal SSPECT aktif dari web staff. Jadwal otomatis hilang setelah pencocokan & masuk log arsip.",
+        sspect_tbl1_badge: "TABEL 1 • JADWAL SSPECT PER KELAS (DARI JADWAL_LOG)",
+        sspect_tbl1_title: "Jadwal Ujian SSPECT per Kelas",
         toeic_badge: "LAYANAN SERTIFIKASI INTERNASIONAL • TOEIC",
         toeic_heading: "Informasi Umum & Pengumuman Resmi TOEIC",
         toeic_sub: "Pusat informasi pelaksanaan tes TOEIC bagi mahasiswa POLNES serta publikasi resmi daftar peserta wajib dan hasil ujian dari staf UPA Bahasa.",
@@ -914,8 +919,7 @@
         toeic_files_title: "Pengumuman & Publikasi Resmi TOEIC",
         btn_back_toeic: "Kembali ke Daftar Pengumuman TOEIC",
         btn_download_doc: "Unduh / Buka Dokumen",
-        footer_copyright: "© 2026 UPA Bahasa • Politeknik Negeri Samarinda. Hak cipta dilindungi.",
-        footer_about: "Tentang Kami"
+        footer_copyright: "© 2026 UPA Bahasa • Politeknik Negeri Samarinda. Hak cipta dilindungi."
       },
       en: {
         top_address: "Jl. Cipto Mangunkusumo, Samarinda Seberang",
@@ -943,35 +947,19 @@
         mm_nontes_2_sub: "Course Information, Schedule & Registration",
         mm_nontes_3: "3. Job Seeking Skills Training (JSST)",
         mm_nontes_3_sub: "JSST Information & Registration",
-        info_pengumuman_toeic: "TOEIC Announcements & Files",
-        info_jadwal_toefl: "TOEFL Prediction Test Schedule",
-        info_peserta_sspect: "SSPECT Participant Roster",
-        learn_toefl: "TOEFL Preparation Guide",
-        learn_toeic: "TOEIC Certification Guide",
-        user_remedial: "Remedial Registration Form",
-        user_cek_skor: "Check TOEFL Score Results",
-        user_unduh_toeic: "Download TOEIC Announcements",
         hero_pill: "UPA BAHASA POLNES",
         hero_heading: "Developing Language Competence for the Future",
         hero_subheading: "Language service and development center at State Polytechnic of Samarinda supporting the enhancement of language proficiency for students and academic staff.",
         hero_cta_primary: "Explore Services",
-        hero_cta_secondary: "About Us",
-        home_sec_badge: "FEATURED SERVICES",
+        home_sec_badge: "FEATURED TESTING SERVICES",
         home_sec_title: "Language Testing & Certification Programs",
         home_sec_desc: "Choose a testing service tailored to your academic requirements and international career preparation.",
-        card_toefl_desc: "Graduation standard English proficiency test for D3 & D4 students at State Polytechnic of Samarinda complete with regular schedules, remedial registration, and online score checking.",
+        card_toefl_desc: "Graduation standard English proficiency test for D3 & D4 students at State Polytechnic of Samarinda complete with class schedules, participant rosters, remedial registration, and online score checking.",
         card_open_btn: "Open TOEFL Page",
-        card_sspect_desc: "English proficiency mapping for first-year students to identify foundational language competence profiles.",
+        card_sspect_desc: "English proficiency mapping for first-year students complete with class schedules and participant search.",
         card_open_sspect: "View SSPECT Schedule & Roster",
         card_toeic_desc: "International workplace English communication certification along with mandatory participant rosters and official test results from headquarters.",
         card_open_toeic: "TOEIC Information & Announcements",
-        about_badge: "ACADEMIC IMPLEMENTATION UNIT PROFILE",
-        about_heading: "About UPA Bahasa State Polytechnic of Samarinda",
-        about_p1: "The Language Academic Implementation Unit (UPA Bahasa) of State Polytechnic of Samarinda is an academic support unit organizing foreign language training, testing, certification, and competency development for students, lecturers, staff, and the general public.",
-        about_visi_title: "Service Vision",
-        about_visi_desc: "To become a national and international standard language testing and development center supporting vocational graduate competitiveness.",
-        about_fasilitas_title: "Laboratory Facilities",
-        about_fasilitas_desc: "Equipped with computer-based Language Laboratories (Lab A and Lab B) supporting accurate and scheduled digital-based examinations.",
         pill_toefl_1: "1. General Information",
         pill_toefl_2: "2. Test & Remedial Schedule",
         pill_toefl_3: "3. Remedial Registration",
@@ -984,20 +972,25 @@
         toefl_box2_d: "Serves as proof of English proficiency when applying to national companies, multinational corporations, and government institutions.",
         toefl_box3_t: "Test Structure",
         toefl_box3_d: "Measures mastery across three core areas: Listening Comprehension, Structure & Written Expression, and Reading Comprehension.",
-        toefl_tbl_badge: "ACTIVE SCHEDULE & ROSTER (SYNCED WITH STAFF WEB)",
-        toefl_tbl_title: "TOEFL Prediction Exam Schedule & Participant Roster",
-        toefl_tbl_sync_note: "Displays active exam schedules from staff web. Schedules are automatically removed once matched and archived into logs.",
-        btn_segarkan_data: "Refresh Data",
+        toefl_tbl1_badge: "TABLE 1 • CLASS SCHEDULE (FROM JADWAL_LOG)",
+        toefl_tbl1_title: "TOEFL Prediction Exam Schedule by Class",
+        toefl_tbl1_hint: "Click a schedule row or the View Students button to display the list of participants in that class.",
+        toefl_tbl2_badge: "TABLE 2 • EXAM PARTICIPANT LIST (FROM PESERTA_UJIAN)",
+        toefl_tbl2_title: "TOEFL Prediction Student Participant Roster",
+        toefl_tbl2_hint: "Search your name or NIM to see your exam date, session & time, lab room, class, and study program.",
         btn_segarkan_jadwal: "Refresh Schedule",
         btn_segarkan_file: "Refresh Announcements",
-        th_nama_mhs: "STUDENT NAME",
+        th_kelas_uji: "CLASS",
         th_prodi: "STUDY PROGRAM",
-        th_kelas: "CLASS / GROUP",
-        th_tgl_sesi: "DATE & SESSION",
+        th_tanggal: "EXAM DATE",
+        th_sesi_jam: "SESSION & TIME",
         th_ruang_lab: "LAB ROOM",
-        th_status: "STATUS",
-        rem_tbl_badge: "SCORE IMPROVEMENT SCHEDULE",
-        rem_tbl_title: "TOEFL Remedial Schedule & Participant Roster",
+        th_detail: "PARTICIPANT DETAIL",
+        th_nama_mhs: "STUDENT NAME",
+        th_kelas_prodi: "CLASS & PROGRAM",
+        th_tgl_sesi: "DATE, SESSION & TIME",
+        rem_tbl_badge: "CROSS-CLASS PARTICIPANTS",
+        rem_tbl_title: "TOEFL Remedial Student Participant Roster",
         form_rem_badge: "SELF-REGISTRATION",
         form_rem_title: "TOEFL Remedial Registration Form",
         form_rem_sub: "Complete your Student ID (NIM), Full Name, Study Program, and Class to register for a remedial exam session.",
@@ -1009,9 +1002,8 @@
         skor_title: "Check TOEFL Prediction Score Results",
         skor_sub: "Enter your Student ID (NIM) to check your Listening, Structure, Reading, and Total Score details.",
         btn_cek_skor: "Check Score Now",
-        sspect_badge: "ACTIVE SCHEDULE & ROSTER (SYNCED WITH STAFF WEB)",
-        sspect_title: "SSPECT Exam Schedule & Participant Roster",
-        sspect_sync_note: "Displays active SSPECT schedules from staff web. Schedules are automatically removed once matched and archived into logs.",
+        sspect_tbl1_badge: "TABLE 1 • SSPECT SCHEDULE BY CLASS (FROM JADWAL_LOG)",
+        sspect_tbl1_title: "SSPECT Exam Schedule by Class",
         toeic_badge: "INTERNATIONAL CERTIFICATION SERVICE • TOEIC",
         toeic_heading: "TOEIC General Information & Official Announcements",
         toeic_sub: "Information center for TOEIC testing at POLNES along with official mandatory participant rosters and test result files uploaded by staff.",
@@ -1024,8 +1016,7 @@
         toeic_files_title: "TOEIC Official Announcements & Publications",
         btn_back_toeic: "Back to TOEIC Announcements",
         btn_download_doc: "Download / Open Document",
-        footer_copyright: "© 2026 UPA Bahasa • State Polytechnic of Samarinda. All rights reserved.",
-        footer_about: "About Us"
+        footer_copyright: "© 2026 UPA Bahasa • State Polytechnic of Samarinda. All rights reserved."
       }
     };
 
@@ -1055,25 +1046,24 @@
         }
       });
 
-      const searchToefl = document.getElementById('inputCariToefl');
-      const searchSspect = document.getElementById('inputCariSspect');
+      const searchToefl = document.getElementById('inputCariMahasiswaToefl');
+      const searchSspect = document.getElementById('inputCariMahasiswaSspect');
       const searchToeic = document.getElementById('inputCariFileToeic');
-      if (searchToefl) searchToefl.placeholder = lang === 'en' ? 'Search Student ID, Name, Class, or Lab...' : 'Cari NIM, Nama, Kelas, atau Lab...';
-      if (searchSspect) searchSspect.placeholder = lang === 'en' ? 'Search Student ID, Name, or Class...' : 'Cari NIM, Nama, atau Kelas...';
+      if (searchToefl) searchToefl.placeholder = lang === 'en' ? 'Search Student Name or NIM...' : 'Cari Nama Mahasiswa atau NIM...';
+      if (searchSspect) searchSspect.placeholder = lang === 'en' ? 'Search Student Name or NIM...' : 'Cari Nama Mahasiswa atau NIM...';
       if (searchToeic) searchToeic.placeholder = lang === 'en' ? 'Search announcement title...' : 'Cari judul pengumuman...';
     }
 
     // ==================== 2. NAVIGASI MEGA MENU & HALAMAN ====================
     function tutupSemuaMegaMenu() {
-      ['menuLayanan', 'menuInformasi', 'menuPembelajaran', 'menuPengguna'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.classList.add('hidden');
-      });
+      const el = document.getElementById('menuLayanan');
+      if (el) el.classList.add('hidden');
     }
 
     function toggleMegaMenu(menuId, event) {
       if (event) event.stopPropagation();
       const target = document.getElementById(menuId);
+      if (!target) return;
       const isHidden = target.classList.contains('hidden');
       tutupSemuaMegaMenu();
       if (isHidden) {
@@ -1082,12 +1072,8 @@
     }
 
     document.addEventListener('click', (e) => {
-      const wrappers = ['wrapMenuLayanan', 'wrapMenuInformasi', 'wrapMenuPembelajaran', 'wrapMenuPengguna'];
-      const clickedInside = wrappers.some(wId => {
-        const w = document.getElementById(wId);
-        return w && w.contains(e.target);
-      });
-      if (!clickedInside) {
+      const w = document.getElementById('wrapMenuLayanan');
+      if (w && !w.contains(e.target)) {
         tutupSemuaMegaMenu();
       }
     });
@@ -1100,23 +1086,21 @@
     function bukaHalaman(namaHalaman, targetSectionId = null) {
       tutupSemuaMegaMenu();
 
-      const views = ['viewBeranda', 'viewTentang', 'viewToefl', 'viewSspect', 'viewToeic', 'viewToeicDetail'];
+      const views = ['viewBeranda', 'viewToefl', 'viewSspect', 'viewToeic', 'viewToeicDetail'];
       views.forEach(v => {
         const el = document.getElementById(v);
         if (el) el.classList.add('hidden');
       });
 
       const navBeranda = document.getElementById('navBeranda');
-      const navTentang = document.getElementById('navTentang');
       const navLayanan = document.getElementById('navLayanan');
       const lineBeranda = document.getElementById('lineBeranda');
-      const lineTentang = document.getElementById('lineTentang');
       const lineLayanan = document.getElementById('lineLayanan');
 
-      [navBeranda, navTentang, navLayanan].forEach(n => {
+      [navBeranda, navLayanan].forEach(n => {
         if (n) n.classList.remove('text-[#169C53]', 'font-bold');
       });
-      [lineBeranda, lineTentang, lineLayanan].forEach(l => {
+      [lineBeranda, lineLayanan].forEach(l => {
         if (l) l.classList.add('hidden');
       });
 
@@ -1124,11 +1108,6 @@
         document.getElementById('viewBeranda').classList.remove('hidden');
         navBeranda.classList.add('text-[#169C53]', 'font-bold');
         lineBeranda.classList.remove('hidden');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } else if (namaHalaman === 'tentang') {
-        document.getElementById('viewTentang').classList.remove('hidden');
-        navTentang.classList.add('text-[#169C53]', 'font-bold');
-        lineTentang.classList.remove('hidden');
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else if (namaHalaman === 'toefl') {
         document.getElementById('viewToefl').classList.remove('hidden');
@@ -1170,11 +1149,25 @@
       return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
     }
 
-    // Helper untuk mendeteksi apakah jadwal sudah masuk log/arsip selesai di web staff
+    // Helper mendeteksi prodi otomatis dari kode kelas jika kolom program_studi kosong di jadwal_log
+    function tebakProdiDariKelas(kelasStr, prodiDb) {
+      if (prodiDb && prodiDb !== '-') return prodiDb;
+      const k = String(kelasStr || '').toUpperCase();
+      if (k.includes('AKS')) return 'Akuntansi';
+      if (k.includes('UPW')) return 'Usaha Perjalanan Wisata';
+      if (k.includes('TNK')) return 'Teknik Kimia / Teknik';
+      if (k.includes('TI') || k.includes('TRPL')) return 'Teknologi Informasi';
+      if (k.includes('SPL') || k.includes('SIP')) return 'Teknik Sipil';
+      if (k.includes('ELK') || k.includes('LST')) return 'Teknik Elektro';
+      if (k.includes('MSN')) return 'Teknik Mesin';
+      if (k.includes('ADM') || k.includes('MBP')) return 'Administrasi Bisnis';
+      if (k.includes('KPL') || k.includes('Nautika')) return 'Kemaritiman';
+      return 'Politeknik Negeri Samarinda';
+    }
+
+    // Helper cek apakah jadwal sudah masuk arsip log selesai di web staff
     function isJadwalSudahDiLog(item) {
       const st = String(item.status || item.status_log || '').toUpperCase();
-      // Jika staff sudah melakukan pencocokan dan mengubah status menjadi SELESAI / LOGGED / ARSIP / MATCHED,
-      // maka tidak lagi ditampilkan sebagai jadwal aktif di web utama
       if (['SELESAI', 'LOGGED', 'ARSIP', 'ARCHIVED', 'MATCHED', 'DONE', 'TERARSIP'].includes(st)) {
         return true;
       }
@@ -1184,51 +1177,94 @@
       return false;
     }
 
-    // ==================== 3. JADWAL & PESERTA TOEFL AKTIF (SINKRON WEB STAFF) ====================
-    window.daftarPesertaToeflGlobal = [];
+    // ==================== 3. JADWAL KELAS (jadwal_log) & DAFTAR MAHASISWA (peserta_ujian) TOEFL ====================
+    window.jadwalKelasToeflGlobal = [];
+    window.semuaMahasiswaToeflGlobal = [];
+    window.filterKelasToeflAktif = null;
 
     async function muatJadwalToefl() {
-      const tbody = document.getElementById('tbodyJadwalToefl');
-      if (!tbody) return;
+      const tbodyKelas = document.getElementById('tbodyJadwalKelasToefl');
+      const tbodyMhs = document.getElementById('tbodyMahasiswaToefl');
+      if (!tbodyKelas || !tbodyMhs) return;
 
-      tbody.innerHTML = `<tr><td colspan="7" class="px-5 py-8 text-center text-slate-400 italic">Memuat jadwal aktif TOEFL dari database staff...</td></tr>`;
+      tbodyKelas.innerHTML = `<tr><td colspan="7" class="px-5 py-8 text-center text-slate-400 italic">Memuat jadwal kelas TOEFL dari database staff...</td></tr>`;
+      tbodyMhs.innerHTML = `<tr><td colspan="6" class="px-5 py-8 text-center text-slate-400 italic">Memuat daftar mahasiswa ujian dari tabel peserta_ujian...</td></tr>`;
 
       try {
         if (!window.supabaseClient) {
-          tbody.innerHTML = `<tr><td colspan="7" class="px-5 py-8 text-center text-rose-500 font-semibold">Koneksi Supabase belum terpasang.</td></tr>`;
+          tbodyKelas.innerHTML = `<tr><td colspan="7" class="px-5 py-8 text-center text-rose-500 font-semibold">Koneksi Supabase belum terpasang.</td></tr>`;
           return;
         }
 
-        // Ambil seluruh baris dari tabel 'jadwal_log' yang dibuat oleh web staff
-        const { data, error } = await window.supabaseClient
+        // 1. Ambil jadwal kelas dari tabel 'jadwal_log'
+        const { data: dataJadwal, error: errJadwal } = await window.supabaseClient
           .from('jadwal_log')
           .select('*')
-          .order('id', { ascending: true });
+          .order('tanggal', { ascending: true });
 
-        if (error) throw error;
+        if (errJadwal) throw errJadwal;
 
-        // Filter hanya jadwal TOEFL aktif (bukan SSPECT, bukan REMEDIAL menunggu, dan BELUM di-log selesai)
-        const jadwalToeflAktif = (data || []).filter(item => {
+        const jadwalAktif = (dataJadwal || []).filter(item => {
           if (isJadwalSudahDiLog(item)) return false;
-
           const jenis = String(item.jenis_tes || item.jenis_ujian || item.kategori || 'TOEFL').toUpperCase();
           const status = String(item.status || '').toUpperCase();
-
           if (jenis.includes('SSPECT')) return false;
           if (status === 'REMEDIAL') return false;
           return true;
         });
 
-        window.daftarPesertaToeflGlobal = jadwalToeflAktif;
-        renderTabelPesertaToefl(jadwalToeflAktif);
+        window.jadwalKelasToeflGlobal = jadwalAktif;
+        renderTabelJadwalKelasToefl(jadwalAktif);
+
+        // 2. Ambil daftar nama mahasiswa dari tabel 'peserta_ujian'
+        const { data: dataPeserta, error: errPeserta } = await window.supabaseClient
+          .from('peserta_ujian')
+          .select('*')
+          .order('id_meja', { ascending: true });
+
+        if (errPeserta) throw errPeserta;
+
+        // Gabungkan setiap mahasiswa dengan informasi jadwal kelasnya (tanggal, sesi, lab, prodi)
+        const daftarMahasiswaGabungan = [];
+        (dataPeserta || []).forEach(mhs => {
+          const kelasMhs = String(mhs.nama_kelas || mhs.kelas || '').trim().toUpperCase();
+          // Cocokkan dengan jadwal aktif berdasarkan jadwal_id atau nama_kelas
+          const jadwalCocok = jadwalAktif.find(j =>
+            (mhs.jadwal_id && j.id === mhs.jadwal_id) ||
+            String(j.nama_kelas || j.kelas || '').trim().toUpperCase() === kelasMhs
+          );
+
+          // Hanya tampilkan mahasiswa yang kelas/jadwalnya masih aktif (belum hilang di-log)
+          if (jadwalCocok) {
+            daftarMahasiswaGabungan.push({
+              id: mhs.id,
+              jadwal_id: jadwalCocok.id,
+              nim: mhs.nim || mhs.id_meja || '-',
+              id_meja: mhs.id_meja || '-',
+              nama: mhs.nama || mhs.nama_mahasiswa || '-',
+              kelas: jadwalCocok.nama_kelas || jadwalCocok.kelas || mhs.nama_kelas || '-',
+              prodi: tebakProdiDariKelas(jadwalCocok.nama_kelas || mhs.nama_kelas, jadwalCocok.program_studi || jadwalCocok.prodi || mhs.program_studi),
+              tanggal: formatTanggalIndo(jadwalCocok.tanggal || jadwalCocok.tanggal_ujian),
+              sesi: jadwalCocok.sesi || jadwalCocok.sesi_waktu || '-',
+              lab: jadwalCocok.ruang_lab || jadwalCocok.lab || '-'
+            });
+          }
+        });
+
+        window.semuaMahasiswaToeflGlobal = daftarMahasiswaGabungan;
+        window.filterKelasToeflAktif = null;
+        updateBadgeFilterToefl();
+        renderTabelMahasiswaToefl(daftarMahasiswaGabungan);
+
       } catch (err) {
         console.error(err);
-        tbody.innerHTML = `<tr><td colspan="7" class="px-5 py-8 text-center text-rose-500 font-semibold">Gagal memuat data dari database: ${err.message}</td></tr>`;
+        tbodyKelas.innerHTML = `<tr><td colspan="7" class="px-5 py-8 text-center text-rose-500 font-semibold">Gagal memuat jadwal: ${err.message}</td></tr>`;
+        tbodyMhs.innerHTML = `<tr><td colspan="6" class="px-5 py-8 text-center text-rose-500 font-semibold">Gagal memuat peserta ujian: ${err.message}</td></tr>`;
       }
     }
 
-    function renderTabelPesertaToefl(list) {
-      const tbody = document.getElementById('tbodyJadwalToefl');
+    function renderTabelJadwalKelasToefl(list) {
+      const tbody = document.getElementById('tbodyJadwalKelasToefl');
       if (!tbody) return;
 
       if (!list || list.length === 0) {
@@ -1236,8 +1272,8 @@
           <tr>
             <td colspan="7" class="px-5 py-10 text-center text-slate-400 italic">
               ${window.currentLang === 'en'
-                ? 'No active TOEFL Prediction schedules available at the moment.'
-                : 'Belum ada jadwal aktif TOEFL Prediction saat ini (atau seluruh jadwal telah selesai dicocokkan ke log).'}
+                ? 'No active TOEFL Prediction class schedules available.'
+                : 'Belum ada jadwal kelas TOEFL Prediction aktif saat ini (atau seluruh jadwal telah selesai dicocokkan ke log).'}
             </td>
           </tr>
         `;
@@ -1245,53 +1281,138 @@
       }
 
       tbody.innerHTML = list.map((item, idx) => {
-        const nimVal = item.nim || item.kode_jadwal || '-';
-        const namaVal = item.nama_mahasiswa || item.nama || (item.kuota ? `Peserta Kelas (${item.kuota} Mhs)` : 'Peserta Terjadwal');
-        const prodiVal = item.program_studi || item.prodi || '-';
-        const kelasVal = item.kelas || item.kelompok || '-';
-        const tglVal = formatTanggalIndo(item.tanggal_ujian || item.tanggal);
-        const sesiVal = item.sesi_waktu || item.sesi || '-';
+        const kelasVal = item.nama_kelas || item.kelas || '-';
+        const prodiVal = tebakProdiDariKelas(kelasVal, item.program_studi || item.prodi);
+        const tglVal = formatTanggalIndo(item.tanggal || item.tanggal_ujian);
+        const sesiVal = item.sesi || item.sesi_waktu || '-';
         const labVal = item.ruang_lab || item.lab || '-';
 
         return `
-          <tr class="hover:bg-slate-50/80 transition-colors">
+          <tr onclick="pilihKelasDetailToefl('${kelasVal.replace(/'/g, "\\'")}', ${item.id})" class="cursor-pointer hover:bg-emerald-50/60 transition-colors group">
             <td class="px-4 py-4 font-bold text-slate-400">${idx + 1}</td>
-            <td class="px-4 py-4 font-mono font-bold text-slate-900">${nimVal}</td>
-            <td class="px-4 py-4 font-extrabold text-[#169C53] uppercase">${namaVal}</td>
-            <td class="px-4 py-4 text-slate-600">${prodiVal}</td>
-            <td class="px-4 py-4 font-bold text-slate-800">${kelasVal}</td>
-            <td class="px-4 py-4">
-              <div class="font-bold text-slate-900">${tglVal}</div>
-              <div class="text-[11px] text-sky-600 font-semibold">${sesiVal}</div>
-            </td>
+            <td class="px-4 py-4 font-extrabold text-slate-900 group-hover:text-[#169C53]">${kelasVal}</td>
+            <td class="px-4 py-4 text-slate-600 font-medium">${prodiVal}</td>
+            <td class="px-4 py-4 font-bold text-slate-800">${tglVal}</td>
+            <td class="px-4 py-4 text-sky-600 font-bold text-xs">${sesiVal}</td>
             <td class="px-4 py-4 text-center">
               <span class="px-3 py-1 rounded-lg bg-emerald-50 text-[#169C53] font-extrabold text-[11px] border border-emerald-200">
                 ${labVal}
               </span>
+            </td>
+            <td class="px-4 py-4 text-center">
+              <button type="button" class="px-3.5 py-1.5 rounded-full bg-[#169C53] group-hover:bg-[#0E7A3F] text-white font-bold text-[11px] inline-flex items-center gap-1 shadow-2xs transition-all">
+                <i class="ri-group-line"></i>
+                <span>Lihat Peserta</span>
+              </button>
             </td>
           </tr>
         `;
       }).join('');
     }
 
-    function filterTabelPesertaToefl() {
-      const q = (document.getElementById('inputCariToefl')?.value || '').toLowerCase();
-      const filtered = window.daftarPesertaToeflGlobal.filter(item =>
-        String(item.nim || '').toLowerCase().includes(q) ||
-        String(item.nama_mahasiswa || item.nama || '').toLowerCase().includes(q) ||
-        String(item.program_studi || item.prodi || '').toLowerCase().includes(q) ||
-        String(item.kelas || '').toLowerCase().includes(q) ||
-        String(item.ruang_lab || '').toLowerCase().includes(q)
+    function pilihKelasDetailToefl(namaKelas, jadwalId) {
+      window.filterKelasToeflAktif = { namaKelas, jadwalId };
+      document.getElementById('inputCariMahasiswaToefl').value = '';
+      updateBadgeFilterToefl();
+
+      const filtered = window.semuaMahasiswaToeflGlobal.filter(m =>
+        (jadwalId && m.jadwal_id === jadwalId) ||
+        String(m.kelas).toUpperCase() === String(namaKelas).toUpperCase()
       );
-      renderTabelPesertaToefl(filtered);
+      renderTabelMahasiswaToefl(filtered);
+
+      const boxDetail = document.getElementById('boxDetailPesertaToefl');
+      if (boxDetail) boxDetail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
-    // ==================== 4. JADWAL & PENDAFTARAN REMEDIAL ====================
+    function resetFilterKelasToefl() {
+      window.filterKelasToeflAktif = null;
+      document.getElementById('inputCariMahasiswaToefl').value = '';
+      updateBadgeFilterToefl();
+      renderTabelMahasiswaToefl(window.semuaMahasiswaToeflGlobal);
+    }
+
+    function updateBadgeFilterToefl() {
+      const badge = document.getElementById('badgeFilterKelasToefl');
+      const btnReset = document.getElementById('btnResetFilterToefl');
+      if (!badge || !btnReset) return;
+
+      if (window.filterKelasToeflAktif) {
+        badge.textContent = `Kelas Terpilih: ${window.filterKelasToeflAktif.namaKelas}`;
+        btnReset.classList.remove('hidden');
+      } else {
+        badge.textContent = `Semua Jadwal Aktif (${window.semuaMahasiswaToeflGlobal.length} Mahasiswa)`;
+        btnReset.classList.add('hidden');
+      }
+    }
+
+    function filterDaftarMahasiswaToefl() {
+      const q = (document.getElementById('inputCariMahasiswaToefl')?.value || '').trim().toLowerCase();
+
+      // Jika mahasiswa mengetik nama di search, cari di seluruh jadwal aktif agar langsung ketemu tanggal/sesi/lab-nya
+      if (q.length > 0) {
+        window.filterKelasToeflAktif = null;
+        updateBadgeFilterToefl();
+      }
+
+      const filtered = window.semuaMahasiswaToeflGlobal.filter(m =>
+        String(m.nama || '').toLowerCase().includes(q) ||
+        String(m.nim || '').toLowerCase().includes(q) ||
+        String(m.kelas || '').toLowerCase().includes(q) ||
+        String(m.prodi || '').toLowerCase().includes(q) ||
+        String(m.lab || '').toLowerCase().includes(q)
+      );
+      renderTabelMahasiswaToefl(filtered);
+    }
+
+    function renderTabelMahasiswaToefl(list) {
+      const tbody = document.getElementById('tbodyMahasiswaToefl');
+      if (!tbody) return;
+
+      if (!list || list.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="px-5 py-10 text-center text-slate-400 italic">
+              Belum ada data mahasiswa pada kelas/pencarian ini di tabel peserta_ujian.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = list.map((m, idx) => `
+        <tr class="hover:bg-slate-50/80 transition-colors">
+          <td class="px-4 py-3.5 font-bold text-slate-400">${idx + 1}</td>
+          <td class="px-4 py-3.5 font-mono font-bold text-slate-800 text-xs">
+            <div>${m.nim}</div>
+            ${m.id_meja && m.id_meja !== m.nim ? `<div class="text-[10px] text-slate-400">${m.id_meja}</div>` : ''}
+          </td>
+          <td class="px-4 py-3.5 font-extrabold text-[#169C53] uppercase">${m.nama}</td>
+          <td class="px-4 py-3.5">
+            <div class="font-extrabold text-slate-900">${m.kelas}</div>
+            <div class="text-[11px] text-slate-500">${m.prodi}</div>
+          </td>
+          <td class="px-4 py-3.5">
+            <div class="font-bold text-slate-900">${m.tanggal}</div>
+            <div class="text-[11px] text-sky-600 font-bold">${m.sesi}</div>
+          </td>
+          <td class="px-4 py-3.5 text-center">
+            <span class="px-3 py-1 rounded-lg bg-emerald-50 text-[#169C53] font-extrabold text-[11px] border border-emerald-200">
+              ${m.lab}
+            </span>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // ==================== 4. DAFTAR MAHASISWA REMEDIAL TOEFL (LANGSUNG DAFTAR MAHASISWA) ====================
+    window.daftarRemedialGlobal = [];
+
     async function muatJadwalRemedial() {
       const tbody = document.getElementById('tbodyJadwalRemedial');
       if (!tbody) return;
 
-      tbody.innerHTML = `<tr><td colspan="7" class="px-5 py-8 text-center text-slate-400 italic">Memuat jadwal remedial dari database...</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" class="px-5 py-8 text-center text-slate-400 italic">Memuat daftar mahasiswa remedial...</td></tr>`;
 
       try {
         if (!window.supabaseClient) return;
@@ -1305,34 +1426,61 @@
         if (error) throw error;
 
         const remedialAktif = (data || []).filter(item => !isJadwalSudahDiLog(item));
+        window.daftarRemedialGlobal = remedialAktif;
+        renderTabelRemedial(remedialAktif);
+      } catch (err) {
+        console.error(err);
+        tbody.innerHTML = `<tr><td colspan="6" class="px-5 py-8 text-center text-rose-500">Gagal memuat jadwal remedial: ${err.message}</td></tr>`;
+      }
+    }
 
-        if (remedialAktif.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="7" class="px-5 py-8 text-center text-slate-400 italic">Belum ada peserta remedial aktif terdaftar.</td></tr>`;
-          return;
-        }
+    function renderTabelRemedial(list) {
+      const tbody = document.getElementById('tbodyJadwalRemedial');
+      if (!tbody) return;
 
-        tbody.innerHTML = remedialAktif.map((item, idx) => `
+      if (!list || list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="px-5 py-8 text-center text-slate-400 italic">Belum ada mahasiswa peserta remedial aktif terdaftar.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = list.map((item, idx) => {
+        const kelasVal = item.nama_kelas || item.kelas || '-';
+        const prodiVal = tebakProdiDariKelas(kelasVal, item.program_studi || item.prodi);
+        const tglVal = formatTanggalIndo(item.tanggal || item.tanggal_ujian);
+        const sesiVal = item.sesi || item.sesi_waktu || 'Menunggu Jadwal Staff';
+        const labVal = item.ruang_lab || item.lab || 'REMEDIAL';
+
+        return `
           <tr class="hover:bg-slate-50/80 transition-colors">
             <td class="px-4 py-4 font-bold text-slate-400">${idx + 1}</td>
             <td class="px-4 py-4 font-mono font-bold text-slate-900">${item.nim || '-'}</td>
             <td class="px-4 py-4 font-extrabold text-[#169C53] uppercase">${item.nama_mahasiswa || item.nama || '-'}</td>
-            <td class="px-4 py-4 text-slate-600">${item.program_studi || item.prodi || '-'}</td>
-            <td class="px-4 py-4 font-bold text-slate-800">${item.kelas || '-'}</td>
             <td class="px-4 py-4">
-              <div class="font-bold text-slate-900">${formatTanggalIndo(item.tanggal_ujian || item.tanggal)}</div>
-              <div class="text-[11px] text-amber-600 font-semibold">${item.sesi_waktu || item.sesi || 'Menunggu Penjadwalan Staff'}</div>
+              <div class="font-bold text-slate-900">${kelasVal}</div>
+              <div class="text-[11px] text-slate-500">${prodiVal}</div>
+            </td>
+            <td class="px-4 py-4">
+              <div class="font-bold text-slate-900">${tglVal}</div>
+              <div class="text-[11px] text-amber-600 font-bold">${sesiVal}</div>
             </td>
             <td class="px-4 py-4 text-center">
               <span class="px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-extrabold">
-                ${item.status || 'REMEDIAL'}
+                ${labVal}
               </span>
             </td>
           </tr>
-        `).join('');
-      } catch (err) {
-        console.error(err);
-        tbody.innerHTML = `<tr><td colspan="7" class="px-5 py-8 text-center text-rose-500">Gagal memuat jadwal remedial: ${err.message}</td></tr>`;
-      }
+        `;
+      }).join('');
+    }
+
+    function filterTabelRemedial() {
+      const q = (document.getElementById('inputCariRemedial')?.value || '').toLowerCase();
+      const filtered = window.daftarRemedialGlobal.filter(item =>
+        String(item.nim || '').toLowerCase().includes(q) ||
+        String(item.nama_mahasiswa || item.nama || '').toLowerCase().includes(q) ||
+        String(item.nama_kelas || item.kelas || '').toLowerCase().includes(q)
+      );
+      renderTabelRemedial(filtered);
     }
 
     async function submitPendaftaranRemedial(e) {
@@ -1356,7 +1504,7 @@
             nim: nim,
             nama_mahasiswa: nama,
             program_studi: prodi,
-            kelas: kelas,
+            nama_kelas: kelas,
             status: 'REMEDIAL'
           }]);
 
@@ -1427,55 +1575,84 @@
       }
     }
 
-    // ==================== 6. JADWAL & PESERTA SSPECT AKTIF (SINKRON WEB STAFF) ====================
-    window.daftarPesertaSspectGlobal = [];
+    // ==================== 6. JADWAL KELAS & DAFTAR MAHASISWA SSPECT (2 TABEL) ====================
+    window.jadwalKelasSspectGlobal = [];
+    window.semuaMahasiswaSspectGlobal = [];
+    window.filterKelasSspectAktif = null;
 
     async function muatDataSspect() {
-      const tbody = document.getElementById('tbodyPesertaSspect');
-      if (!tbody) return;
+      const tbodyKelas = document.getElementById('tbodyJadwalKelasSspect');
+      const tbodyMhs = document.getElementById('tbodyMahasiswaSspect');
+      if (!tbodyKelas || !tbodyMhs) return;
 
-      tbody.innerHTML = `<tr><td colspan="7" class="px-5 py-8 text-center text-slate-400 italic">Memuat jadwal & peserta SSPECT aktif dari database staff...</td></tr>`;
+      tbodyKelas.innerHTML = `<tr><td colspan="7" class="px-5 py-8 text-center text-slate-400 italic">Memuat jadwal kelas SSPECT dari database staff...</td></tr>`;
+      tbodyMhs.innerHTML = `<tr><td colspan="6" class="px-5 py-8 text-center text-slate-400 italic">Memuat daftar mahasiswa SSPECT dari tabel peserta_ujian...</td></tr>`;
 
       try {
         if (!window.supabaseClient) {
-          tbody.innerHTML = `<tr><td colspan="7" class="px-5 py-8 text-center text-rose-500 font-semibold">Koneksi Supabase belum terpasang.</td></tr>`;
+          tbodyKelas.innerHTML = `<tr><td colspan="7" class="px-5 py-8 text-center text-rose-500 font-semibold">Koneksi Supabase belum terpasang.</td></tr>`;
           return;
         }
 
-        const { data, error } = await window.supabaseClient
+        const { data: dataJadwal, error: errJadwal } = await window.supabaseClient
           .from('jadwal_log')
           .select('*')
-          .order('id', { ascending: true });
+          .order('tanggal', { ascending: true });
 
-        if (error) throw error;
+        if (errJadwal) throw errJadwal;
 
-        // Filter hanya jadwal SSPECT yang masih aktif (belum di-log selesai oleh staff)
-        const sspectAktif = (data || []).filter(item => {
+        const sspectAktif = (dataJadwal || []).filter(item => {
           if (isJadwalSudahDiLog(item)) return false;
-
           const jenis = String(item.jenis_tes || item.jenis_ujian || item.kategori || '').toUpperCase();
           return jenis.includes('SSPECT');
         });
 
-        window.daftarPesertaSspectGlobal = sspectAktif.map(item => ({
-          nim: item.nim || item.kode_jadwal || '-',
-          nama: item.nama_mahasiswa || item.nama || (item.kuota ? `Peserta Kelas (${item.kuota} Mhs)` : 'Peserta Terjadwal'),
-          prodi: item.program_studi || item.prodi || '-',
-          kelas: item.kelas || item.kelompok || '-',
-          tanggal: formatTanggalIndo(item.tanggal_ujian || item.tanggal),
-          sesi: item.sesi_waktu || item.sesi || '-',
-          lab: item.ruang_lab || item.lab || '-'
-        }));
+        window.jadwalKelasSspectGlobal = sspectAktif;
+        renderTabelJadwalKelasSspect(sspectAktif);
 
-        renderTabelPesertaSspect(window.daftarPesertaSspectGlobal);
+        const { data: dataPeserta, error: errPeserta } = await window.supabaseClient
+          .from('peserta_ujian')
+          .select('*')
+          .order('id_meja', { ascending: true });
+
+        if (errPeserta) throw errPeserta;
+
+        const daftarMahasiswaSspect = [];
+        (dataPeserta || []).forEach(mhs => {
+          const kelasMhs = String(mhs.nama_kelas || mhs.kelas || '').trim().toUpperCase();
+          const jadwalCocok = sspectAktif.find(j =>
+            (mhs.jadwal_id && j.id === mhs.jadwal_id) ||
+            String(j.nama_kelas || j.kelas || '').trim().toUpperCase() === kelasMhs
+          );
+
+          if (jadwalCocok) {
+            daftarMahasiswaSspect.push({
+              id: mhs.id,
+              jadwal_id: jadwalCocok.id,
+              nim: mhs.nim || mhs.id_meja || '-',
+              id_meja: mhs.id_meja || '-',
+              nama: mhs.nama || mhs.nama_mahasiswa || '-',
+              kelas: jadwalCocok.nama_kelas || jadwalCocok.kelas || mhs.nama_kelas || '-',
+              prodi: tebakProdiDariKelas(jadwalCocok.nama_kelas || mhs.nama_kelas, jadwalCocok.program_studi || jadwalCocok.prodi || mhs.program_studi),
+              tanggal: formatTanggalIndo(jadwalCocok.tanggal || jadwalCocok.tanggal_ujian),
+              sesi: jadwalCocok.sesi || jadwalCocok.sesi_waktu || '-',
+              lab: jadwalCocok.ruang_lab || jadwalCocok.lab || '-'
+            });
+          }
+        });
+
+        window.semuaMahasiswaSspectGlobal = daftarMahasiswaSspect;
+        window.filterKelasSspectAktif = null;
+        updateBadgeFilterSspect();
+        renderTabelMahasiswaSspect(daftarMahasiswaSspect);
       } catch (err) {
         console.error(err);
-        tbody.innerHTML = `<tr><td colspan="7" class="px-5 py-8 text-center text-rose-500 font-semibold">Gagal memuat jadwal SSPECT: ${err.message}</td></tr>`;
+        tbodyKelas.innerHTML = `<tr><td colspan="7" class="px-5 py-8 text-center text-rose-500 font-semibold">Gagal memuat jadwal SSPECT: ${err.message}</td></tr>`;
       }
     }
 
-    function renderTabelPesertaSspect(list) {
-      const tbody = document.getElementById('tbodyPesertaSspect');
+    function renderTabelJadwalKelasSspect(list) {
+      const tbody = document.getElementById('tbodyJadwalKelasSspect');
       if (!tbody) return;
 
       if (!list || list.length === 0) {
@@ -1483,43 +1660,136 @@
           <tr>
             <td colspan="7" class="px-5 py-10 text-center text-slate-400 italic">
               ${window.currentLang === 'en'
-                ? 'No active SSPECT schedules available at the moment.'
-                : 'Belum ada jadwal aktif SSPECT saat ini (atau seluruh jadwal telah selesai dicocokkan ke log).'}
+                ? 'No active SSPECT class schedules available.'
+                : 'Belum ada jadwal kelas SSPECT aktif saat ini (atau seluruh jadwal telah selesai dicocokkan ke log).'}
             </td>
           </tr>
         `;
         return;
       }
 
-      tbody.innerHTML = list.map((p, idx) => `
+      tbody.innerHTML = list.map((item, idx) => {
+        const kelasVal = item.nama_kelas || item.kelas || '-';
+        const prodiVal = tebakProdiDariKelas(kelasVal, item.program_studi || item.prodi);
+        const tglVal = formatTanggalIndo(item.tanggal || item.tanggal_ujian);
+        const sesiVal = item.sesi || item.sesi_waktu || '-';
+        const labVal = item.ruang_lab || item.lab || '-';
+
+        return `
+          <tr onclick="pilihKelasDetailSspect('${kelasVal.replace(/'/g, "\\'")}', ${item.id})" class="cursor-pointer hover:bg-emerald-50/60 transition-colors group">
+            <td class="px-4 py-4 font-bold text-slate-400">${idx + 1}</td>
+            <td class="px-4 py-4 font-extrabold text-slate-900 group-hover:text-[#169C53]">${kelasVal}</td>
+            <td class="px-4 py-4 text-slate-600 font-medium">${prodiVal}</td>
+            <td class="px-4 py-4 font-bold text-slate-800">${tglVal}</td>
+            <td class="px-4 py-4 text-sky-600 font-bold text-xs">${sesiVal}</td>
+            <td class="px-4 py-4 text-center">
+              <span class="px-3 py-1 rounded-lg bg-emerald-50 text-[#169C53] font-extrabold text-[11px] border border-emerald-200">
+                ${labVal}
+              </span>
+            </td>
+            <td class="px-4 py-4 text-center">
+              <button type="button" class="px-3.5 py-1.5 rounded-full bg-[#169C53] group-hover:bg-[#0E7A3F] text-white font-bold text-[11px] inline-flex items-center gap-1 shadow-2xs transition-all">
+                <i class="ri-group-line"></i>
+                <span>Lihat Peserta</span>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function pilihKelasDetailSspect(namaKelas, jadwalId) {
+      window.filterKelasSspectAktif = { namaKelas, jadwalId };
+      document.getElementById('inputCariMahasiswaSspect').value = '';
+      updateBadgeFilterSspect();
+
+      const filtered = window.semuaMahasiswaSspectGlobal.filter(m =>
+        (jadwalId && m.jadwal_id === jadwalId) ||
+        String(m.kelas).toUpperCase() === String(namaKelas).toUpperCase()
+      );
+      renderTabelMahasiswaSspect(filtered);
+
+      const boxDetail = document.getElementById('boxDetailPesertaSspect');
+      if (boxDetail) boxDetail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function resetFilterKelasSspect() {
+      window.filterKelasSspectAktif = null;
+      document.getElementById('inputCariMahasiswaSspect').value = '';
+      updateBadgeFilterSspect();
+      renderTabelMahasiswaSspect(window.semuaMahasiswaSspectGlobal);
+    }
+
+    function updateBadgeFilterSspect() {
+      const badge = document.getElementById('badgeFilterKelasSspect');
+      const btnReset = document.getElementById('btnResetFilterSspect');
+      if (!badge || !btnReset) return;
+
+      if (window.filterKelasSspectAktif) {
+        badge.textContent = `Kelas Terpilih: ${window.filterKelasSspectAktif.namaKelas}`;
+        btnReset.classList.remove('hidden');
+      } else {
+        badge.textContent = `Semua Jadwal Aktif (${window.semuaMahasiswaSspectGlobal.length} Mahasiswa)`;
+        btnReset.classList.add('hidden');
+      }
+    }
+
+    function filterDaftarMahasiswaSspect() {
+      const q = (document.getElementById('inputCariMahasiswaSspect')?.value || '').trim().toLowerCase();
+
+      if (q.length > 0) {
+        window.filterKelasSspectAktif = null;
+        updateBadgeFilterSspect();
+      }
+
+      const filtered = window.semuaMahasiswaSspectGlobal.filter(m =>
+        String(m.nama || '').toLowerCase().includes(q) ||
+        String(m.nim || '').toLowerCase().includes(q) ||
+        String(m.kelas || '').toLowerCase().includes(q) ||
+        String(m.prodi || '').toLowerCase().includes(q) ||
+        String(m.lab || '').toLowerCase().includes(q)
+      );
+      renderTabelMahasiswaSspect(filtered);
+    }
+
+    function renderTabelMahasiswaSspect(list) {
+      const tbody = document.getElementById('tbodyMahasiswaSspect');
+      if (!tbody) return;
+
+      if (!list || list.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="px-5 py-10 text-center text-slate-400 italic">
+              Belum ada data mahasiswa SSPECT pada kelas/pencarian ini di tabel peserta_ujian.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = list.map((m, idx) => `
         <tr class="hover:bg-slate-50/80 transition-colors">
-          <td class="px-4 py-4 font-bold text-slate-400">${idx + 1}</td>
-          <td class="px-4 py-4 font-mono font-bold text-slate-900">${p.nim}</td>
-          <td class="px-4 py-4 font-extrabold text-[#169C53] uppercase">${p.nama}</td>
-          <td class="px-4 py-4 text-slate-600">${p.prodi}</td>
-          <td class="px-4 py-4 font-bold text-slate-800">${p.kelas}</td>
-          <td class="px-4 py-4">
-            <div class="font-bold text-slate-900">${p.tanggal}</div>
-            <div class="text-[11px] text-sky-600 font-semibold">${p.sesi}</div>
+          <td class="px-4 py-3.5 font-bold text-slate-400">${idx + 1}</td>
+          <td class="px-4 py-3.5 font-mono font-bold text-slate-800 text-xs">
+            <div>${m.nim}</div>
+            ${m.id_meja && m.id_meja !== m.nim ? `<div class="text-[10px] text-slate-400">${m.id_meja}</div>` : ''}
           </td>
-          <td class="px-4 py-4 text-center">
+          <td class="px-4 py-3.5 font-extrabold text-[#169C53] uppercase">${m.nama}</td>
+          <td class="px-4 py-3.5">
+            <div class="font-extrabold text-slate-900">${m.kelas}</div>
+            <div class="text-[11px] text-slate-500">${m.prodi}</div>
+          </td>
+          <td class="px-4 py-3.5">
+            <div class="font-bold text-slate-900">${m.tanggal}</div>
+            <div class="text-[11px] text-sky-600 font-bold">${m.sesi}</div>
+          </td>
+          <td class="px-4 py-3.5 text-center">
             <span class="px-3 py-1 rounded-lg bg-emerald-50 text-[#169C53] font-extrabold text-[11px] border border-emerald-200">
-              ${p.lab}
+              ${m.lab}
             </span>
           </td>
         </tr>
       `).join('');
-    }
-
-    function filterTabelPesertaSspect() {
-      const q = (document.getElementById('inputCariSspect')?.value || '').toLowerCase();
-      const filtered = window.daftarPesertaSspectGlobal.filter(p =>
-        p.nim.toLowerCase().includes(q) ||
-        p.nama.toLowerCase().includes(q) ||
-        p.prodi.toLowerCase().includes(q) ||
-        p.kelas.toLowerCase().includes(q)
-      );
-      renderTabelPesertaSspect(filtered);
     }
 
     // ==================== 7. PENGUMUMAN & FILE TOEIC GAYA BERITA (DARI DATABASE STAFF) ====================
@@ -1560,7 +1830,6 @@
         return;
       }
 
-      // 1. Pengumuman Terbaru sebagai Headline Utama Besar di Atas
       const headline = list[0];
       const headlineImg = headline.gambar_url || DEFAULT_IMG_TOEIC;
       const headlineKat = headline.kategori || 'Pengumuman TOEIC';
@@ -1585,7 +1854,6 @@
         </div>
       `;
 
-      // 2. Pengumuman Lainnya dalam Grid 3 Kolom di Bawahnya
       const sisaBerita = list.slice(1);
       if (sisaBerita.length > 0) {
         html += `<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">`;
@@ -1627,12 +1895,11 @@
       renderBeritaToeic(filtered);
     }
 
-    // Membuka 1 Halaman Khusus Baca Detail Pengumuman saat Kartu Berita Diklik
     function bukaDetailPengumumanToeic(id) {
       const item = window.daftarFileToeicGlobal.find(f => f.id === id);
       if (!item) return;
 
-      ['viewBeranda', 'viewTentang', 'viewToefl', 'viewSspect', 'viewToeic'].forEach(v => {
+      ['viewBeranda', 'viewToefl', 'viewSspect', 'viewToeic'].forEach(v => {
         const el = document.getElementById(v);
         if (el) el.classList.add('hidden');
       });
@@ -1664,12 +1931,15 @@
     function aktifkanRealtimeSyncDatabase() {
       if (!window.supabaseClient) return;
 
-      // Dengarkan perubahan real-time dari web staff pada tabel jadwal_log & toeic_files
       window.supabaseClient
         .channel('upa-public-realtime')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'jadwal_log' }, () => {
           muatJadwalToefl();
           muatJadwalRemedial();
+          muatDataSspect();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'peserta_ujian' }, () => {
+          muatJadwalToefl();
           muatDataSspect();
         })
         .on('postgres_changes', { event: '*', schema: 'public', table: 'toeic_files' }, () => {
