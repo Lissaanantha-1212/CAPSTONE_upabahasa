@@ -30,7 +30,7 @@
 </head>
 <body class="bg-[#F8FAFC] text-slate-800 antialiased min-h-screen flex">
 
-  <!-- ==================== SIDEBAR NAVIGASI SERAGAM UPA BAHASA ==================== -->
+  <!-- ==================== SIDEBAR NAVIGASI (TERKONEKSI KE FILE ASLI) ==================== -->
   <aside id="sidebarMenu" class="w-60 bg-white border-r border-slate-200/80 hidden lg:flex flex-col fixed inset-y-0 left-0 z-40 overflow-y-auto custom-scrollbar">
     <!-- Brand Header -->
     <div class="h-16 px-5 border-b border-slate-200/80 flex items-center gap-3 shrink-0">
@@ -59,7 +59,7 @@
           <i id="chevronPenjadwalan" class="ri-arrow-down-s-line text-base text-slate-400 transition-transform"></i>
         </button>
         <div id="submenuPenjadwalan" class="hidden mt-1 ml-3 pl-3 space-y-1">
-          <a href="jadwal.html" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs text-slate-600 hover:text-[#169C53] hover:bg-emerald-50/50">
+          <a href="jadwal-test.html" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs text-slate-600 hover:text-[#169C53] hover:bg-emerald-50/50">
             <span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
             <span>Jadwal Test</span>
           </a>
@@ -96,7 +96,7 @@
       </div>
 
       <!-- Kalkulasi Score -->
-      <a href="kalkulasi.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+      <a href="kalkulasi-score.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
         <i class="ri-calculator-line text-base text-slate-400"></i>
         <span>Kalkulasi Score</span>
       </a>
@@ -108,7 +108,7 @@
       </a>
 
       <!-- Pusat Informasi -->
-      <a href="informasi.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+      <a href="dashboard.html#informasi" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
         <i class="ri-information-line text-base text-slate-400"></i>
         <span>Pusat Informasi</span>
       </a>
@@ -117,27 +117,27 @@
         MANAJEMEN KONTEN
       </div>
 
-      <a href="konten.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+      <a href="dashboard.html#konten" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
         <i class="ri-article-line text-base text-slate-400"></i>
         <span>Konten Utama</span>
       </a>
 
-      <a href="layanan-tambahan.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+      <a href="layanan-tes.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
         <i class="ri-heart-pulse-line text-base text-slate-400"></i>
         <span>Layanan Tambahan</span>
       </a>
 
-      <a href="pembelajaran.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+      <a href="dashboard.html#pembelajaran" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
         <i class="ri-book-open-line text-base text-slate-400"></i>
         <span>Pembelajaran</span>
       </a>
 
-      <a href="pengaduan.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+      <a href="dashboard.html#pengaduan" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
         <i class="ri-chat-3-line text-base text-slate-400"></i>
         <span>Pengaduan</span>
       </a>
 
-      <a href="survei.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+      <a href="dashboard.html#survei" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
         <i class="ri-survey-line text-base text-slate-400"></i>
         <span>Survei</span>
       </a>
@@ -314,7 +314,7 @@
       </div>
 
       <div class="p-6 space-y-5">
-        <!-- 6 Kotak Riwayat Nilai Test (Detail lengkap ada di sini) -->
+        <!-- 6 Kotak Riwayat Nilai Test -->
         <div>
           <div class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-3">
             KOTAK-KOTAK RIWAYAT NILAI TEST
@@ -442,7 +442,7 @@
             <label for="batchFormatSuffix" class="block text-[11px] font-extrabold text-slate-500 uppercase mb-1">
               Format Akhiran Surat
             </label>
-            <input type="text" id="batchFormatSuffix" value="/ PL7.18 / UPA.BAHASA / TOEFL-P / 2026" oninput="updatePreviewBatchNomor()" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-mono font-bold text-slate-700 outline-none focus:border-[#169C53]" />
+            <input type="text" id="batchFormatSuffix" value="/ PL7.18 / UPA.BAHASA / TOEFL-P / 2026" oninput="updatePreviewBatchNomor()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-mono font-bold text-slate-700 outline-none focus:border-[#169C53]" />
           </div>
         </div>
 
