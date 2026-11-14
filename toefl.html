@@ -30,154 +30,164 @@
 </head>
 <body class="bg-[#F8FAFC] text-slate-800 antialiased min-h-screen flex">
 
-  <!-- ==================== SIDEBAR NAVIGASI UPA BAHASA ==================== -->
-  <aside id="sidebarMenu" class="w-64 bg-white border-r border-slate-200/80 hidden lg:flex flex-col justify-between fixed inset-y-0 left-0 z-40">
-    <div>
-      <!-- Brand Header -->
-      <div class="h-16 px-5 border-b border-slate-100 flex items-center gap-3">
-        <div class="w-9 h-9 rounded-xl bg-[#169C53] text-white flex items-center justify-center font-extrabold text-sm shadow-xs">
-          UPA
-        </div>
-        <div>
-          <div class="text-xs font-extrabold text-slate-800 tracking-tight leading-none">UPA BAHASA</div>
-          <div class="text-[10px] font-bold text-slate-400 mt-1">POLNES SAMARINDA</div>
+  <!-- ==================== SIDEBAR NAVIGASI ASLI UPA BAHASA ==================== -->
+  <aside id="sidebarMenu" class="w-60 bg-white border-r border-slate-200/80 hidden lg:flex flex-col fixed inset-y-0 left-0 z-40 overflow-y-auto custom-scrollbar">
+    <!-- Brand Header -->
+    <div class="h-16 px-5 flex items-center gap-3 shrink-0">
+      <div class="w-8 h-8 rounded-lg bg-[#169C53] text-white flex items-center justify-center shadow-2xs">
+        <i class="ri-shield-star-fill text-base"></i>
+      </div>
+      <span class="text-sm font-extrabold text-slate-800 tracking-tight">UPA BAHASA</span>
+    </div>
+
+    <!-- Menu List -->
+    <nav class="px-3.5 py-2 space-y-1 text-[13px] font-semibold flex-1">
+      <!-- Dashboard -->
+      <a href="dashboard.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+        <i class="ri-layout-grid-line text-base text-slate-400"></i>
+        <span>Dashboard</span>
+      </a>
+
+      <!-- Section: LAYANAN TEST -->
+      <div class="px-3.5 pt-5 pb-1.5 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
+        LAYANAN TEST
+      </div>
+
+      <!-- Penjadwalan (Accordion) -->
+      <div>
+        <button type="button" onclick="toggleSubmenuSidebar('submenuPenjadwalan', 'chevronPenjadwalan')" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+          <span class="flex items-center gap-3">
+            <i class="ri-calendar-2-line text-base text-slate-400"></i>
+            <span>Penjadwalan</span>
+          </span>
+          <i id="chevronPenjadwalan" class="ri-arrow-down-s-line text-base text-slate-400 transition-transform"></i>
+        </button>
+        <div id="submenuPenjadwalan" class="hidden mt-1 ml-3 pl-3 space-y-1">
+          <a href="jadwal.html" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs text-slate-600 hover:text-[#169C53] hover:bg-emerald-50/50">
+            <span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
+            <span>Jadwal Test</span>
+          </a>
+          <a href="jadwal-remedial.html" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs text-slate-600 hover:text-[#169C53] hover:bg-emerald-50/50">
+            <span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
+            <span>Jadwal Remedial</span>
+          </a>
+          <a href="jadwal-kursus.html" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs text-slate-600 hover:text-[#169C53] hover:bg-emerald-50/50">
+            <span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
+            <span>Jadwal Kursus</span>
+          </a>
         </div>
       </div>
 
-      <!-- Menu Utama -->
-      <nav class="p-4 space-y-1.5 text-xs font-bold">
-        <div class="px-3 pt-1 pb-2 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Menu Utama</div>
-
-        <a href="dashboard.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-          <i class="ri-dashboard-line text-base"></i>
-          <span>Dashboard</span>
-        </a>
-
-        <a href="jadwal.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-          <i class="ri-calendar-event-line text-base"></i>
-          <span>Jadwal & Peserta Tes</span>
-        </a>
-
-        <div class="px-3 pt-4 pb-2 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Hasil Test</div>
-
-        <a href="toefl.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-emerald-50 text-[#169C53] font-extrabold border border-emerald-200/70">
-          <i class="ri-file-excel-2-line text-base"></i>
-          <span>TOEFL / Sinkronisasi</span>
-        </a>
-
-        <a href="sspect.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-          <i class="ri-award-line text-base"></i>
-          <span>SSPECT</span>
-        </a>
-
-        <div class="px-3 pt-4 pb-2 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Arsip & Laporan</div>
-
-        <a href="rekapan.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-          <i class="ri-database-2-line text-base"></i>
-          <span>Rekapan & Sertifikat</span>
-        </a>
-      </nav>
-    </div>
-
-    <!-- Footer Sidebar -->
-    <div class="p-4 border-t border-slate-100">
-      <div class="rounded-xl bg-slate-50 p-3 border border-slate-200/60">
-        <div class="flex items-center gap-2 text-[11px] font-extrabold text-slate-700">
-          <span class="w-2 h-2 rounded-full bg-[#169C53]"></span>
-          <span>Validasi UAT-3 Aktif</span>
+      <!-- Hasil Test (Active State sesuai SS) -->
+      <div>
+        <button type="button" onclick="toggleSubmenuSidebar('submenuHasilTest', 'chevronHasilTest')" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-emerald-50 text-[#169C53] font-bold transition-colors">
+          <span class="flex items-center gap-3">
+            <i class="ri-file-text-line text-base text-[#169C53]"></i>
+            <span>Hasil Test</span>
+          </span>
+          <i id="chevronHasilTest" class="ri-arrow-up-s-line text-base text-[#169C53] transition-transform"></i>
+        </button>
+        <div id="submenuHasilTest" class="mt-1 ml-2 space-y-1">
+          <a href="toefl.html" class="flex items-center gap-2.5 px-4 py-2 rounded-xl bg-emerald-50/90 text-[#169C53] text-xs font-extrabold">
+            <span class="w-1.5 h-1.5 rounded-full bg-[#169C53]"></span>
+            <span>TOEFL</span>
+          </a>
+          <a href="sspect.html" class="flex items-center gap-2.5 px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-50 text-xs font-semibold">
+            <span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
+            <span>SSPECT</span>
+          </a>
         </div>
-        <p class="text-[10px] text-slate-400 mt-1 leading-relaxed">
-          Proteksi otomatis Lab, Sesi, Rentang Jam, Tanggal & Anti-Double Mapping.
-        </p>
       </div>
-    </div>
+
+      <!-- Kalkulasi Score -->
+      <a href="kalkulasi.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+        <i class="ri-calculator-line text-base text-slate-400"></i>
+        <span>Kalkulasi Score</span>
+      </a>
+
+      <!-- Rekapan -->
+      <a href="rekapan.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+        <i class="ri-bar-chart-box-line text-base text-slate-400"></i>
+        <span>Rekapan</span>
+      </a>
+
+      <!-- Pusat Informasi -->
+      <a href="informasi.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+        <i class="ri-information-line text-base text-slate-400"></i>
+        <span>Pusat Informasi</span>
+      </a>
+
+      <!-- Section: MANAJEMEN KONTEN -->
+      <div class="px-3.5 pt-5 pb-1.5 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
+        MANAJEMEN KONTEN
+      </div>
+
+      <!-- Konten Utama -->
+      <a href="konten.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+        <i class="ri-article-line text-base text-slate-400"></i>
+        <span>Konten Utama</span>
+      </a>
+    </nav>
   </aside>
 
   <!-- ==================== AREA KONTEN UTAMA ==================== -->
-  <div class="flex-1 lg:pl-64 flex flex-col min-w-0">
+  <div class="flex-1 lg:pl-60 flex flex-col min-w-0">
 
-    <!-- TOP HEADER -->
-    <header class="bg-white/95 backdrop-blur-xs border-b border-slate-200/80 sticky top-0 z-30">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+    <!-- TOP HEADER PERSIS ASLI -->
+    <header class="bg-white border-b border-slate-100 sticky top-0 z-30">
+      <div class="max-w-7xl mx-auto px-6 sm:px-8 h-16 flex items-center justify-between">
         <div class="flex items-center gap-3">
           <button type="button" onclick="toggleMobileSidebar()" class="lg:hidden w-9 h-9 rounded-xl border border-slate-200 flex items-center justify-center text-slate-600">
             <i class="ri-menu-line text-lg"></i>
           </button>
-          <div class="flex items-center gap-2 text-xs font-extrabold tracking-wider uppercase">
-            <span class="text-slate-400">HASIL TEST</span>
-            <span class="text-slate-300">/</span>
-            <span class="text-slate-700">TOEFL</span>
+          <div class="text-[11px] font-extrabold tracking-wider text-slate-400 uppercase">
+            HASIL TEST / TOEFL
           </div>
         </div>
 
         <div class="flex items-center gap-3">
-          <button type="button" onclick="resetFormMapping()" class="px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 text-xs font-bold inline-flex items-center gap-1.5 transition-colors">
-            <i class="ri-refresh-line"></i>
-            <span>Reset Sesi</span>
-          </button>
-          <div class="w-9 h-9 rounded-full bg-emerald-50 border-2 border-[#169C53] text-[#169C53] font-extrabold text-xs flex items-center justify-center">
+          <div class="w-9 h-9 rounded-full bg-emerald-50 border border-emerald-400 text-[#169C53] font-extrabold text-xs flex items-center justify-center">
             ST
           </div>
         </div>
       </div>
     </header>
 
-    <!-- MAIN CONTENT -->
-    <main class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <!-- MAIN WORKSPACE -->
+    <main class="max-w-7xl w-full mx-auto px-6 sm:px-8 py-6 space-y-6">
 
       <!-- ==================== CARD 1: PARAMETER LAB, SESI & UNGGAH EXCEL ==================== -->
-      <section class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-5 sm:p-6 space-y-5">
-        <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
-          <div>
-            <h1 class="text-base sm:text-lg font-extrabold text-slate-800">Pencocokan & Sinkronisasi Hasil Tes</h1>
-            <p class="text-xs text-slate-500 mt-0.5">Pilih Ruang Lab & Sesi Ujian terlebih dahulu, lalu unggah file Excel Section 1, 2, dan 3.</p>
-          </div>
-          <span id="statusValidasiBadge" class="px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-[11px] font-extrabold">
-            Parameter Acuan Siap
-          </span>
-        </div>
-
-        <!-- Baris 1: Ruang Lab, Sesi Ujian, dan Jadwal Kelas (UAT-3.1 & UAT-3.2) -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <section class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-6 space-y-5">
+        <!-- Baris 1: Ruang Lab (Lab A & Lab B) + Sesi & Rentang Jam -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label for="selectLabMapping" class="block text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">
-              1. Ruang Lab Ujian <span class="text-rose-500">*</span>
+              1. RUANG LAB UJIAN <span class="text-rose-500">*</span>
             </label>
-            <select id="selectLabMapping" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white text-xs sm:text-sm font-bold text-slate-700 focus:border-[#169C53] outline-none transition-all">
+            <select id="selectLabMapping" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm font-bold text-slate-700 focus:border-[#169C53] outline-none transition-all">
               <option value="">-- Pilih Ruang Lab --</option>
-              <option value="Lab A">Lab A (Gedung UPA Bahasa Lt. 1)</option>
-              <option value="Lab B">Lab B (Gedung UPA Bahasa Lt. 2)</option>
-              <option value="Lab C">Lab C (Gedung TIK)</option>
+              <option value="Lab A">Lab A</option>
+              <option value="Lab B">Lab B</option>
             </select>
           </div>
 
           <div>
             <label for="selectSesiMapping" class="block text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">
-              2. Sesi & Rentang Jam <span class="text-rose-500">*</span>
+              2. SESI & RENTANG JAM <span class="text-rose-500">*</span>
             </label>
-            <select id="selectSesiMapping" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white text-xs sm:text-sm font-bold text-slate-700 focus:border-[#169C53] outline-none transition-all">
+            <select id="selectSesiMapping" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm font-bold text-slate-700 focus:border-[#169C53] outline-none transition-all">
               <option value="">-- Pilih Sesi Ujian --</option>
-              <option value="SESI 1">SESI 1 (08.00 - 10.00 WITA)</option>
-              <option value="SESI 2">SESI 2 (10.15 - 12.15 WITA)</option>
-              <option value="SESI 3">SESI 3 (13.30 - 15.30 WITA)</option>
-              <option value="SESI 4">SESI 4 (15.45 - 17.45 WITA)</option>
-            </select>
-          </div>
-
-          <div>
-            <label for="selectJadwalMapping" class="block text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">
-              3. Jadwal Kelas Terkunci (Auto / Manual)
-            </label>
-            <select id="selectJadwalMapping" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white text-xs sm:text-sm font-bold text-slate-700 focus:border-[#169C53] outline-none transition-all">
-              <option value="">-- Otomatis Cocokkan Jadwal dari File --</option>
+              <option value="SESI 1">SESI 1 08.00 - 10.00</option>
+              <option value="SESI 2">SESI 2 10.00 - 12.00</option>
+              <option value="SESI 3">SESI 3 14.00 - 16.00</option>
             </select>
           </div>
         </div>
 
-        <!-- Baris 2: 3 Kolom Unggah Excel Section 1, 2, 3 (UAT-3.3 & UAT-3.4) -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+        <!-- Baris 2: 3 Tombol Unggah Excel Section 1, 2, 3 -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <!-- Section 1 -->
-          <label for="inputExcelSec1" class="group cursor-pointer rounded-2xl border-2 border-dashed border-slate-200 hover:border-[#0E8A49] bg-white hover:bg-emerald-50/25 p-5 flex flex-col items-center justify-center text-center transition-all">
+          <label for="inputExcelSec1" class="group cursor-pointer rounded-2xl border-2 border-dashed border-slate-200 hover:border-[#0E8A49] bg-white hover:bg-emerald-50/20 p-5 flex flex-col items-center justify-center text-center transition-all">
             <input type="file" id="inputExcelSec1" accept=".xlsx,.xls,.csv" class="hidden" />
             <span class="w-full py-2.5 px-4 rounded-xl bg-[#0E8A49] group-hover:bg-[#0B733C] text-white text-xs sm:text-sm font-extrabold inline-flex items-center justify-center gap-2 shadow-2xs transition-colors">
               <i class="ri-upload-cloud-2-line text-base"></i>
@@ -189,7 +199,7 @@
           </label>
 
           <!-- Section 2 -->
-          <label for="inputExcelSec2" class="group cursor-pointer rounded-2xl border-2 border-dashed border-slate-200 hover:border-[#8B3DFF] bg-white hover:bg-purple-50/25 p-5 flex flex-col items-center justify-center text-center transition-all">
+          <label for="inputExcelSec2" class="group cursor-pointer rounded-2xl border-2 border-dashed border-slate-200 hover:border-[#8B3DFF] bg-white hover:bg-purple-50/20 p-5 flex flex-col items-center justify-center text-center transition-all">
             <input type="file" id="inputExcelSec2" accept=".xlsx,.xls,.csv" class="hidden" />
             <span class="w-full py-2.5 px-4 rounded-xl bg-[#8B3DFF] group-hover:bg-[#7529E6] text-white text-xs sm:text-sm font-extrabold inline-flex items-center justify-center gap-2 shadow-2xs transition-colors">
               <i class="ri-upload-cloud-2-line text-base"></i>
@@ -201,7 +211,7 @@
           </label>
 
           <!-- Section 3 -->
-          <label for="inputExcelSec3" class="group cursor-pointer rounded-2xl border-2 border-dashed border-slate-200 hover:border-[#D97706] bg-white hover:bg-amber-50/25 p-5 flex flex-col items-center justify-center text-center transition-all">
+          <label for="inputExcelSec3" class="group cursor-pointer rounded-2xl border-2 border-dashed border-slate-200 hover:border-[#D97706] bg-white hover:bg-amber-50/20 p-5 flex flex-col items-center justify-center text-center transition-all">
             <input type="file" id="inputExcelSec3" accept=".xlsx,.xls,.csv" class="hidden" />
             <span class="w-full py-2.5 px-4 rounded-xl bg-[#D97706] group-hover:bg-[#B45309] text-white text-xs sm:text-sm font-extrabold inline-flex items-center justify-center gap-2 shadow-2xs transition-colors">
               <i class="ri-upload-cloud-2-line text-base"></i>
@@ -213,7 +223,7 @@
           </label>
         </div>
 
-        <!-- Baris 3: Banner Status Jadwal Cocok -->
+        <!-- Baris 3: Banner Hijau Status Jadwal Cocok -->
         <div id="bannerJadwalCocok" class="rounded-2xl bg-emerald-50/80 border border-emerald-200 px-4 py-3.5 flex flex-wrap items-center justify-between gap-3">
           <div class="flex items-center gap-2.5 text-emerald-800 text-xs sm:text-sm font-extrabold">
             <i class="ri-checkbox-circle-fill text-lg text-[#169C53]"></i>
@@ -226,7 +236,7 @@
       </section>
 
       <!-- ==================== CARD 2: TARGET KATEGORI REKAPAN MASTER ==================== -->
-      <section class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-5 sm:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <section class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <h2 class="text-xs sm:text-sm font-extrabold text-slate-800 uppercase tracking-wide">
             TARGET KATEGORI REKAPAN MASTER
@@ -238,12 +248,14 @@
 
         <div class="flex flex-wrap items-center gap-3">
           <select id="selectTargetKategoriRekapan" class="px-4 py-2.5 rounded-xl border-2 border-[#169C53] bg-white text-xs sm:text-sm font-extrabold text-slate-800 outline-none">
-            <option value="TOEFL">TOEFL UTAMA (Kelulusan)</option>
-            <option value="LATIHAN" selected>TOEFL LATIHAN D4 (Semester 6)</option>
-            <option value="SSPECT">SSPECT (Mahasiswa Baru)</option>
-            <option value="REMEDIAL_1">REMEDIAL 1 (REM 1)</option>
-            <option value="REMEDIAL_2">REMEDIAL 2 (REM 2)</option>
-            <option value="REMEDIAL_3">REMEDIAL 3 (REM 3)</option>
+            <option value="SSPECT">SSPECT</option>
+            <option value="LATIHAN_TOEFL_D3">LATIHAN TOEFL D3</option>
+            <option value="LATIHAN_TOEFL_D4">LATIHAN TOEFL D4</option>
+            <option value="TOEFL_D3">TOEFL D3</option>
+            <option value="TOEFL_D4" selected>TOEFL D4</option>
+            <option value="REMEDIAL_1">REMEDIAL 1</option>
+            <option value="REMEDIAL_2">REMEDIAL 2</option>
+            <option value="REMEDIAL_3">REMEDIAL 3</option>
           </select>
 
           <button type="button" id="btnSimpanPermanenMapping" onclick="simpanPermanenKeDatabase()" class="px-5 py-2.5 rounded-xl bg-[#0E8A49] hover:bg-[#0B733C] text-white text-xs sm:text-sm font-extrabold inline-flex items-center gap-2 shadow-xs transition-all">
@@ -255,21 +267,16 @@
 
       <!-- ==================== CARD 3: TABEL PRATINJAU HASIL SINKRONISASI ==================== -->
       <section class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
-        <div class="px-5 sm:px-6 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
-          <div class="flex items-center gap-3">
-            <h2 class="text-sm sm:text-base font-extrabold text-slate-800">
-              Pratinjau Hasil Sinkronisasi Nilai TOEFL
-            </h2>
-            <span id="badgeUnmappedCount" class="hidden px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[11px] font-extrabold">
-              0 Unmapped
-            </span>
-          </div>
+        <div class="px-6 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
+          <h2 class="text-sm sm:text-base font-extrabold text-slate-800">
+            Pratinjau Hasil Sinkronisasi Nilai TOEFL
+          </h2>
 
           <div class="flex flex-wrap items-center gap-2.5">
-            <div class="relative">
-              <i class="ri-search-line absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-              <input type="text" id="inputCariPratinjau" oninput="filterTabelPratinjau(this.value)" placeholder="Cari Meja / NIM / Nama..." class="pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 focus:border-[#169C53] outline-none w-48 sm:w-56" />
-            </div>
+            <button type="button" onclick="resetFormMapping()" class="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 text-xs font-bold inline-flex items-center gap-1 transition-colors">
+              <i class="ri-refresh-line"></i>
+              <span>Reset</span>
+            </button>
 
             <span id="badgeRatioPesertaExcel" class="px-3.5 py-1.5 rounded-full bg-emerald-50 text-[#169C53] text-xs font-extrabold">
               0 Peserta (Excel) / 0 Jadwal
@@ -402,6 +409,13 @@
       sb.classList.toggle("flex");
     }
 
+    function toggleSubmenuSidebar(submenuId, chevronId) {
+      const sub = document.getElementById(submenuId);
+      const chev = document.getElementById(chevronId);
+      if (sub) sub.classList.toggle("hidden");
+      if (chev) chev.classList.toggle("rotate-180");
+    }
+
     function resetFormMapping() {
       if (!confirm("Reset seluruh unggahan Excel dan pratinjau pada sesi ini?")) return;
       window.mappingState.sec1Raw = {};
@@ -425,23 +439,6 @@
       renderTabelPratinjauMapping([]);
     }
 
-    function filterTabelPratinjau(keyword) {
-      const q = String(keyword || "").trim().toUpperCase();
-      const semua = window.mappingState.hasilSinkronisasiList || [];
-      if (!q) {
-        renderTabelPratinjauMapping(semua);
-        return;
-      }
-      const tersaring = semua.filter(item =>
-        String(item.id_meja || "").toUpperCase().includes(q) ||
-        String(item.nim || "").toUpperCase().includes(q) ||
-        String(item.nama_mahasiswa || "").toUpperCase().includes(q) ||
-        String(item.program_studi || "").toUpperCase().includes(q)
-      );
-      renderTabelPratinjauMapping(tersaring);
-    }
-
-    // Override bukaModalUbahBind agar membuka modal HTML modern (bukan prompt browser)
     window.bukaModalUbahBind = function(indexBaris) {
       indexBaris = parseInt(indexBaris, 10);
       const item = window.mappingState.hasilSinkronisasiList[indexBaris];
