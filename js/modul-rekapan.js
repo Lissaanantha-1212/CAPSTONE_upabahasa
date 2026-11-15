@@ -103,9 +103,13 @@ const DAFTAR_JURUSAN_PRODI_POLNES = [
 
 const KOLOM_SKOR_INTEGER = new Set([
   "tahun_angkatan",
+  "angkatan",
   "skor_sspect",
+  "nilai_sspect",
   "skor_latihan",
+  "nilai_latihan",
   "skor_toefl",
+  "nilai_toefl",
   "remedial_1",
   "remedial_2",
   "remedial_3",
@@ -289,16 +293,41 @@ function ekstrakSkorDariRiwayatJson(riwayatRaw) {
   };
 }
 
-// ==================== SANITASI KOLOM & PEMBULATAN INTEGER SUPABASE ====================
+// ==================== SANITASI & PENYELARASAN NAMA KOLOM TABEL SUPABASE ====================
 function saringPayloadSesuaiSkemaTabel(objRecord) {
+  const kandidat = { ...objRecord };
+
+  // Selaraskan alias nama kolom agar cocok dengan skema arsip_master_rekapan (nama / nama_mahasiswa, prodi / program_studi, dll.)
+  if (kandidat.nama_mahasiswa !== undefined && kandidat.nama === undefined) {
+    kandidat.nama = kandidat.nama_mahasiswa;
+  }
+  if (kandidat.nama !== undefined && kandidat.nama_mahasiswa === undefined) {
+    kandidat.nama_mahasiswa = kandidat.nama;
+  }
+  if (kandidat.program_studi !== undefined && kandidat.prodi === undefined) {
+    kandidat.prodi = kandidat.program_studi;
+  }
+  if (kandidat.tahun_angkatan !== undefined && kandidat.angkatan === undefined) {
+    kandidat.angkatan = kandidat.tahun_angkatan;
+  }
+  if (kandidat.skor_sspect !== undefined && kandidat.nilai_sspect === undefined) {
+    kandidat.nilai_sspect = kandidat.skor_sspect;
+  }
+  if (kandidat.skor_latihan !== undefined && kandidat.nilai_latihan === undefined) {
+    kandidat.nilai_latihan = kandidat.skor_latihan;
+  }
+  if (kandidat.skor_toefl !== undefined && kandidat.nilai_toefl === undefined) {
+    kandidat.nilai_toefl = kandidat.skor_toefl;
+  }
+
   const kolomValid = rekapanState.kolomTabelMaster;
   const hasil = {};
 
-  Object.keys(objRecord).forEach(key => {
+  Object.keys(kandidat).forEach(key => {
     if (kolomValid && kolomValid.size > 0 && !kolomValid.has(key)) {
       return;
     }
-    const val = objRecord[key];
+    const val = kandidat[key];
     if (val === undefined) return;
 
     if (KOLOM_SKOR_INTEGER.has(key)) {
@@ -547,9 +576,12 @@ async function perbaikiDataMasterDiDatabase(db, daftarMahasiswa) {
   daftarMahasiswa.forEach(m => {
     const payload = saringPayloadSesuaiSkemaTabel({
       nim: m.nim,
-      nama_mahasiswa: m.nama_mahasiswa,
+      nama: m.nama_mahasiswa || "-",
+      nama_mahasiswa: m.nama_mahasiswa || "-",
       jurusan: m.jurusan,
+      prodi: m.program_studi,
       program_studi: m.program_studi,
+      angkatan: m.tahun_angkatan,
       tahun_angkatan: m.tahun_angkatan,
       skor_sspect: m.skor_sspect,
       skor_latihan: m.skor_latihan,
@@ -677,7 +709,7 @@ async function prosesImportArsipCerdas() {
 
     rows.forEach(row => {
       const nimRaw = String(cariKolomBarisExcel(row, ["NIM", "NO INDUK", "NPM"]) || "").replace(/\s+/g, "").trim();
-      const namaRaw = String(cariKolomBarisExcel(row, ["NAMA MAHASISWA", "NAMA LENGKAP", "NAMA", "FULL NAME"]) || "").trim().toUpperCase();
+      const namaRaw = String(cariKolomBarisExcel(row, ["NAMA MAHASISWA", "NAMA_MAHASISWA", "NAMA LENGKAP", "NAMA", "FULL NAME"]) || "").trim().toUpperCase();
 
       if (!nimRaw && !namaRaw) {
         jmlDilewati++;
@@ -689,9 +721,7 @@ async function prosesImportArsipCerdas() {
       setAngkatanTerdeteksi.add(angkatanNim);
       const angkatanSudahAdaDiDb = setAngkatanSudahAdaDiDb.has(angkatanNim);
 
-      // Cocokkan dengan data yang SUDAH ADA di database:
-      // - Utama: NIM sama persis
-      // - Cadangan (hanya jika baris Excel tidak punya NIM dan angkatannya sudah pernah diupload): Nama + Angkatan sama
+      // Cocokkan dengan data yang SUDAH ADA di database
       let existingDb = null;
       if (nimRaw && mapDbByNim.has(nimRaw)) {
         existingDb = mapDbByNim.get(nimRaw);
@@ -700,7 +730,7 @@ async function prosesImportArsipCerdas() {
         existingDb = mapDbByNamaAngkatan.get(keyNama) || null;
       }
 
-      // Ambil angka skor & bulatkan ke integer (misal 476.666666666667 -> 477)
+      // Ambil angka skor & bulatkan ke integer
       const skorUtamaRaw = cariKolomBarisExcel(row, [
         "TOTAL_SCORE", "TOTAL SCORE", "SKOR TOTAL", "SKOR AKHIR", "SKOR", "SCORE", "NILAI",
         "SSPECT", "LATIHAN", "TOEFL", "REMEDIAL 1", "REMEDIAL 2", "REMEDIAL 3", "REMEDIAL"
@@ -781,12 +811,16 @@ async function prosesImportArsipCerdas() {
         const prodiRaw = cariKolomBarisExcel(row, ["PROGRAM STUDI", "PROGRAM_STUDI", "PRODI", "KELAS"]) || "-";
         const jurusanRaw = cariKolomBarisExcel(row, ["JURUSAN"]) || "-";
         const infoProdi = deteksiJurusanDariProdiSensitif(prodiRaw, jurusanRaw);
+        const namaFinal = namaRaw || "-";
 
         const recBaru = mapInsertBaru.get(nimRaw) || {
           nim: nimRaw,
-          nama_mahasiswa: namaRaw || "-",
+          nama: namaFinal,
+          nama_mahasiswa: namaFinal,
           jurusan: infoProdi.jurusan,
+          prodi: infoProdi.prodi,
           program_studi: infoProdi.prodi,
+          angkatan: angkatanNim,
           tahun_angkatan: angkatanNim
         };
 
@@ -815,7 +849,7 @@ async function prosesImportArsipCerdas() {
       }
     }
 
-    // Eksekusi INSERT langsung untuk mahasiswa/angkatan baru (tanpa onConflict agar bebas error constraint)
+    // Eksekusi INSERT langsung untuk mahasiswa/angkatan baru
     for (let i = 0; i < daftarInsertBaru.length; i += chunkSize) {
       const batchBaru = daftarInsertBaru.slice(i, i + chunkSize).map(item => saringPayloadSesuaiSkemaTabel(item));
       const { error: errInsert } = await db
