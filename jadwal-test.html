@@ -314,5 +314,47 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./js/supabase-config.js"></script>
   <script src="./js/modul-jadwal.js"></script>
+
+  <!-- FILTER OTOMATIS: Kecualikan jadwal REMEDIAL dari Histori Jadwal Test (karena sudah ada di halaman Jadwal Remedial) -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const tbody = document.getElementById("tabelHistoriJadwalBody");
+      if (!tbody) return;
+
+      const saringBarisRemedial = () => {
+        const rows = Array.from(tbody.querySelectorAll("tr"));
+        let nomorUrut = 1;
+        let adaBarisReguler = false;
+
+        rows.forEach(tr => {
+          const cells = tr.querySelectorAll("td");
+          if (cells.length < 8) return; // Abaikan baris pesan kosong/loading
+
+          const jenisTes = (cells[1]?.textContent || "").toUpperCase();
+          const status = (cells[7]?.textContent || "").toUpperCase();
+
+          if (jenisTes.includes("REMEDIAL") || status.includes("REMEDIAL")) {
+            tr.remove();
+          } else {
+            cells[0].textContent = nomorUrut++;
+            adaBarisReguler = true;
+          }
+        });
+
+        if (!adaBarisReguler && rows.length > 0 && rows.every(r => !document.body.contains(r))) {
+          tbody.innerHTML = `<tr><td colspan="9" class="px-4 py-6 text-center text-slate-400 text-xs italic">Belum ada sesi ujian reguler yang dikunci.</td></tr>`;
+        }
+      };
+
+      const observer = new MutationObserver(() => {
+        observer.disconnect();
+        saringBarisRemedial();
+        observer.observe(tbody, { childList: true });
+      });
+
+      observer.observe(tbody, { childList: true });
+      saringBarisRemedial();
+    });
+  </script>
 </body>
 </html>
