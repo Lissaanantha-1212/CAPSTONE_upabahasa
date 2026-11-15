@@ -177,6 +177,14 @@ function ekstrakAngkatanNim(nimRaw, fallback = null) {
   return new Date().getFullYear();
 }
 
+function normalisasiNamaPencocokan(namaRaw) {
+  return String(namaRaw || "")
+    .toUpperCase()
+    .replace(/[^A-Z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function getBatasLulusJenjang(prodi, jenjangRaw) {
   const gabungan = `${jenjangRaw || ""} ${prodi || ""}`.toUpperCase();
   if (gabungan.includes("D4") || gabungan.includes("SARJANA TERAPAN")) return 450;
@@ -376,7 +384,7 @@ async function sinkronkanDatabaseRekapan(tampilkanNotif = false) {
       rec.tempat_tanggal_lahir = ambilNilaiKolom(mhs, ["tempat_tanggal_lahir", "ttl"], rec.tempat_tanggal_lahir);
     });
 
-    // C. Rekapan & HasilTes (sumber nilai pencocokan: SSPECT, Latihan, TOEFL, Remedial, dan riwayat_json)
+    // C. Rekapan & HasilTes
     const gabunganHasilTes = [...(resRekapan.data || []), ...(resHasilTes.data || [])];
     gabunganHasilTes.forEach(item => {
       const nimKey = String(ambilNilaiKolom(item, ["nim", "nim_mahasiswa", "student_id"], "")).trim();
@@ -502,7 +510,245 @@ async function perbaikiDataMasterDiDatabase(db, daftarMahasiswa) {
   }
 }
 
-// ==================== 2. RENDER TAB ANGKATAN (AUTO-NIM) ====================
+// ==================== 2. IMPORT ARSIP CERDAS (PILIH KATEGORI + ANTI-DUPLIKAT NAMA/NIM) ====================
+function bukaModalImportArsip() {
+  const fileInput = document.getElementById("inputFileExcelArsip");
+  if (fileInput) fileInput.value = "";
+  const modal = document.getElementById("modalImportArsipRekapan");
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+}
+
+function tutupModalImportArsip() {
+  const modal = document.getElementById("modalImportArsipRekapan");
+  modal.classList.add("hidden");
+  modal.classList.remove("flex");
+}
+
+function cariKolomBarisExcel(rowObj, daftarKandidat) {
+  const keys = Object.keys(rowObj || {});
+  for (const kandidat of daftarKandidat) {
+    const kUpper = kandidat.toUpperCase();
+    const foundKey = keys.find(k => k.trim().toUpperCase() === kUpper || k.trim().toUpperCase().includes(kUpper));
+    if (foundKey && rowObj[foundKey] !== undefined && rowObj[foundKey] !== null && String(rowObj[foundKey]).trim() !== "") {
+      return rowObj[foundKey];
+    }
+  }
+  return null;
+}
+
+async function prosesImportArsipCerdas() {
+  const db = getDbClientRekapan();
+  if (!db) return;
+
+  const kategoriImport = document.getElementById("importKategoriTes").value;
+  const fileInput = document.getElementById("inputFileExcelArsip");
+  const file = fileInput?.files?.[0];
+
+  if (!file) {
+    alert("Pilih file Excel (.xlsx / .xls / .csv) terlebih dahulu!");
+    return;
+  }
+
+  const btn = document.getElementById("btnEksekusiImportArsip");
+  btn.disabled = true;
+  btn.innerHTML = `<i class="ri-loader-4-line animate-spin"></i><span>Memproses & Mencocokkan...</span>`;
+
+  try {
+    const buffer = await file.arrayBuffer();
+    const workbook = XLSX.read(buffer, { type: "array" });
+    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
+
+    if (!rows || rows.length === 0) {
+      alert("File Excel kosong atau tidak terbaca.");
+      return;
+    }
+
+    // Peta pencocokan cepat berdasarkan NIM maupun kombinasi (NAMA + ANGKATAN)
+    const mapExistingByNim = new Map();
+    const mapExistingByNamaAngkatan = new Map();
+
+    rekapanState.semuaData.forEach(m => {
+      mapExistingByNim.set(String(m.nim).trim(), m);
+      const keyNama = `${normalisasiNamaPencocokan(m.nama_mahasiswa)}|${m.tahun_angkatan}`;
+      if (!mapExistingByNamaAngkatan.has(keyNama)) {
+        mapExistingByNamaAngkatan.set(keyNama, m);
+      }
+    });
+
+    const daftarUpdateExisting = [];
+    const daftarInsertBaru = [];
+    let jmlDiperbarui = 0;
+    let jmlBaru = 0;
+    let jmlDilewati = 0;
+
+    rows.forEach(row => {
+      const nimRaw = String(cariKolomBarisExcel(row, ["NIM", "NO INDUK", "NPM"]) || "").replace(/\s+/g, "").trim();
+      const namaRaw = String(cariKolomBarisExcel(row, ["NAMA MAHASISWA", "NAMA LENGKAP", "NAMA", "FULL NAME"]) || "").trim().toUpperCase();
+
+      if (!nimRaw && !namaRaw) {
+        jmlDilewati++;
+        return;
+      }
+
+      const angkatanTerdeteksi = ekstrakAngkatanNim(nimRaw, cariKolomBarisExcel(row, ["ANGKATAN", "TAHUN"]));
+      const keyNamaAngkatan = `${normalisasiNamaPencocokan(namaRaw)}|${angkatanTerdeteksi}`;
+
+      // Cek apakah mahasiswa sudah ada di database (prioritas NIM, fallback Nama + Angkatan)
+      const existing = (nimRaw && mapExistingByNim.get(nimRaw)) || mapExistingByNamaAngkatan.get(keyNamaAngkatan) || null;
+
+      // Ambil angka skor sesuai kategori import yang dipilih staf
+      const skorUtamaRaw = cariKolomBarisExcel(row, [
+        "TOTAL SCORE", "SKOR TOTAL", "SKOR AKHIR", "SKOR", "SCORE", "NILAI",
+        "SSPECT", "LATIHAN", "TOEFL", "REMEDIAL 1", "REMEDIAL 2", "REMEDIAL 3", "REMEDIAL"
+      ]);
+      const skorAngka = skorUtamaRaw !== null && !isNaN(Number(skorUtamaRaw)) && Number(skorUtamaRaw) > 0
+        ? Number(skorUtamaRaw)
+        : null;
+
+      const sec1Raw = cariKolomBarisExcel(row, ["LISTENING", "SEC 1", "SECTION 1"]);
+      const sec2Raw = cariKolomBarisExcel(row, ["STRUCTURE", "SEC 2", "SECTION 2"]);
+      const sec3Raw = cariKolomBarisExcel(row, ["READING", "SEC 3", "SECTION 3"]);
+      const s1 = sec1Raw !== null && !isNaN(Number(sec1Raw)) && Number(sec1Raw) > 0 ? Number(sec1Raw) : null;
+      const s2 = sec2Raw !== null && !isNaN(Number(sec2Raw)) && Number(sec2Raw) > 0 ? Number(sec2Raw) : null;
+      const s3 = sec3Raw !== null && !isNaN(Number(sec3Raw)) && Number(sec3Raw) > 0 ? Number(sec3Raw) : null;
+
+      if (existing) {
+        // MAHASISWA SUDAH ADA -> HANYA UPDATE KOLOM SKOR / TTL SAJA (TIDAK DUPLIKASI NAMA)
+        const patchObj = { nim: existing.nim };
+        let adaPerubahan = false;
+
+        if (kategoriImport === "SSPECT" && skorAngka) {
+          patchObj.skor_sspect = skorAngka;
+          if (s1) patchObj.sspect_listening = s1;
+          if (s2) patchObj.sspect_structure = s2;
+          if (s3) patchObj.sspect_reading = s3;
+          adaPerubahan = true;
+        } else if (kategoriImport === "LATIHAN" && skorAngka) {
+          patchObj.skor_latihan = skorAngka;
+          adaPerubahan = true;
+        } else if (kategoriImport === "TOEFL" && skorAngka) {
+          patchObj.skor_toefl = skorAngka;
+          if (s1) patchObj.listening = s1;
+          if (s2) patchObj.structure = s2;
+          if (s3) patchObj.reading = s3;
+          adaPerubahan = true;
+        } else if (kategoriImport === "REMEDIAL_1" && skorAngka) {
+          patchObj.remedial_1 = skorAngka;
+          if (s1) patchObj.listening = s1;
+          if (s2) patchObj.structure = s2;
+          if (s3) patchObj.reading = s3;
+          adaPerubahan = true;
+        } else if (kategoriImport === "REMEDIAL_2" && skorAngka) {
+          patchObj.remedial_2 = skorAngka;
+          if (s1) patchObj.listening = s1;
+          if (s2) patchObj.structure = s2;
+          if (s3) patchObj.reading = s3;
+          adaPerubahan = true;
+        } else if (kategoriImport === "REMEDIAL_3" && skorAngka) {
+          patchObj.remedial_3 = skorAngka;
+          if (s1) patchObj.listening = s1;
+          if (s2) patchObj.structure = s2;
+          if (s3) patchObj.reading = s3;
+          adaPerubahan = true;
+        } else if (kategoriImport === "BIODATA_TTL") {
+          const ttlGabungan = cariKolomBarisExcel(row, ["PLACE, DATE OF BIRTH", "TEMPAT TANGGAL LAHIR", "TTL"]);
+          const tempat = cariKolomBarisExcel(row, ["TEMPAT LAHIR", "KOTA LAHIR"]);
+          const tglLahir = cariKolomBarisExcel(row, ["TANGGAL LAHIR", "TGL LAHIR"]);
+          const finalTtl = ttlGabungan || (tempat && tglLahir ? `${tempat}, ${tglLahir}` : "");
+          if (finalTtl) {
+            patchObj.tempat_tanggal_lahir = String(finalTtl).trim();
+            adaPerubahan = true;
+          }
+        }
+
+        if (adaPerubahan) {
+          daftarUpdateExisting.push(patchObj);
+          jmlDiperbarui++;
+        } else {
+          jmlDilewati++;
+        }
+      } else {
+        // MAHASISWA BELUM ADA DI ANGKATAN INI -> BUAT RECORD BARU DENGAN NIM & ANGKATAN OTOMATIS
+        if (!nimRaw) {
+          jmlDilewati++;
+          return;
+        }
+
+        const prodiRaw = cariKolomBarisExcel(row, ["PROGRAM STUDI", "PRODI", "KELAS"]) || "-";
+        const jurusanRaw = cariKolomBarisExcel(row, ["JURUSAN"]) || "-";
+        const infoProdi = deteksiJurusanDariProdiSensitif(prodiRaw, jurusanRaw);
+
+        const newRecord = {
+          nim: nimRaw,
+          nama_mahasiswa: namaRaw || "-",
+          jurusan: infoProdi.jurusan,
+          program_studi: infoProdi.prodi,
+          tahun_angkatan: angkatanTerdeteksi
+        };
+
+        if (kategoriImport === "SSPECT" && skorAngka) {
+          newRecord.skor_sspect = skorAngka;
+          if (s1) newRecord.sspect_listening = s1;
+          if (s3) newRecord.sspect_reading = s3;
+        } else if (kategoriImport === "LATIHAN" && skorAngka) {
+          newRecord.skor_latihan = skorAngka;
+        } else if (kategoriImport === "TOEFL" && skorAngka) {
+          newRecord.skor_toefl = skorAngka;
+          if (s1) newRecord.listening = s1;
+          if (s2) newRecord.structure = s2;
+          if (s3) newRecord.reading = s3;
+        } else if (kategoriImport === "REMEDIAL_1" && skorAngka) {
+          newRecord.remedial_1 = skorAngka;
+        } else if (kategoriImport === "REMEDIAL_2" && skorAngka) {
+          newRecord.remedial_2 = skorAngka;
+        } else if (kategoriImport === "REMEDIAL_3" && skorAngka) {
+          newRecord.remedial_3 = skorAngka;
+        }
+
+        daftarInsertBaru.push(newRecord);
+        mapExistingByNim.set(nimRaw, newRecord);
+        jmlBaru++;
+      }
+    });
+
+    // Eksekusi update skor ke mahasiswa yang sudah ada (tanpa duplikasi)
+    const chunkSize = 150;
+    for (let i = 0; i < daftarUpdateExisting.length; i += chunkSize) {
+      const slice = daftarUpdateExisting.slice(i, i + chunkSize);
+      await Promise.all(
+        slice.map(patch => {
+          const { nim, ...fields } = patch;
+          return db.from("arsip_master_rekapan").update(fields).eq("nim", nim);
+        })
+      );
+    }
+
+    // Eksekusi insert hanya untuk mahasiswa yang benar-benar baru
+    for (let i = 0; i < daftarInsertBaru.length; i += chunkSize) {
+      const batchBaru = daftarInsertBaru.slice(i, i + chunkSize);
+      await db.from("arsip_master_rekapan").upsert(batchBaru, { onConflict: "nim" });
+    }
+
+    tutupModalImportArsip();
+    await sinkronkanDatabaseRekapan(false);
+
+    alert(
+      `Import Kategori ${kategoriImport} Selesai!\n` +
+      `• Skor digabung ke data mahasiswa lama: ${jmlDiperbarui} mahasiswa (tanpa duplikat)\n` +
+      `• Data mahasiswa baru ditambahkan: ${jmlBaru} mahasiswa\n` +
+      `• Baris kosong/tanpa skor dilewati: ${jmlDilewati}`
+    );
+  } catch (err) {
+    alert("Gagal memproses file Excel: " + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<i class="ri-upload-cloud-2-line"></i><span>Proses Import &amp; Gabung Skor</span>`;
+  }
+}
+
+// ==================== 3. RENDER TAB ANGKATAN (AUTO-NIM) ====================
 function renderTabAngkatan() {
   const container = document.getElementById("containerTabAngkatan");
   const selectBatch = document.getElementById("batchTargetAngkatan");
@@ -561,7 +807,7 @@ function pilihTabAngkatan(tahun) {
   terapkanFilterRekapan();
 }
 
-// ==================== 3. FILTER PENCARIAN & RENDER TABEL UTAMA ====================
+// ==================== 4. FILTER PENCARIAN & RENDER TABEL UTAMA ====================
 function terapkanFilterRekapan() {
   const keyword = String(document.getElementById("inputCariRekapan")?.value || "").trim().toUpperCase();
   const statusFilter = document.getElementById("filterStatusRekapan")?.value || "SEMUA";
@@ -674,7 +920,7 @@ function gantiHalamanRekapan(delta) {
   renderTabelRekapan();
 }
 
-// ==================== 4. MODAL DETAIL MAHASISWA ====================
+// ==================== 5. MODAL DETAIL MAHASISWA ====================
 function bukaModalDetailMahasiswa(nimTarget) {
   const m = rekapanState.semuaData.find(x => String(x.nim) === String(nimTarget));
   if (!m) return;
@@ -753,7 +999,7 @@ function tutupModalDetail() {
   modal.classList.remove("flex");
 }
 
-// ==================== 5. ATUR NOMOR & TANGGAL SERTIFIKAT 1 ANGKATAN ====================
+// ==================== 6. ATUR NOMOR & TANGGAL SERTIFIKAT 1 ANGKATAN ====================
 function formatTanggalInggrisSertifikat(dateIsoStr) {
   if (!dateIsoStr) return "04 May 2026";
   const parts = dateIsoStr.split("-");
@@ -874,7 +1120,7 @@ async function eksekusiBatchNomorSertifikat() {
   }
 }
 
-// ==================== 6. UNDUH DATA EXCEL PER ANGKATAN & KATEGORI ====================
+// ==================== 7. UNDUH DATA EXCEL PER ANGKATAN & KATEGORI ====================
 function bukaModalUnduhExcelRekapan() {
   const modal = document.getElementById("modalUnduhExcelRekapan");
   modal.classList.remove("hidden");
@@ -970,7 +1216,7 @@ function eksekusiUnduhExcelRekapan() {
   tutupModalUnduhExcel();
 }
 
-// ==================== 7. CETAK SERTIFIKAT RESMI (100% SAMA CONTOH + QR VERIFIKASI) ====================
+// ==================== 8. CETAK SERTIFIKAT RESMI (100% SAMA CONTOH + QR VERIFIKASI) ====================
 function unduhSertifikatByNim(nimTarget, jenisSertifikat) {
   const m = rekapanState.semuaData.find(x => String(x.nim) === String(nimTarget));
   if (!m) return;
@@ -984,7 +1230,6 @@ function unduhSertifikatMahasiswaAktif(jenisSertifikat) {
 }
 
 function formatProgramStudySertifikat(prodiRaw) {
-  // Mengubah "D3 - TEKNIK ALAT BERAT" menjadi "D3 - Teknik Alat Berat" seperti contoh fisik
   const teks = String(prodiRaw || "-").trim();
   if (teks === "-") return "-";
   return teks
@@ -1009,19 +1254,14 @@ function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
   const sec3 = isSspect ? (m.sspect_reading ?? m.reading ?? "-") : (m.reading ?? "-");
   const totalSkor = isSspect ? (m.skor_sspect ?? "-") : (m.skor_toefl_akhir ?? "-");
 
-  // Panggil gambar asli dari folder img/ (polnes.png dan sertif.jpg)
   const logoUrl = new URL("./img/polnes.png", window.location.href).href;
   const bgGedungUrl = new URL("./img/sertif.jpg", window.location.href).href;
 
-  // URL Validasi Anti-Pemalsuan saat QR Code di-scan
   const urlValidasi = new URL(
     `./validasi-sertifikat.html?nim=${encodeURIComponent(m.nim)}&jenis=${encodeURIComponent(isSspect ? "SSPECT" : "TOEFL")}`,
     window.location.href
   ).href;
 
-  // Bangun tabel skor sesuai jenis sertifikat:
-  // - TOEFL: 4 kolom (Listening, Structure, Reading, Total Score)
-  // - SSPECT: 3 kolom (Listening, Reading, Total Score) dengan komentar penanda yang sangat jelas
   let htmlTabelSkor = "";
   if (isSspect) {
     htmlTabelSkor = `
@@ -1089,7 +1329,6 @@ function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
     <head>
       <meta charset="UTF-8" />
       <title>Sertifikat ${isSspect ? "SSPECT" : "TOEFL"} - ${m.nama_mahasiswa} (${m.nim})</title>
-      <!-- Library QRCode JS agar QR Code tercetak tajam & valid saat discan -->
       <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
       <style>
         @page {
@@ -1137,7 +1376,6 @@ function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
           background: #ffffff;
           overflow: hidden;
         }
-        /* Frame Bingkai Hijau Melengkung Persis Contoh Sertifikat POLNES */
         .outer-frame {
           position: absolute;
           top: 9mm;
@@ -1150,7 +1388,6 @@ function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
           overflow: hidden;
           background: #ffffff;
         }
-        /* Watermark Gedung POLNES dari ./img/sertif.jpg */
         .watermark-gedung {
           position: absolute;
           inset: 0;
@@ -1161,7 +1398,6 @@ function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
           filter: saturate(0.85) contrast(1.05);
           pointer-events: none;
         }
-        /* Kode Dokumen Pojok Kanan Atas di Luar Frame */
         .doc-code {
           position: absolute;
           top: 4.5mm;
@@ -1171,7 +1407,6 @@ function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
           color: #334155;
           letter-spacing: 0.3px;
         }
-        /* Header Kementerian & Logo POLNES */
         .kop-header {
           position: relative;
           z-index: 2;
@@ -1205,7 +1440,6 @@ function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
           font-weight: bold;
           letter-spacing: 0.4px;
         }
-        /* Konten Utama Tengah */
         .cert-body {
           position: relative;
           z-index: 2;
@@ -1281,7 +1515,6 @@ function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
           font-size: 12.5pt;
           font-weight: bold;
         }
-        /* Area Tanda Tangan & QR Code Validasi */
         .bottom-sign-row {
           width: 172mm;
           display: flex;
@@ -1313,7 +1546,6 @@ function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
           color: #1e293b;
           margin-top: 1mm;
         }
-        /* Footer Alamat Kampus Persis Contoh */
         .footer-kampus {
           position: absolute;
           left: 14mm;
@@ -1344,7 +1576,6 @@ function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
         <div class="outer-frame">
           <div class="watermark-gedung"></div>
 
-          <!-- KOP KEMENTERIAN & LOGO POLNES -->
           <div class="kop-header">
             <img src="${logoUrl}" alt="Logo POLNES" />
             <div class="kop-text">
@@ -1354,7 +1585,6 @@ function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
             </div>
           </div>
 
-          <!-- ISI UTAMA SERTIFIKAT -->
           <div class="cert-body">
             <div class="cert-title">
               <h1>CERTIFICATE OF ACHIEVEMENT</h1>
@@ -1406,7 +1636,6 @@ function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
                 <div>NIP. 198901172024062002</div>
               </div>
 
-              <!-- QR CODE VALIDASI KEASLIAN SERTIFIKAT -->
               <div class="qr-verify-box">
                 <div id="qrcodeContainer"></div>
                 <span>Scan to Verify Certificate</span>
@@ -1414,7 +1643,6 @@ function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
             </div>
           </div>
 
-          <!-- FOOTER ALAMAT KAMPUS -->
           <div class="footer-kampus">
             <div>Jalan Dr. Ciptomangunkusumo Kampus Gunung Panjang Samarinda 75131</div>
             <div>Telepon: 0541-260588, 260553, 262018 FAX 260355</div>
@@ -1439,7 +1667,7 @@ function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
   win.document.close();
 }
 
-// ==================== 8. HELPER SIDEBAR & INIT ====================
+// ==================== 9. HELPER SIDEBAR & INIT ====================
 function toggleMobileSidebar() {
   const sb = document.getElementById("sidebarMenu");
   if (!sb) return;

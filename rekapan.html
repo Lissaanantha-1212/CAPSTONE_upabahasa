@@ -190,11 +190,11 @@
             <span>Unduh Data Excel</span>
           </button>
 
-          <label for="inputImportExcelArsip" class="cursor-pointer px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-extrabold inline-flex items-center gap-2 shadow-2xs transition-all">
-            <input type="file" id="inputImportExcelArsip" accept=".xlsx,.xls,.csv" class="hidden" onchange="handleImportExcelArsip(event)" />
+          <!-- Tombol Buka Modal Pilihan Kategori Import Arsip -->
+          <button type="button" onclick="bukaModalImportArsip()" class="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-extrabold inline-flex items-center gap-2 shadow-2xs transition-all">
             <i class="ri-upload-2-line text-sm text-[#169C53]"></i>
             <span>Import Arsip</span>
-          </label>
+          </button>
         </div>
       </div>
 
@@ -281,10 +281,9 @@
     </main>
   </div>
 
-  <!-- ==================== MODAL 1: DETAIL MAHASISWA (TANPA INPUT MANUAL NOMOR/TANGGAL) ==================== -->
+  <!-- ==================== MODAL 1: DETAIL MAHASISWA ==================== -->
   <div id="modalDetailMahasiswa" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
     <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-3xl max-h-[92vh] overflow-y-auto custom-scrollbar">
-      <!-- Header Modal -->
       <div class="p-6 border-b border-slate-100 flex items-start justify-between gap-4">
         <div>
           <div class="flex flex-wrap items-center gap-2 mb-2">
@@ -302,10 +301,9 @@
       </div>
 
       <div class="p-6 space-y-5">
-        <!-- 6 Kotak Riwayat Nilai Test -->
         <div>
           <div class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-3">
-            KARTU RIWAYAT NILAI TEST (TERISI OTOMATIS DARI HASIL PENCOCOKAN)
+            KARTU RIWAYAT NILAI TEST (TERISI OTOMATIS DARI HASIL PENCOCOKAN &amp; IMPORT)
           </div>
           <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             <div class="rounded-2xl border border-sky-200 bg-sky-50/40 p-3.5 text-center">
@@ -334,7 +332,6 @@
             </div>
           </div>
 
-          <!-- Rincian Section 1, 2, 3 -->
           <div class="mt-3 rounded-xl bg-slate-50 border border-slate-200/70 px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
             <span class="font-bold text-slate-500">Rincian Section Skor:</span>
             <div class="flex flex-wrap items-center gap-4 font-extrabold text-slate-700">
@@ -345,7 +342,6 @@
           </div>
         </div>
 
-        <!-- Panel Penerbitan & Unduh Sertifikat Resmi (Otomatis dari Pengaturan Angkatan) -->
         <div class="rounded-2xl border border-slate-200 bg-slate-50/40 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div class="space-y-1">
             <h3 class="text-sm font-extrabold text-slate-800">Penerbitan Sertifikat Resmi (QR Verified)</h3>
@@ -354,9 +350,7 @@
             </p>
           </div>
 
-          <div id="containerTombolSertifikatDetail" class="flex flex-wrap items-center gap-2 shrink-0">
-            <!-- Tombol Unduh Sertifikat SSPECT & TOEFL dirender otomatis -->
-          </div>
+          <div id="containerTombolSertifikatDetail" class="flex flex-wrap items-center gap-2 shrink-0"></div>
         </div>
       </div>
     </div>
@@ -476,6 +470,68 @@
         <button type="button" onclick="eksekusiUnduhExcelRekapan()" class="px-4 py-2 rounded-xl bg-[#169C53] hover:bg-[#0E7A3F] text-white text-xs font-extrabold inline-flex items-center gap-1.5">
           <i class="ri-file-excel-2-line"></i>
           <span>Download Excel (.xlsx)</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 4: IMPORT ARSIP / NILAI CERDAS (ANTI-DUPLIKAT NAMA) ==================== -->
+  <div id="modalImportArsipRekapan" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-xl w-full max-w-md overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div>
+          <h3 class="text-sm font-extrabold text-slate-800">Import File Nilai / Arsip Excel</h3>
+          <p class="text-xs text-slate-400 mt-0.5">Auto-deteksi angkatan dari NIM &amp; gabung skor tanpa duplikasi nama</p>
+        </div>
+        <button type="button" onclick="tutupModalImportArsip()" class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-400 flex items-center justify-center">
+          <i class="ri-close-line text-lg"></i>
+        </button>
+      </div>
+
+      <div class="p-5 space-y-4">
+        <div>
+          <label for="importKategoriTes" class="block text-[11px] font-extrabold text-slate-500 uppercase mb-1">
+            1. Pilih Kategori Nilai yang Diimport
+          </label>
+          <select id="importKategoriTes" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-bold text-slate-700 bg-white outline-none focus:border-[#169C53]">
+            <option value="SSPECT">Nilai SSPECT</option>
+            <option value="LATIHAN">Nilai Latihan TOEFL</option>
+            <option value="TOEFL">Nilai TOEFL Utama</option>
+            <option value="REMEDIAL_1">Nilai Remedial 1</option>
+            <option value="REMEDIAL_2">Nilai Remedial 2</option>
+            <option value="REMEDIAL_3">Nilai Remedial 3</option>
+            <option value="BIODATA_TTL">Biodata Mahasiswa (Tempat &amp; Tanggal Lahir)</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="inputFileExcelArsip" class="block text-[11px] font-extrabold text-slate-500 uppercase mb-1">
+            2. Pilih File Excel (.xlsx / .xls / .csv)
+          </label>
+          <input
+            type="file"
+            id="inputFileExcelArsip"
+            accept=".xlsx,.xls,.csv"
+            class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 bg-slate-50 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-extrabold file:bg-[#169C53] file:text-white hover:file:bg-[#0E7A3F]"
+          />
+        </div>
+
+        <div class="rounded-xl bg-emerald-50/70 border border-emerald-200 p-3 text-[11px] text-emerald-900 leading-relaxed">
+          <b>Cara Kerja Sistem:</b>
+          <ul class="list-disc pl-4 mt-1 space-y-0.5">
+            <li>2 digit pertama <b>NIM</b> otomatis dibaca sebagai <b>Tahun Angkatan</b> (misal <code>24...</code> &rarr; 2024).</li>
+            <li>Jika <b>NIM / Nama Mahasiswa</b> di angkatan tersebut sudah ada di database, sistem <b>tidak membuat baris baru</b>—hanya mengisi/memperbarui kolom skor kategori yang dipilih.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="px-5 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2">
+        <button type="button" onclick="tutupModalImportArsip()" class="px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 text-xs font-extrabold">
+          Batal
+        </button>
+        <button type="button" id="btnEksekusiImportArsip" onclick="prosesImportArsipCerdas()" class="px-4 py-2 rounded-xl bg-[#169C53] hover:bg-[#0E7A3F] text-white text-xs font-extrabold inline-flex items-center gap-1.5">
+          <i class="ri-upload-cloud-2-line"></i>
+          <span>Proses Import &amp; Gabung Skor</span>
         </button>
       </div>
     </div>
