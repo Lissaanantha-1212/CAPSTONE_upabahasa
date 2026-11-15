@@ -245,7 +245,7 @@
         </select>
       </section>
 
-      <!-- ==================== BAR 3: TABEL UTAMA REKAPAN ==================== -->
+      <!-- ==================== BAR 3: TABEL UTAMA REKAPAN (RINGKAS, SKOR DI MODAL DETAIL) ==================== -->
       <section class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
         <div class="overflow-x-auto custom-scrollbar">
           <table class="w-full text-left border-collapse text-xs sm:text-sm">
@@ -255,15 +255,13 @@
                 <th class="px-4 py-3.5">NIM &amp; NAMA MAHASISWA</th>
                 <th class="px-4 py-3.5">JURUSAN &amp; PRODI</th>
                 <th class="px-4 py-3.5 text-center">ANGKATAN</th>
-                <th class="px-4 py-3.5 text-center">SSPECT</th>
-                <th class="px-4 py-3.5 text-center">SKOR TOEFL</th>
                 <th class="px-4 py-3.5 text-center">STATUS</th>
                 <th class="px-4 py-3.5 text-center">AKSI &amp; SERTIFIKAT</th>
               </tr>
             </thead>
             <tbody id="tbodyRekapanMaster" class="divide-y divide-slate-100">
               <tr>
-                <td colspan="8" class="px-6 py-12 text-center text-slate-400 italic">
+                <td colspan="6" class="px-6 py-12 text-center text-slate-400 italic">
                   Memuat data mahasiswa &amp; sinkronisasi nilai dari database...
                 </td>
               </tr>
@@ -313,7 +311,7 @@
         <!-- 6 Kotak Riwayat Nilai Test -->
         <div>
           <div class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-3">
-            KOTAK-KOTAK RIWAYAT NILAI TEST
+            KARTU RIWAYAT NILAI TEST (TERISI OTOMATIS DARI HASIL PENCOCOKAN)
           </div>
           <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             <div class="rounded-2xl border border-sky-200 bg-sky-50/40 p-3.5 text-center">
