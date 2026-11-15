@@ -1,6 +1,7 @@
 // ============================================================================
 // MODUL REKAPAN INDUK MAHASISWA & SERTIFIKAT RESMI (UPA BAHASA POLNES)
 // Terkoneksi ke: arsip_master_rekapan, Rekapan, HasilTes, dan Mahasiswa
+// Dinamis untuk seluruh angkatan (2020, 2021, 2022, 2023, 2024, dst.)
 // ============================================================================
 
 const rekapanState = {
@@ -163,17 +164,20 @@ function ambilAngkaKolom(obj, daftarKey) {
   return !isNaN(num) && num > 0 ? num : null;
 }
 
+// ==================== DETEKSI TAHUN ANGKATAN DINAMIS DARI 2 DIGIT AWAL NIM ====================
 function ekstrakAngkatanNim(nimRaw, fallback = null) {
   const clean = String(nimRaw || "").replace(/\D/g, "");
   if (clean.length >= 2) {
     const duaDigit = parseInt(clean.substring(0, 2), 10);
-    if (!isNaN(duaDigit) && duaDigit >= 10 && duaDigit <= 99) {
+    if (!isNaN(duaDigit) && duaDigit >= 0 && duaDigit <= 99) {
       return 2000 + duaDigit;
     }
   }
-  if (fallback && !isNaN(parseInt(fallback, 10))) {
-    const thn = parseInt(fallback, 10);
-    return thn < 100 ? 2000 + thn : thn;
+  if (fallback !== null && fallback !== undefined && String(fallback).trim() !== "") {
+    const thn = parseInt(String(fallback).replace(/\D/g, ""), 10);
+    if (!isNaN(thn) && thn > 0) {
+      return thn < 100 ? 2000 + thn : thn;
+    }
   }
   return new Date().getFullYear();
 }
@@ -268,7 +272,7 @@ function ekstrakSkorDariRiwayatJson(riwayatRaw) {
   };
 }
 
-// ==================== SANITASI KOLOM SUPABASE AGAR TIDAK GAGAL INSERT ====================
+// ==================== SANITASI KOLOM SESUAI SKEMA SUPABASE ====================
 function saringPayloadSesuaiSkemaTabel(objRecord) {
   const kolomValid = rekapanState.kolomTabelMaster;
   if (!kolomValid || kolomValid.size === 0) {
@@ -301,7 +305,6 @@ async function sinkronkanDatabaseRekapan(tampilkanNotif = false) {
       fetchAllRowsSupabase(db, "Mahasiswa")
     ]);
 
-    // Catat skema kolom aktual dari arsip_master_rekapan
     if (resMaster.data && resMaster.data.length > 0) {
       rekapanState.kolomTabelMaster = new Set(Object.keys(resMaster.data[0]));
     }
@@ -506,34 +509,57 @@ async function sinkronkanDatabaseRekapan(tampilkanNotif = false) {
 }
 
 async function perbaikiDataMasterDiDatabase(db, daftarMahasiswa) {
-  const chunkSize = 250;
-  for (let i = 0; i < daftarMahasiswa.length; i += chunkSize) {
-    const batch = daftarMahasiswa.slice(i, i + chunkSize).map(m =>
-      saringPayloadSesuaiSkemaTabel({
-        nim: m.nim,
-        nama_mahasiswa: m.nama_mahasiswa,
-        jurusan: m.jurusan,
-        program_studi: m.program_studi,
-        tahun_angkatan: m.tahun_angkatan,
-        skor_sspect: m.skor_sspect,
-        skor_latihan: m.skor_latihan,
-        skor_toefl: m.skor_toefl,
-        remedial_1: m.remedial_1,
-        remedial_2: m.remedial_2,
-        remedial_3: m.remedial_3,
-        listening: m.listening,
-        structure: m.structure,
-        reading: m.reading,
-        sspect_listening: m.sspect_listening,
-        sspect_structure: m.sspect_structure,
-        sspect_reading: m.sspect_reading
+  const { data: existingRows } = await fetchAllRowsSupabase(db, "arsip_master_rekapan");
+  const setNimAda = new Set((existingRows || []).map(r => String(r.nim || "").trim()));
+
+  const untukInsert = [];
+  const untukUpdate = [];
+
+  daftarMahasiswa.forEach(m => {
+    const payload = saringPayloadSesuaiSkemaTabel({
+      nim: m.nim,
+      nama_mahasiswa: m.nama_mahasiswa,
+      jurusan: m.jurusan,
+      program_studi: m.program_studi,
+      tahun_angkatan: m.tahun_angkatan,
+      skor_sspect: m.skor_sspect,
+      skor_latihan: m.skor_latihan,
+      skor_toefl: m.skor_toefl,
+      remedial_1: m.remedial_1,
+      remedial_2: m.remedial_2,
+      remedial_3: m.remedial_3,
+      listening: m.listening,
+      structure: m.structure,
+      reading: m.reading,
+      sspect_listening: m.sspect_listening,
+      sspect_structure: m.sspect_structure,
+      sspect_reading: m.sspect_reading
+    });
+
+    if (setNimAda.has(String(m.nim).trim())) {
+      untukUpdate.push(payload);
+    } else {
+      untukInsert.push(payload);
+    }
+  });
+
+  const chunkSize = 200;
+  for (let i = 0; i < untukInsert.length; i += chunkSize) {
+    await db.from("arsip_master_rekapan").insert(untukInsert.slice(i, i + chunkSize));
+  }
+
+  for (let i = 0; i < untukUpdate.length; i += chunkSize) {
+    const slice = untukUpdate.slice(i, i + chunkSize);
+    await Promise.all(
+      slice.map(item => {
+        const { nim, ...fields } = item;
+        return db.from("arsip_master_rekapan").update(fields).eq("nim", nim);
       })
     );
-    await db.from("arsip_master_rekapan").upsert(batch, { onConflict: "nim" });
   }
 }
 
-// ==================== 2. IMPORT ARSIP CERDAS (PILIH KATEGORI + ANTI-DUPLIKAT NAMA/NIM) ====================
+// ==================== 2. IMPORT ARSIP CERDAS (DINAMIS UNTUK SEMUA ANGKATAN) ====================
 function bukaModalImportArsip() {
   const fileInput = document.getElementById("inputFileExcelArsip");
   if (fileInput) fileInput.value = "";
@@ -588,7 +614,7 @@ async function prosesImportArsipCerdas() {
       return;
     }
 
-    // 1. Peta data yang SUDAH ADA di database saat ini (sebelum file ini dibaca)
+    // 1. Peta dinamis seluruh data yang SUDAH ADA di database (untuk tahun angkatan apa pun)
     const mapDbByNim = new Map();
     const mapDbByNamaAngkatan = new Map();
     const setAngkatanSudahAdaDiDb = new Set();
@@ -597,7 +623,9 @@ async function prosesImportArsipCerdas() {
       const nimClean = String(m.nim).trim();
       const thn = Number(m.tahun_angkatan);
       mapDbByNim.set(nimClean, m);
-      setAngkatanSudahAdaDiDb.add(thn);
+      if (!isNaN(thn) && thn > 0) {
+        setAngkatanSudahAdaDiDb.add(thn);
+      }
 
       const keyNama = `${normalisasiNamaPencocokan(m.nama_mahasiswa)}|${thn}`;
       if (!mapDbByNamaAngkatan.has(keyNama)) {
@@ -605,9 +633,10 @@ async function prosesImportArsipCerdas() {
       }
     });
 
-    // 2. Kumpulkan & rapikan baris dari file Excel baru terlebih dahulu
+    // 2. Proses baris file Excel secara dinamis berdasarkan 2 digit awal NIM & status angkatan di DB
     const mapPatchDbExisting = new Map();
     const mapInsertBaru = new Map();
+    const setAngkatanTerdeteksi = new Set();
     let jmlDilewati = 0;
 
     rows.forEach(row => {
@@ -619,11 +648,14 @@ async function prosesImportArsipCerdas() {
         return;
       }
 
-      // Baca 2 digit awal NIM sebagai tahun angkatan
+      // Baca 2 digit awal NIM sebagai tahun angkatan (misal 20->2020, 21->2021, 22->2022, 23->2023, dst.)
       const angkatanNim = ekstrakAngkatanNim(nimRaw, cariKolomBarisExcel(row, ["TAHUN_ANGKATAN", "ANGKATAN", "TAHUN"]));
+      setAngkatanTerdeteksi.add(angkatanNim);
       const angkatanSudahAdaDiDb = setAngkatanSudahAdaDiDb.has(angkatanNim);
 
-      // Cocokkan dengan data yang SUDAH ADA di database
+      // Cocokkan dengan data yang SUDAH ADA di database:
+      // - Utama: NIM sama persis
+      // - Cadangan (hanya jika baris Excel tidak punya NIM dan angkatannya sudah pernah diupload): Nama + Angkatan sama
       let existingDb = null;
       if (nimRaw && mapDbByNim.has(nimRaw)) {
         existingDb = mapDbByNim.get(nimRaw);
@@ -632,7 +664,7 @@ async function prosesImportArsipCerdas() {
         existingDb = mapDbByNamaAngkatan.get(keyNama) || null;
       }
 
-      // Ambil angka skor sesuai kategori import
+      // Ambil angka skor sesuai kategori yang dipilih
       const skorUtamaRaw = cariKolomBarisExcel(row, [
         "TOTAL SCORE", "SKOR TOTAL", "SKOR AKHIR", "SKOR", "SCORE", "NILAI",
         "SSPECT", "LATIHAN", "TOEFL", "REMEDIAL 1", "REMEDIAL 2", "REMEDIAL 3", "REMEDIAL"
@@ -697,7 +729,7 @@ async function prosesImportArsipCerdas() {
       };
 
       if (existingDb) {
-        // MAHASISWA SUDAH ADA DI DATABASE -> HANYA UPDATE KOLOM SKORNYA SAJA (TIDAK DUPLIKASI NAMA)
+        // MAHASISWA SUDAH ADA DI DATABASE -> UPDATE KOLOM SKORNYA SAJA (TIDAK DUPLIKASI NAMA)
         const patch = mapPatchDbExisting.get(existingDb.nim) || { nim: existingDb.nim };
         const adaSkor = terapkanSkorKeObjek(patch);
         if (adaSkor) {
@@ -706,7 +738,7 @@ async function prosesImportArsipCerdas() {
           jmlDilewati++;
         }
       } else {
-        // BELUM ADA DI DATABASE -> TERIMA SEBAGAI MAHASISWA BARU DI ANGKATAN TERSEBUT
+        // MAHASISWA / ANGKATAN BELUM ADA DI DATABASE -> TERIMA SEBAGAI DATA BARU
         if (!nimRaw) {
           jmlDilewati++;
           return;
@@ -732,7 +764,7 @@ async function prosesImportArsipCerdas() {
     const daftarUpdateExisting = Array.from(mapPatchDbExisting.values());
     const daftarInsertBaru = Array.from(mapInsertBaru.values());
 
-    // Eksekusi UPDATE skor ke mahasiswa lama (dengan pengecekan error eksplisit)
+    // Eksekusi UPDATE skor ke mahasiswa lama
     const chunkSize = 150;
     for (let i = 0; i < daftarUpdateExisting.length; i += chunkSize) {
       const slice = daftarUpdateExisting.slice(i, i + chunkSize);
@@ -749,12 +781,12 @@ async function prosesImportArsipCerdas() {
       }
     }
 
-    // Eksekusi INSERT untuk mahasiswa/angkatan baru (dengan sanitasi kolom & pengecekan error eksplisit)
+    // Eksekusi INSERT langsung untuk mahasiswa/angkatan baru (tanpa onConflict agar bebas error constraint)
     for (let i = 0; i < daftarInsertBaru.length; i += chunkSize) {
       const batchBaru = daftarInsertBaru.slice(i, i + chunkSize).map(item => saringPayloadSesuaiSkemaTabel(item));
       const { error: errInsert } = await db
         .from("arsip_master_rekapan")
-        .upsert(batchBaru, { onConflict: "nim" });
+        .insert(batchBaru);
 
       if (errInsert) {
         throw new Error(`Gagal menyimpan data angkatan baru ke database: ${errInsert.message}`);
@@ -762,12 +794,13 @@ async function prosesImportArsipCerdas() {
     }
 
     tutupModalImportArsip();
-    // Pindah otomatis ke tab "SEMUA" agar angkatan yang baru diimport langsung terlihat
     rekapanState.tabAngkatanAktif = "SEMUA";
     await sinkronkanDatabaseRekapan(false);
 
+    const daftarAngkatanStr = Array.from(setAngkatanTerdeteksi).sort().join(", ") || "-";
+
     alert(
-      `Import Kategori ${kategoriImport} Selesai!\n` +
+      `Import Kategori ${kategoriImport} (Angkatan: ${daftarAngkatanStr}) Selesai!\n` +
       `• Skor digabung ke data mahasiswa lama: ${daftarUpdateExisting.length} mahasiswa (tanpa duplikat)\n` +
       `• Data mahasiswa baru diterima: ${daftarInsertBaru.length} mahasiswa\n` +
       `• Baris kosong/tanpa skor dilewati: ${jmlDilewati}`
@@ -781,7 +814,7 @@ async function prosesImportArsipCerdas() {
   }
 }
 
-// ==================== 3. RENDER TAB ANGKATAN (AUTO-NIM) ====================
+// ==================== 3. RENDER TAB ANGKATAN (DINAMIS AUTO-NIM) ====================
 function renderTabAngkatan() {
   const container = document.getElementById("containerTabAngkatan");
   const selectBatch = document.getElementById("batchTargetAngkatan");
