@@ -242,7 +242,6 @@ function bukaTabLayanan(namaTab, targetSectionId = null) {
     if (el) el.classList.add('hidden');
   });
 
-  // Update tampilan tombol tab cepat di atas
   const btnMap = {
     toefl: document.getElementById('btnTabToefl'),
     sspect: document.getElementById('btnTabSspect'),
@@ -256,7 +255,6 @@ function bukaTabLayanan(namaTab, targetSectionId = null) {
       : 'px-4 py-1.5 rounded-full bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-[#169C53] text-xs font-extrabold transition-all';
   });
 
-  // Perbarui URL parameter tanpa reload agar mudah dibagikan / di-bookmark
   const url = new URL(window.location);
   url.searchParams.set('tab', namaTab);
   if (targetSectionId) {
@@ -283,7 +281,6 @@ function bukaTabLayanan(namaTab, targetSectionId = null) {
     muatFilePengumumanToeic();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   } else {
-    // Default ke tab 'toefl'
     document.getElementById('viewToefl').classList.remove('hidden');
     tutupDetailPesertaToefl();
     muatJadwalToefl();
@@ -307,11 +304,9 @@ function formatTanggalIndo(tglStr) {
   return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
-// Ambil nama Program Studi secara akurat dari data peserta_ujian kelas tersebut terlebih dahulu
 function dapatkanProdiAkurat(kelasStr, prodiJadwal, daftarPesertaDb) {
   const kUpper = String(kelasStr || '').trim().toUpperCase();
 
-  // 1. Cari dari kolom prodi / program_studi di tabel peserta_ujian yang satu kelas
   if (Array.isArray(daftarPesertaDb) && kUpper) {
     const mhsCocok = daftarPesertaDb.find(m =>
       String(m.nama_kelas || m.kelas || '').trim().toUpperCase() === kUpper &&
@@ -322,10 +317,8 @@ function dapatkanProdiAkurat(kelasStr, prodiJadwal, daftarPesertaDb) {
     }
   }
 
-  // 2. Jika ada kolom program_studi / prodi di jadwal_log, gunakan itu
   if (prodiJadwal && prodiJadwal !== '-') return prodiJadwal;
 
-  // 3. Fallback pemetaan kode jurusan POLNES yang akurat (TNK = D3 - TEKNIKA, TKM = D3 - TEKNIK KIMIA)
   if (kUpper.includes('AKS')) return 'D3 - AKUNTANSI';
   if (kUpper.includes('UPW')) return 'D4 - USAHA PERJALANAN WISATA';
   if (kUpper.includes('TNK')) return 'D3 - TEKNIKA';
@@ -384,7 +377,7 @@ async function muatJadwalToefl() {
       const jenis = String(item.jenis_tes || item.jenis_ujian || item.kategori || 'TOEFL').toUpperCase();
       const status = String(item.status || '').toUpperCase();
       if (jenis.includes('SSPECT')) return false;
-      if (status === 'REMEDIAL') return false;
+      if (jenis.includes('REMEDIAL') || status === 'REMEDIAL') return false;
       return true;
     });
 
@@ -567,17 +560,59 @@ async function muatJadwalRemedial() {
   try {
     if (!window.supabaseClient) return;
 
-    const { data, error } = await window.supabaseClient
-      .from('jadwal_log')
-      .select('*')
-      .eq('status', 'REMEDIAL')
-      .order('id', { ascending: false });
+    const [resAntrean, resJadwal, resPeserta] = await Promise.all([
+      window.supabaseClient.from('pendaftaran_remedial').select('*').order('created_at', { ascending: false }),
+      window.supabaseClient.from('jadwal_log').select('*').order('tanggal', { ascending: true }),
+      window.supabaseClient.from('peserta_ujian').select('*').order('id_meja', { ascending: true })
+    ]);
 
-    if (error) throw error;
+    if (resAntrean.error) throw resAntrean.error;
 
-    const remedialAktif = (data || []).filter(item => !isJadwalSudahDiLog(item));
-    window.daftarRemedialGlobal = remedialAktif;
-    renderTabelRemedial(remedialAktif);
+    const gabungan = [];
+
+    // 1. Peserta remedial yang SUDAH dijadwalkan & dikunci staff di jadwal_log
+    const jadwalRemAktif = (resJadwal.data || []).filter(j => {
+      if (isJadwalSudahDiLog(j)) return false;
+      const jenis = String(j.jenis_tes || '').toUpperCase();
+      const st = String(j.status || '').toUpperCase();
+      return jenis.includes('REMEDIAL') || st === 'REMEDIAL';
+    });
+
+    jadwalRemAktif.forEach(j => {
+      const mhsSesi = (resPeserta.data || []).filter(p =>
+        p.jadwal_id === j.id ||
+        String(p.nama_kelas || '').trim().toUpperCase() === String(j.nama_kelas || '').trim().toUpperCase()
+      );
+      mhsSesi.forEach(m => {
+        gabungan.push({
+          nim: m.nim || '-',
+          nama_mahasiswa: m.nama || '-',
+          program_studi: m.prodi || '-',
+          nama_kelas: m.nama_kelas || j.nama_kelas || '-',
+          tanggal: j.tanggal,
+          sesi: j.sesi || '-',
+          ruang_lab: j.ruang_lab || 'TERJADWAL',
+          terkunci: true
+        });
+      });
+    });
+
+    // 2. Mahasiswa yang BARU mendaftar & masih menunggu jadwal di tabel antrean
+    (resAntrean.data || []).forEach(a => {
+      gabungan.push({
+        nim: a.nim || '-',
+        nama_mahasiswa: a.nama_mahasiswa || '-',
+        program_studi: a.program_studi || '-',
+        nama_kelas: a.nama_kelas || '-',
+        tanggal: null,
+        sesi: 'Menunggu Jadwal Staff',
+        ruang_lab: 'ANTREAN',
+        terkunci: false
+      });
+    });
+
+    window.daftarRemedialGlobal = gabungan;
+    renderTabelRemedial(gabungan);
   } catch (err) {
     console.error(err);
     tbody.innerHTML = `<tr><td colspan="6" class="px-5 py-8 text-center text-rose-500">Gagal memuat jadwal remedial: ${err.message}</td></tr>`;
@@ -594,27 +629,30 @@ function renderTabelRemedial(list) {
   }
 
   tbody.innerHTML = list.map((item, idx) => {
-    const kelasVal = item.nama_kelas || item.kelas || '-';
-    const prodiVal = dapatkanProdiAkurat(kelasVal, item.program_studi || item.prodi, []);
-    const tglVal = formatTanggalIndo(item.tanggal || item.tanggal_ujian);
-    const sesiVal = item.sesi || item.sesi_waktu || 'Menunggu Jadwal Staff';
-    const labVal = item.ruang_lab || item.lab || 'REMEDIAL';
+    const kelasVal = item.nama_kelas || '-';
+    const prodiVal = dapatkanProdiAkurat(kelasVal, item.program_studi, []);
+    const tglVal = item.tanggal ? formatTanggalIndo(item.tanggal) : 'Belum Dijadwalkan';
+    const sesiVal = item.sesi || 'Menunggu Jadwal Staff';
+    const labVal = item.ruang_lab || 'ANTREAN';
+    const badgeClass = item.terkunci
+      ? 'bg-emerald-50 text-[#169C53] border-emerald-200'
+      : 'bg-amber-50 text-amber-700 border-amber-200';
 
     return `
       <tr class="hover:bg-slate-50/80 transition-colors">
         <td class="px-4 py-4 font-bold text-slate-400">${idx + 1}</td>
         <td class="px-4 py-4 font-mono font-bold text-slate-900">${item.nim || '-'}</td>
-        <td class="px-4 py-4 font-extrabold text-[#169C53] uppercase">${item.nama_mahasiswa || item.nama || '-'}</td>
+        <td class="px-4 py-4 font-extrabold text-[#169C53] uppercase">${item.nama_mahasiswa || '-'}</td>
         <td class="px-4 py-4">
           <div class="font-bold text-slate-900">${kelasVal}</div>
           <div class="text-[11px] text-slate-500">${prodiVal}</div>
         </td>
         <td class="px-4 py-4">
           <div class="font-bold text-slate-900">${tglVal}</div>
-          <div class="text-[11px] text-amber-600 font-bold">${sesiVal}</div>
+          <div class="text-[11px] ${item.terkunci ? 'text-sky-600' : 'text-amber-600'} font-bold">${sesiVal}</div>
         </td>
         <td class="px-4 py-4 text-center">
-          <span class="px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-extrabold">
+          <span class="px-2.5 py-1 rounded-full border text-[10px] font-extrabold ${badgeClass}">
             ${labVal}
           </span>
         </td>
@@ -627,8 +665,8 @@ function filterTabelRemedial() {
   const q = (document.getElementById('inputCariRemedial')?.value || '').toLowerCase();
   const filtered = window.daftarRemedialGlobal.filter(item =>
     String(item.nim || '').toLowerCase().includes(q) ||
-    String(item.nama_mahasiswa || item.nama || '').toLowerCase().includes(q) ||
-    String(item.nama_kelas || item.kelas || '').toLowerCase().includes(q)
+    String(item.nama_mahasiswa || '').toLowerCase().includes(q) ||
+    String(item.nama_kelas || '').toLowerCase().includes(q)
   );
   renderTabelRemedial(filtered);
 }
@@ -649,18 +687,17 @@ async function submitPendaftaranRemedial(e) {
   btn.disabled = true;
   try {
     const { error } = await window.supabaseClient
-      .from('jadwal_log')
+      .from('pendaftaran_remedial')
       .insert([{
         nim: nim,
         nama_mahasiswa: nama,
         program_studi: prodi,
-        nama_kelas: kelas,
-        status: 'REMEDIAL'
+        nama_kelas: kelas
       }]);
 
     if (error) throw error;
 
-    alert(`Pendaftaran remedial untuk ${nama} (NIM: ${nim}) berhasil dikirim!`);
+    alert(`Pendaftaran remedial untuk ${nama} (NIM: ${nim}) berhasil masuk antrean penjadwalan!`);
     e.target.reset();
     muatJadwalRemedial();
     document.getElementById('sec-jadwal-toefl').scrollIntoView({ behavior: 'smooth' });
@@ -1663,6 +1700,9 @@ function aktifkanRealtimeSyncDatabase() {
 
   window.supabaseClient
     .channel('upa-layanan-tes-realtime')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'pendaftaran_remedial' }, () => {
+      muatJadwalRemedial();
+    })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'jadwal_log' }, () => {
       muatJadwalToefl();
       muatJadwalRemedial();
@@ -1670,6 +1710,7 @@ function aktifkanRealtimeSyncDatabase() {
     })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'peserta_ujian' }, () => {
       muatJadwalToefl();
+      muatJadwalRemedial();
       muatDataSspect();
     })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'toeic_files' }, () => {
@@ -1682,7 +1723,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const savedLang = localStorage.getItem('upa_public_lang') || 'id';
   setLanguage(savedLang);
 
-  // Baca parameter ?tab=... dan #section dari URL saat dipanggil dari navbar index.html
   const params = new URLSearchParams(window.location.search);
   const tabParam = (params.get('tab') || 'toefl').toLowerCase();
   const hashTarget = window.location.hash ? window.location.hash.substring(1) : null;
