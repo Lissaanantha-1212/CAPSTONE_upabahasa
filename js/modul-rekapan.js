@@ -297,7 +297,7 @@ function ekstrakSkorDariRiwayatJson(riwayatRaw) {
 function saringPayloadSesuaiSkemaTabel(objRecord) {
   const kandidat = { ...objRecord };
 
-  // Selaraskan alias nama kolom agar cocok dengan skema arsip_master_rekapan (nama / nama_mahasiswa, prodi / program_studi, dll.)
+  // Selaraskan alias nama kolom agar cocok dengan skema arsip_master_rekapan
   if (kandidat.nama_mahasiswa !== undefined && kandidat.nama === undefined) {
     kandidat.nama = kandidat.nama_mahasiswa;
   }
@@ -307,9 +307,15 @@ function saringPayloadSesuaiSkemaTabel(objRecord) {
   if (kandidat.program_studi !== undefined && kandidat.prodi === undefined) {
     kandidat.prodi = kandidat.program_studi;
   }
-  if (kandidat.tahun_angkatan !== undefined && kandidat.angkatan === undefined) {
-    kandidat.angkatan = kandidat.tahun_angkatan;
+  
+  // Hapus properti 'angkatan' jika ada, pastikan hanya menggunakan 'tahun_angkatan' sesuai skema database Supabase
+  if (kandidat.angkatan !== undefined) {
+    if (kandidat.tahun_angkatan === undefined) {
+      kandidat.tahun_angkatan = kandidat.angkatan;
+    }
+    delete kandidat.angkatan;
   }
+
   if (kandidat.skor_sspect !== undefined && kandidat.nilai_sspect === undefined) {
     kandidat.nilai_sspect = kandidat.skor_sspect;
   }
@@ -381,7 +387,7 @@ async function sinkronkanDatabaseRekapan(tampilkanNotif = false) {
           jurusan: infoProdi.jurusan,
           program_studi: infoProdi.prodi,
           jenjang: infoProdi.jenjang,
-          tahun_angkatan: ekstrakAngkatanNim(nimKey, ambilNilaiKolom(rawRow, ["tahun_angkatan", "angkatan"], null)),
+          tahun_angkatan: String(ekstrakAngkatanNim(nimKey, ambilNilaiKolom(rawRow, ["tahun_angkatan", "angkatan"], null))),
           skor_sspect: null,
           skor_latihan: null,
           skor_toefl: null,
@@ -418,6 +424,9 @@ async function sinkronkanDatabaseRekapan(tampilkanNotif = false) {
       if (infoProdi.jurusan !== "-") rec.jurusan = infoProdi.jurusan;
       rec.jenjang = infoProdi.jenjang;
 
+      const thnDb = ambilNilaiKolom(row, ["tahun_angkatan", "angkatan"], null);
+      if (thnDb) rec.tahun_angkatan = String(thnDb);
+
       rec.skor_sspect = ambilAngkaKolom(row, ["skor_sspect", "nilai_sspect", "sspect"]) ?? rec.skor_sspect;
       rec.skor_latihan = ambilAngkaKolom(row, ["skor_latihan", "nilai_latihan", "latihan"]) ?? rec.skor_latihan;
       rec.skor_toefl = ambilAngkaKolom(row, ["skor_toefl", "nilai_toefl", "toefl", "skor_utama"]) ?? rec.skor_toefl;
@@ -440,7 +449,7 @@ async function sinkronkanDatabaseRekapan(tampilkanNotif = false) {
       if (dariJson.rem2) rec.remedial_2 = dariJson.rem2;
       if (dariJson.rem3) rec.remedial_3 = dariJson.rem3;
 
-      rec.tempat_tanggal_lahir = ambilNilaiKolom(row, ["tempat_tanggal_lahir", "ttl"], rec.tempat_tanggal_lahir);
+      rec.tempat_tanggal_lahir = ambilNilaiKolom(row, ["tempat_tanggal_lahir", "tempat_tgl_lahir", "ttl"], rec.tempat_tanggal_lahir);
       rec.tanggal_tes = ambilNilaiKolom(row, ["tanggal_tes", "tgl_tes"], rec.tanggal_tes);
       rec.nomor_sertifikat = ambilNilaiKolom(row, ["nomor_sertifikat", "no_sertifikat"], rec.nomor_sertifikat);
     });
@@ -463,7 +472,7 @@ async function sinkronkanDatabaseRekapan(tampilkanNotif = false) {
         rec.jurusan = infoProdi.jurusan;
         rec.jenjang = infoProdi.jenjang;
       }
-      rec.tempat_tanggal_lahir = ambilNilaiKolom(mhs, ["tempat_tanggal_lahir", "ttl"], rec.tempat_tanggal_lahir);
+      rec.tempat_tanggal_lahir = ambilNilaiKolom(mhs, ["tempat_tanggal_lahir", "tempat_tgl_lahir", "ttl"], rec.tempat_tanggal_lahir);
     });
 
     // C. Rekapan & HasilTes
@@ -581,8 +590,7 @@ async function perbaikiDataMasterDiDatabase(db, daftarMahasiswa) {
       jurusan: m.jurusan,
       prodi: m.program_studi,
       program_studi: m.program_studi,
-      angkatan: m.tahun_angkatan,
-      tahun_angkatan: m.tahun_angkatan,
+      tahun_angkatan: String(m.tahun_angkatan),
       skor_sspect: m.skor_sspect,
       skor_latihan: m.skor_latihan,
       skor_toefl: m.skor_toefl,
@@ -594,7 +602,10 @@ async function perbaikiDataMasterDiDatabase(db, daftarMahasiswa) {
       reading: m.reading,
       sspect_listening: m.sspect_listening,
       sspect_structure: m.sspect_structure,
-      sspect_reading: m.sspect_reading
+      sspect_reading: m.sspect_reading,
+      tempat_tgl_lahir: m.tempat_tanggal_lahir,
+      tanggal_tes: m.tanggal_tes,
+      nomor_sertifikat: m.nomor_sertifikat
     });
 
     if (setNimAda.has(String(m.nim).trim())) {
@@ -682,7 +693,7 @@ async function prosesImportArsipCerdas() {
       return;
     }
 
-    // 1. Peta dinamis seluruh data yang SUDAH ADA di database (untuk tahun angkatan apa pun)
+    // 1. Peta dinamis seluruh data yang SUDAH ADA di database
     const mapDbByNim = new Map();
     const mapDbByNamaAngkatan = new Map();
     const setAngkatanSudahAdaDiDb = new Set();
@@ -701,7 +712,7 @@ async function prosesImportArsipCerdas() {
       }
     });
 
-    // 2. Proses baris file Excel secara dinamis berdasarkan 2 digit awal NIM & status angkatan di DB
+    // 2. Proses baris file Excel secara dinamis
     const mapPatchDbExisting = new Map();
     const mapInsertBaru = new Map();
     const setAngkatanTerdeteksi = new Set();
@@ -716,12 +727,10 @@ async function prosesImportArsipCerdas() {
         return;
       }
 
-      // Baca 2 digit awal NIM sebagai tahun angkatan (misal 20->2020, 21->2021, 22->2022, 23->2023, dst.)
       const angkatanNim = ekstrakAngkatanNim(nimRaw, cariKolomBarisExcel(row, ["TAHUN_ANGKATAN", "ANGKATAN", "TAHUN"]));
       setAngkatanTerdeteksi.add(angkatanNim);
       const angkatanSudahAdaDiDb = setAngkatanSudahAdaDiDb.has(angkatanNim);
 
-      // Cocokkan dengan data yang SUDAH ADA di database
       let existingDb = null;
       if (nimRaw && mapDbByNim.has(nimRaw)) {
         existingDb = mapDbByNim.get(nimRaw);
@@ -730,7 +739,6 @@ async function prosesImportArsipCerdas() {
         existingDb = mapDbByNamaAngkatan.get(keyNama) || null;
       }
 
-      // Ambil angka skor & bulatkan ke integer
       const skorUtamaRaw = cariKolomBarisExcel(row, [
         "TOTAL_SCORE", "TOTAL SCORE", "SKOR TOTAL", "SKOR AKHIR", "SKOR", "SCORE", "NILAI",
         "SSPECT", "LATIHAN", "TOEFL", "REMEDIAL 1", "REMEDIAL 2", "REMEDIAL 3", "REMEDIAL"
@@ -786,6 +794,7 @@ async function prosesImportArsipCerdas() {
           const finalTtl = ttlGabungan || (tempat && tglLahir ? `${tempat}, ${tglLahir}` : "");
           if (finalTtl) {
             targetObj.tempat_tanggal_lahir = String(finalTtl).trim();
+            targetObj.tempat_tgl_lahir = String(finalTtl).trim();
             terisi = true;
           }
         }
@@ -793,7 +802,6 @@ async function prosesImportArsipCerdas() {
       };
 
       if (existingDb) {
-        // MAHASISWA SUDAH ADA DI DATABASE -> UPDATE KOLOM SKORNYA SAJA (TIDAK DUPLIKASI NAMA)
         const patch = mapPatchDbExisting.get(existingDb.nim) || { nim: existingDb.nim };
         const adaSkor = terapkanSkorKeObjek(patch);
         if (adaSkor) {
@@ -802,7 +810,6 @@ async function prosesImportArsipCerdas() {
           jmlDilewati++;
         }
       } else {
-        // MAHASISWA / ANGKATAN BELUM ADA DI DATABASE -> TERIMA SEBAGAI DATA BARU
         if (!nimRaw) {
           jmlDilewati++;
           return;
@@ -820,8 +827,7 @@ async function prosesImportArsipCerdas() {
           jurusan: infoProdi.jurusan,
           prodi: infoProdi.prodi,
           program_studi: infoProdi.prodi,
-          angkatan: angkatanNim,
-          tahun_angkatan: angkatanNim
+          tahun_angkatan: String(angkatanNim)
         };
 
         terapkanSkorKeObjek(recBaru);
@@ -832,7 +838,6 @@ async function prosesImportArsipCerdas() {
     const daftarUpdateExisting = Array.from(mapPatchDbExisting.values());
     const daftarInsertBaru = Array.from(mapInsertBaru.values());
 
-    // Eksekusi UPDATE skor ke mahasiswa lama
     const chunkSize = 150;
     for (let i = 0; i < daftarUpdateExisting.length; i += chunkSize) {
       const slice = daftarUpdateExisting.slice(i, i + chunkSize);
@@ -849,7 +854,6 @@ async function prosesImportArsipCerdas() {
       }
     }
 
-    // Eksekusi INSERT langsung untuk mahasiswa/angkatan baru
     for (let i = 0; i < daftarInsertBaru.length; i += chunkSize) {
       const batchBaru = daftarInsertBaru.slice(i, i + chunkSize).map(item => saringPayloadSesuaiSkemaTabel(item));
       const { error: errInsert } = await db
@@ -1404,24 +1408,18 @@ function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
       <!-- ========================================================================= -->
       <!-- [PENANDA KHUSUS SERTIFIKAT SSPECT]                                         -->
       <!-- Saat ini menampilkan 3 kolom: Listening, Reading, dan Total Score.        -->
-      <!-- JIKA CLIENT MEMINTA TOTAL SCORE SAJA:                                     -->
-      <!-- Cukup hapus baris <th> & <td> untuk Listening dan Reading di bawah ini!   -->
       <!-- ========================================================================= -->
       <table class="score-grid">
         <thead>
           <tr>
-            <!-- [HAPUS <th> INI JIKA HANYA TOTAL SCORE] -->
             <th>Listening<br />Comprehension</th>
-            <!-- [HAPUS <th> INI JIKA HANYA TOTAL SCORE] -->
             <th>Reading<br />Comprehension</th>
             <th style="font-style:normal;">Total Score</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <!-- [HAPUS <td> INI JIKA HANYA TOTAL SCORE] -->
             <td>${sec1}</td>
-            <!-- [HAPUS <td> INI JIKA HANYA TOTAL SCORE] -->
             <td>${sec3}</td>
             <td>${totalSkor}</td>
           </tr>
