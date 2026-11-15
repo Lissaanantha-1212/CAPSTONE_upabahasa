@@ -343,7 +343,7 @@ async function kunciSesiRemedial() {
 
     if (errJadwal) throw errJadwal;
 
-    // 2. Masukkan rincian mahasiswa & nomor mejanya ke `peserta_ujian`
+    // 2. Masukkan rincian mahasiswa & nomor mejanya ke `peserta_ujian` (sesuai kolom tabel peserta_ujian)
     const payloadPeserta = pesertaTerpilih.map((mhs, idx) => {
       const noMeja = `${kodePrefixMeja}-${String(idx + 1).padStart(2, "0")}`;
       return {
@@ -351,8 +351,7 @@ async function kunciSesiRemedial() {
         id_meja: noMeja,
         nim: String(mhs.nim || "").trim(),
         nama: String(mhs.nama_mahasiswa || "-").toUpperCase(),
-        nama_kelas: kodeRombongan,
-        prodi: mhs.program_studi || "-"
+        nama_kelas: kodeRombongan
       };
     });
 
@@ -473,7 +472,7 @@ function bukaModalPesertaSesiRemedial(jadwalId) {
             <td class="px-3 py-2.5 font-mono font-extrabold text-[#169C53]">${p.id_meja || "-"}</td>
             <td class="px-3 py-2.5 font-mono font-bold text-slate-800">${p.nim || "-"}</td>
             <td class="px-3 py-2.5 font-extrabold text-slate-900 uppercase">${p.nama || "-"}</td>
-            <td class="px-3 py-2.5 text-slate-600">${p.prodi || "-"}</td>
+            <td class="px-3 py-2.5 text-slate-600">${p.prodi || p.program_studi || p.nama_kelas || "-"}</td>
           </tr>
         `)
         .join("");
@@ -512,7 +511,7 @@ async function batalkanKunciSesiRemedial(jadwalId, namaRombongan) {
       const kembalikanAntrean = pesertaSesi.map(p => ({
         nim: p.nim,
         nama_mahasiswa: p.nama,
-        program_studi: p.prodi || "-",
+        program_studi: p.prodi || p.program_studi || "Peserta Remedial",
         nama_kelas: p.nama_kelas || "-"
       }));
       await db.from("pendaftaran_remedial").insert(kembalikanAntrean);
@@ -548,7 +547,7 @@ function cetakPdfBeritaAcaraRemedial(jadwalId) {
         <td style="text-align:center; font-weight:bold;">${p.id_meja || "-"}</td>
         <td style="text-align:center;">${p.nim || "-"}</td>
         <td style="text-transform:uppercase; font-weight:bold;">${p.nama || "-"}</td>
-        <td>${p.prodi || "-"}</td>
+        <td>${p.prodi || p.program_studi || p.nama_kelas || "-"}</td>
         <td style="height:24px;">${idx % 2 === 0 ? `${idx + 1}.` : ""}</td>
         <td style="height:24px;">${idx % 2 === 1 ? `${idx + 1}.` : ""}</td>
       </tr>
@@ -648,7 +647,7 @@ function cetakPdfBeritaAcaraRemedial(jadwalId) {
               <th style="width:68px;">NO. MEJA</th>
               <th style="width:85px;">NIM</th>
               <th>NAMA MAHASISWA</th>
-              <th style="width:145px;">PROGRAM STUDI</th>
+              <th style="width:145px;">ROMBONGAN / KELAS</th>
               <th colspan="2" style="width:115px;">TANDA TANGAN</th>
             </tr>
           </thead>
