@@ -99,7 +99,6 @@ const DAFTAR_JURUSAN_PRODI_POLNES = [
   }
 ];
 
-// Fungsi sensitif pembaca Prodi -> Otomatis menghasilkan Jurusan, Prodi Standar, dan Jenjang
 function deteksiJurusanDariProdiSensitif(prodiRaw, jurusanFallback = "-") {
   const teks = String(prodiRaw || "").trim().toUpperCase().replace(/\s+/g, " ");
   if (!teks || teks === "-") {
@@ -125,7 +124,6 @@ function deteksiJurusanDariProdiSensitif(prodiRaw, jurusanFallback = "-") {
     }
   }
 
-  // Pencocokan parsial jika format ditulis tanpa D3/D4 (misal "TEKNOLOGI KIMIA INDUSTRI")
   for (const kelompok of DAFTAR_JURUSAN_PRODI_POLNES) {
     for (const item of kelompok.prodi) {
       const namaTanpaJenjang = item.nama.replace(/^D[34]\s*-\s*/, "");
@@ -140,11 +138,10 @@ function deteksiJurusanDariProdiSensitif(prodiRaw, jurusanFallback = "-") {
     }
   }
 
-  const jenjangFallback = teks.includes("D4") ? "D4" : "D3";
   return {
     jurusan: String(jurusanFallback || "-").toUpperCase(),
     prodi: teks,
-    jenjang: jenjangFallback
+    jenjang: teks.includes("D4") ? "D4" : "D3"
   };
 }
 
@@ -186,32 +183,32 @@ function getBatasLulusJenjang(prodi, jenjangRaw) {
   return 400;
 }
 
-function hitungSkorAkhirMahasiswa(m) {
-  const skorToeflUtama = [m.remedial_3, m.remedial_2, m.remedial_1, m.skor_toefl]
+function hitungSkorToeflTertinggi(m) {
+  const daftar = [m.remedial_3, m.remedial_2, m.remedial_1, m.skor_toefl]
     .map(v => Number(v))
     .filter(v => !isNaN(v) && v > 0);
-
-  if (skorToeflUtama.length > 0) return Math.max(...skorToeflUtama);
-
-  const skorPendahuluan = [m.skor_latihan, m.skor_sspect]
-    .map(v => Number(v))
-    .filter(v => !isNaN(v) && v > 0);
-
-  return skorPendahuluan.length > 0 ? Math.max(...skorPendahuluan) : null;
+  return daftar.length > 0 ? Math.max(...daftar) : null;
 }
 
 function cekStatusKelulusan(m) {
   const batas = getBatasLulusJenjang(m.program_studi, m.jenjang);
-  const nilaiKompetensi = [m.remedial_3, m.remedial_2, m.remedial_1, m.skor_toefl]
-    .map(v => Number(v))
-    .filter(v => !isNaN(v) && v > 0);
-
-  if (nilaiKompetensi.length === 0) return "BELUM_LULUS";
-  const tertinggi = Math.max(...nilaiKompetensi);
+  const tertinggi = hitungSkorToeflTertinggi(m);
+  if (tertinggi === null) return "BELUM_LULUS";
   return tertinggi >= batas ? "LULUS" : "BELUM_LULUS";
 }
 
-// Ambil SEMUA baris dari tabel Supabase tanpa terpotong limit default 1000
+// Syarat tombol Unduh Sertifikat TOEFL muncul: wajib punya skor Latihan DAN skor TOEFL Utama (atau Remedial)
+function cekSiapSertifikatToefl(m) {
+  const adaLatihan = m.skor_latihan !== null && Number(m.skor_latihan) > 0;
+  const adaToefl = hitungSkorToeflTertinggi(m) !== null;
+  return adaLatihan && adaToefl;
+}
+
+function cekSiapSertifikatSspect(m) {
+  return m.skor_sspect !== null && Number(m.skor_sspect) > 0;
+}
+
+// Ambil SEMUA baris dari tabel Supabase tanpa terpotong limit 1000
 async function fetchAllRowsSupabase(db, namaTabel, orderByCol = null) {
   const pageSize = 1000;
   let from = 0;
@@ -239,7 +236,6 @@ async function fetchAllRowsSupabase(db, namaTabel, orderByCol = null) {
   return { data: semuaBaris, error: null };
 }
 
-// Parsing kolom riwayat_json dari tabel Rekapan / HasilTes
 function ekstrakSkorDariRiwayatJson(riwayatRaw) {
   if (!riwayatRaw) return {};
   let obj = riwayatRaw;
@@ -272,11 +268,10 @@ async function sinkronkanDatabaseRekapan(tampilkanNotif = false) {
 
   const tbody = document.getElementById("tbodyRekapanMaster");
   if (tbody) {
-    tbody.innerHTML = `<tr><td colspan="7" class="px-6 py-10 text-center text-slate-400 italic">Menarik & menggabungkan seluruh data mahasiswa, jurusan, SSPECT, dan TOEFL dari database...</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" class="px-6 py-10 text-center text-slate-400 italic">Menarik & menggabungkan seluruh data mahasiswa, jurusan, SSPECT, dan TOEFL dari database...</td></tr>`;
   }
 
   try {
-    // 1. Tarik data dari arsip_master_rekapan, Rekapan, HasilTes, dan Mahasiswa secara paralel
     const [resMaster, resRekapan, resHasilTes, resMahasiswa] = await Promise.all([
       fetchAllRowsSupabase(db, "arsip_master_rekapan", "nim"),
       fetchAllRowsSupabase(db, "Rekapan"),
@@ -286,7 +281,6 @@ async function sinkronkanDatabaseRekapan(tampilkanNotif = false) {
 
     const mapByNim = new Map();
 
-    // Helper memastikan record NIM ada di map
     function getOrCreateRecord(nimKey, rawRow = {}) {
       if (!mapByNim.has(nimKey)) {
         const prodiRaw = ambilNilaiKolom(rawRow, ["program_studi", "prodi", "study_program", "kelas"], "-");
@@ -320,7 +314,7 @@ async function sinkronkanDatabaseRekapan(tampilkanNotif = false) {
       return mapByNim.get(nimKey);
     }
 
-    // A. Proses arsip_master_rekapan
+    // A. arsip_master_rekapan
     (resMaster.data || []).forEach(row => {
       const nimKey = String(ambilNilaiKolom(row, ["nim", "nim_mahasiswa"], "")).trim();
       if (!nimKey) return;
@@ -350,12 +344,20 @@ async function sinkronkanDatabaseRekapan(tampilkanNotif = false) {
       rec.sspect_structure = ambilAngkaKolom(row, ["sspect_structure"]) ?? rec.sspect_structure;
       rec.sspect_reading = ambilAngkaKolom(row, ["sspect_reading"]) ?? rec.sspect_reading;
 
+      const dariJson = ekstrakSkorDariRiwayatJson(row.riwayat_json);
+      if (dariJson.sspect) rec.skor_sspect = dariJson.sspect;
+      if (dariJson.latihan) rec.skor_latihan = dariJson.latihan;
+      if (dariJson.toefl) rec.skor_toefl = dariJson.toefl;
+      if (dariJson.rem1) rec.remedial_1 = dariJson.rem1;
+      if (dariJson.rem2) rec.remedial_2 = dariJson.rem2;
+      if (dariJson.rem3) rec.remedial_3 = dariJson.rem3;
+
       rec.tempat_tanggal_lahir = ambilNilaiKolom(row, ["tempat_tanggal_lahir", "ttl"], rec.tempat_tanggal_lahir);
       rec.tanggal_tes = ambilNilaiKolom(row, ["tanggal_tes", "tgl_tes"], rec.tanggal_tes);
       rec.nomor_sertifikat = ambilNilaiKolom(row, ["nomor_sertifikat", "no_sertifikat"], rec.nomor_sertifikat);
     });
 
-    // B. Lengkapi identitas & prodi sensitif dari tabel Mahasiswa (jika ada)
+    // B. Mahasiswa
     (resMahasiswa.data || []).forEach(mhs => {
       const nimKey = String(ambilNilaiKolom(mhs, ["nim", "nim_mahasiswa"], "")).trim();
       if (!nimKey) return;
@@ -375,7 +377,7 @@ async function sinkronkanDatabaseRekapan(tampilkanNotif = false) {
       }
     });
 
-    // C. Proses tabel Rekapan & HasilTes (Sumber utama SSPECT, Latihan, TOEFL, Remedial, dan riwayat_json)
+    // C. Rekapan & HasilTes (sumber nilai SSPECT, Latihan, TOEFL, Remedial, dan riwayat_json)
     const gabunganHasilTes = [...(resRekapan.data || []), ...(resHasilTes.data || [])];
     gabunganHasilTes.forEach(item => {
       const nimKey = String(ambilNilaiKolom(item, ["nim", "nim_mahasiswa", "student_id"], "")).trim();
@@ -396,7 +398,6 @@ async function sinkronkanDatabaseRekapan(tampilkanNotif = false) {
         rec.jenjang = infoProdi.jenjang;
       }
 
-      // 1. Cek kolom kategori_tes + skor_total (seperti pada screenshot Supabase image_a3c3e2.png)
       const kategori = String(ambilNilaiKolom(item, ["kategori_tes", "jenis_tes", "kategori"], "")).toUpperCase();
       const skorTotal = ambilAngkaKolom(item, ["skor_total", "total_skor", "skor_akhir", "nilai"]);
 
@@ -416,7 +417,6 @@ async function sinkronkanDatabaseRekapan(tampilkanNotif = false) {
         }
       }
 
-      // 2. Cek kolom skor spesifik langsung jika ada
       rec.skor_sspect = ambilAngkaKolom(item, ["skor_sspect", "nilai_sspect"]) ?? rec.skor_sspect;
       rec.skor_latihan = ambilAngkaKolom(item, ["skor_latihan", "nilai_latihan"]) ?? rec.skor_latihan;
       rec.skor_toefl = ambilAngkaKolom(item, ["skor_toefl", "nilai_toefl"]) ?? rec.skor_toefl;
@@ -424,7 +424,6 @@ async function sinkronkanDatabaseRekapan(tampilkanNotif = false) {
       rec.remedial_2 = ambilAngkaKolom(item, ["remedial_2", "rem_2"]) ?? rec.remedial_2;
       rec.remedial_3 = ambilAngkaKolom(item, ["remedial_3", "rem_3"]) ?? rec.remedial_3;
 
-      // 3. Ekstrak dari kolom riwayat_json (mis. {"sspect":410, ...})
       const dariJson = ekstrakSkorDariRiwayatJson(item.riwayat_json);
       if (dariJson.sspect) rec.skor_sspect = dariJson.sspect;
       if (dariJson.latihan) rec.skor_latihan = dariJson.latihan;
@@ -433,7 +432,6 @@ async function sinkronkanDatabaseRekapan(tampilkanNotif = false) {
       if (dariJson.rem2) rec.remedial_2 = dariJson.rem2;
       if (dariJson.rem3) rec.remedial_3 = dariJson.rem3;
 
-      // 4. Rincian Section 1, 2, 3
       const s1 = ambilAngkaKolom(item, ["listening", "section_1", "sec_1", "s1"]) ?? dariJson.listening;
       const s2 = ambilAngkaKolom(item, ["structure", "section_2", "sec_2", "s2"]) ?? dariJson.structure;
       const s3 = ambilAngkaKolom(item, ["reading", "section_3", "sec_3", "s3"]) ?? dariJson.reading;
@@ -450,7 +448,6 @@ async function sinkronkanDatabaseRekapan(tampilkanNotif = false) {
     });
 
     rekapanState.semuaData = Array.from(mapByNim.values()).map(m => {
-      // Pastikan ulang jurusan & prodi selalu konsisten sebelum dirender
       const fixedProdi = deteksiJurusanDariProdiSensitif(m.program_studi, m.jurusan);
       const itemFinal = {
         ...m,
@@ -460,7 +457,7 @@ async function sinkronkanDatabaseRekapan(tampilkanNotif = false) {
       };
       return {
         ...itemFinal,
-        skor_akhir: hitungSkorAkhirMahasiswa(itemFinal),
+        skor_toefl_akhir: hitungSkorToeflTertinggi(itemFinal),
         status_lulus: cekStatusKelulusan(itemFinal)
       };
     });
@@ -468,15 +465,14 @@ async function sinkronkanDatabaseRekapan(tampilkanNotif = false) {
     renderTabAngkatan();
     terapkanFilterRekapan();
 
-    // Jika staff menekan tombol "Sinkron Alur Sistem", perbarui juga kolom jurusan & skor di arsip_master_rekapan agar database ikut rapi
     if (tampilkanNotif) {
       await perbaikiDataMasterDiDatabase(db, rekapanState.semuaData);
-      alert(`Sinkronisasi & perbaikan jurusan selesai! Total ${rekapanState.semuaData.length} data mahasiswa (termasuk skor SSPECT & TOEFL) berhasil diselaraskan.`);
+      alert(`Sinkronisasi selesai! Total ${rekapanState.semuaData.length} data mahasiswa (termasuk skor SSPECT & TOEFL) berhasil diselaraskan ke database.`);
     }
   } catch (err) {
     console.error("Gagal memuat rekapan:", err);
     if (tbody) {
-      tbody.innerHTML = `<tr><td colspan="7" class="px-6 py-10 text-center text-rose-500 font-bold">Gagal memuat data dari database: ${err.message}</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8" class="px-6 py-10 text-center text-rose-500 font-bold">Gagal memuat data dari database: ${err.message}</td></tr>`;
     }
   }
 }
@@ -566,7 +562,7 @@ function pilihTabAngkatan(tahun) {
   terapkanFilterRekapan();
 }
 
-// ==================== 3. FILTER PENCARIAN OTOMATIS & RENDER TABEL ====================
+// ==================== 3. FILTER PENCARIAN & RENDER TABEL UTAMA ====================
 function terapkanFilterRekapan() {
   const keyword = String(document.getElementById("inputCariRekapan")?.value || "").trim().toUpperCase();
   const statusFilter = document.getElementById("filterStatusRekapan")?.value || "SEMUA";
@@ -616,7 +612,7 @@ function renderTabelRekapan() {
   document.getElementById("btnNextPageRekapan").disabled = rekapanState.halamanSaatIni >= totalHal;
 
   if (sliceData.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" class="px-6 py-12 text-center text-slate-400 italic">Tidak ada data mahasiswa yang sesuai dengan filter pencarian.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" class="px-6 py-12 text-center text-slate-400 italic">Tidak ada data mahasiswa yang sesuai dengan filter pencarian.</td></tr>`;
     return;
   }
 
@@ -628,7 +624,26 @@ function renderTabelRekapan() {
         ? `<span class="px-2.5 py-1 rounded-lg bg-emerald-50 text-[#169C53] border border-emerald-200 text-[10px] font-extrabold">LULUS</span>`
         : `<span class="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-extrabold">BELUM LULUS</span>`;
 
-      const skorTampil = m.skor_akhir !== null ? m.skor_akhir : "-";
+      const skorSspectTampil = m.skor_sspect !== null ? m.skor_sspect : "-";
+      const skorToeflTampil = m.skor_toefl_akhir !== null ? m.skor_toefl_akhir : "-";
+
+      const siapSspect = cekSiapSertifikatSspect(m);
+      const siapToefl = cekSiapSertifikatToefl(m);
+
+      // Tombol Unduh SSPECT dan Unduh TOEFL terpisah sesuai ketersediaan skor
+      const btnUnduhSspect = siapSspect
+        ? `<button type="button" onclick="unduhSertifikatByNim('${m.nim}', 'SSPECT')" class="px-2.5 py-1.5 rounded-xl bg-sky-50 hover:bg-sky-600 text-sky-700 hover:text-white border border-sky-200 text-[11px] font-extrabold inline-flex items-center gap-1 transition-colors" title="Unduh Sertifikat SSPECT">
+             <i class="ri-award-line"></i>
+             <span>SSPECT</span>
+           </button>`
+        : "";
+
+      const btnUnduhToefl = siapToefl
+        ? `<button type="button" onclick="unduhSertifikatByNim('${m.nim}', 'TOEFL')" class="px-2.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-[#169C53] text-[#169C53] hover:text-white border border-emerald-200 text-[11px] font-extrabold inline-flex items-center gap-1 transition-colors" title="Unduh Sertifikat TOEFL">
+             <i class="ri-award-fill"></i>
+             <span>TOEFL</span>
+           </button>`
+        : "";
 
       return `
         <tr class="hover:bg-slate-50/80 transition-colors">
@@ -643,18 +658,20 @@ function renderTabelRekapan() {
           </td>
           <td class="px-4 py-3.5 text-center font-extrabold text-slate-700">${m.tahun_angkatan}</td>
           <td class="px-4 py-3.5 text-center">
-            <span class="px-3 py-1 rounded-lg bg-slate-100 font-mono font-extrabold text-slate-800 text-xs">${skorTampil}</span>
+            <span class="px-2.5 py-1 rounded-lg ${siapSspect ? "bg-sky-50 text-sky-700 border border-sky-200" : "bg-slate-100 text-slate-500"} font-mono font-extrabold text-xs">${skorSspectTampil}</span>
+          </td>
+          <td class="px-4 py-3.5 text-center">
+            <span class="px-2.5 py-1 rounded-lg ${siapToefl ? "bg-emerald-50 text-[#169C53] border border-emerald-200" : "bg-slate-100 text-slate-500"} font-mono font-extrabold text-xs">${skorToeflTampil}</span>
           </td>
           <td class="px-4 py-3.5 text-center">${badgeStatus}</td>
           <td class="px-4 py-3.5 text-center">
-            <div class="inline-flex items-center gap-1.5">
+            <div class="inline-flex flex-wrap items-center justify-center gap-1.5">
               <button type="button" onclick="bukaModalDetailMahasiswa('${m.nim}')" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-[#169C53] text-xs font-extrabold inline-flex items-center gap-1 transition-colors">
                 <i class="ri-eye-line"></i>
                 <span>Detail</span>
               </button>
-              <button type="button" onclick="unduhSertifikatByNim('${m.nim}')" class="px-2.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-[#169C53] text-[#169C53] hover:text-white border border-emerald-200 text-xs font-extrabold inline-flex items-center gap-1 transition-colors" title="Unduh Sertifikat">
-                <i class="ri-award-line"></i>
-              </button>
+              ${btnUnduhSspect}
+              ${btnUnduhToefl}
             </div>
           </td>
         </tr>
@@ -668,7 +685,7 @@ function gantiHalamanRekapan(delta) {
   renderTabelRekapan();
 }
 
-// ==================== 4. MODAL DETAIL MAHASISWA & SIMPAN SERTIFIKAT ====================
+// ==================== 4. MODAL DETAIL MAHASISWA & TOMBOL SERTIFIKAT TERPISAH ====================
 function bukaModalDetailMahasiswa(nimTarget) {
   const m = rekapanState.semuaData.find(x => String(x.nim) === String(nimTarget));
   if (!m) return;
@@ -692,7 +709,7 @@ function bukaModalDetailMahasiswa(nimTarget) {
   document.getElementById("detailNamaMahasiswa").textContent = m.nama_mahasiswa;
   document.getElementById("detailSubIdentitas").textContent = `NIM: ${m.nim} • JURUSAN ${m.jurusan || "-"} • ${m.program_studi || "-"}`;
 
-  // Isi 6 kotak riwayat skor sesuai kategori tesnya masing-masing
+  // Isi 6 kotak riwayat skor
   document.getElementById("boxSkorSspect").textContent = m.skor_sspect ?? "-";
   document.getElementById("labelBoxLatihan").textContent = `LAT. ${jenjang}`;
   document.getElementById("boxSkorLatihan").textContent = m.skor_latihan ?? "-";
@@ -710,6 +727,33 @@ function bukaModalDetailMahasiswa(nimTarget) {
   document.getElementById("inputDetailTanggalTes").value = m.tanggal_tes || "";
   document.getElementById("inputDetailNomorSertifikat").value =
     m.nomor_sertifikat || `0001 / PL7.18 / UPA.BAHASA / TOEFL-P / ${new Date().getFullYear()}`;
+
+  // Render tombol unduh terpisah di modal detail
+  const containerBtn = document.getElementById("containerTombolSertifikatDetail");
+  const siapSspect = cekSiapSertifikatSspect(m);
+  const siapToefl = cekSiapSertifikatToefl(m);
+
+  let htmlBtns = "";
+  if (siapSspect) {
+    htmlBtns += `
+      <button type="button" onclick="unduhSertifikatMahasiswaAktif('SSPECT')" class="px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-extrabold inline-flex items-center gap-2 shadow-xs transition-all">
+        <i class="ri-download-2-line text-sm"></i>
+        <span>Unduh Sertifikat SSPECT</span>
+      </button>
+    `;
+  }
+  if (siapToefl) {
+    htmlBtns += `
+      <button type="button" onclick="unduhSertifikatMahasiswaAktif('TOEFL')" class="px-4 py-2.5 rounded-xl bg-[#169C53] hover:bg-[#0E7A3F] text-white text-xs font-extrabold inline-flex items-center gap-2 shadow-xs transition-all">
+        <i class="ri-download-2-line text-sm"></i>
+        <span>Unduh Sertifikat TOEFL</span>
+      </button>
+    `;
+  }
+  if (!siapSspect && !siapToefl) {
+    htmlBtns = `<span class="px-3 py-2 rounded-xl bg-slate-100 text-slate-400 text-xs font-bold">Sertifikat belum tersedia (skor belum lengkap)</span>`;
+  }
+  containerBtn.innerHTML = htmlBtns;
 
   const modal = document.getElementById("modalDetailMahasiswa");
   modal.classList.remove("hidden");
@@ -751,8 +795,26 @@ async function simpanPerubahanDetailMahasiswa() {
   alert("Identitas & Nomor Sertifikat mahasiswa berhasil diperbarui!");
 }
 
-// ==================== 5. GENERATOR NOMOR SERTIFIKAT BERANTAI 1 ANGKATAN ====================
+// ==================== 5. ATUR NOMOR & TANGGAL SERTIFIKAT 1 ANGKATAN ====================
+function formatTanggalInggrisSertifikat(dateIsoStr) {
+  if (!dateIsoStr) return "04 May 2026";
+  const parts = dateIsoStr.split("-");
+  if (parts.length !== 3) return dateIsoStr;
+  const bulanInggris = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+  const tahun = parts[0];
+  const bulanIdx = parseInt(parts[1], 10) - 1;
+  const hari = parts[2].padStart(2, "0");
+  return `${hari} ${bulanInggris[bulanIdx] || "May"} ${tahun}`;
+}
+
 function bukaModalBatchNomorSertifikat() {
+  const tglInput = document.getElementById("batchTanggalTerbit");
+  if (tglInput && !tglInput.value) {
+    tglInput.value = new Date().toISOString().split("T")[0];
+  }
   updatePreviewBatchNomor();
   const modal = document.getElementById("modalBatchNomorSertifikat");
   modal.classList.remove("hidden");
@@ -780,12 +842,14 @@ function generateNomorBerantai(kodeAwal, indeksOffset) {
 function updatePreviewBatchNomor() {
   const awal = document.getElementById("batchKodeAwal")?.value || "A11";
   const suffix = document.getElementById("batchFormatSuffix")?.value || "";
+  const tglRaw = document.getElementById("batchTanggalTerbit")?.value || "";
+  const tglFormatted = formatTanggalInggrisSertifikat(tglRaw);
   const previewEl = document.getElementById("previewUrutanBatchNomor");
   if (!previewEl) return;
 
   const baris = [0, 1, 2].map(idx => {
     const kode = generateNomorBerantai(awal, idx);
-    return `${idx + 1}. <b>${kode}</b> ${suffix}`;
+    return `${idx + 1}. <b>${kode}</b> ${suffix} &bull; <span style="color:#0E7A3F">${tglFormatted}</span>`;
   });
   previewEl.innerHTML = baris.join("<br />");
 }
@@ -797,11 +861,14 @@ async function eksekusiBatchNomorSertifikat() {
   const targetAngkatan = document.getElementById("batchTargetAngkatan").value;
   const kodeAwal = document.getElementById("batchKodeAwal").value.trim().toUpperCase();
   const suffix = document.getElementById("batchFormatSuffix").value.trim();
+  const tglRaw = document.getElementById("batchTanggalTerbit").value;
 
-  if (!kodeAwal) {
-    alert("Masukkan kode nomor awal terlebih dahulu (contoh: A11)!");
+  if (!kodeAwal || !tglRaw) {
+    alert("Nomor urut awal dan Tanggal Terbit Sertifikat wajib diisi!");
     return;
   }
+
+  const tanggalTerbitFormatted = formatTanggalInggrisSertifikat(tglRaw);
 
   const daftarTarget = rekapanState.semuaData
     .filter(m => String(m.tahun_angkatan) === String(targetAngkatan))
@@ -812,7 +879,7 @@ async function eksekusiBatchNomorSertifikat() {
     return;
   }
 
-  if (!confirm(`Terapkan penomoran otomatis mulai dari ${kodeAwal} ke ${daftarTarget.length} mahasiswa Angkatan ${targetAngkatan}?`)) {
+  if (!confirm(`Terapkan penomoran mulai dari ${kodeAwal} dan tanggal terbit "${tanggalTerbitFormatted}" ke ${daftarTarget.length} mahasiswa Angkatan ${targetAngkatan}?`)) {
     return;
   }
 
@@ -828,18 +895,22 @@ async function eksekusiBatchNomorSertifikat() {
         const kodeUrut = generateNomorBerantai(kodeAwal, idxGlobal);
         const nomorLengkap = suffix ? `${kodeUrut} ${suffix}` : kodeUrut;
         m.nomor_sertifikat = nomorLengkap;
+        m.tanggal_tes = tanggalTerbitFormatted;
         return db
           .from("arsip_master_rekapan")
-          .update({ nomor_sertifikat: nomorLengkap })
+          .update({
+            nomor_sertifikat: nomorLengkap,
+            tanggal_tes: tanggalTerbitFormatted
+          })
           .eq("nim", m.nim);
       });
       await Promise.all(promises);
     }
 
     tutupModalBatchNomor();
-    alert(`Berhasil! ${daftarTarget.length} nomor sertifikat Angkatan ${targetAngkatan} telah dibuat berurutan mulai dari ${kodeAwal}.`);
+    alert(`Berhasil! Nomor sertifikat (${kodeAwal} dst.) dan tanggal terbit (${tanggalTerbitFormatted}) telah diterapkan ke ${daftarTarget.length} mahasiswa Angkatan ${targetAngkatan}.`);
   } catch (err) {
-    alert("Gagal menyimpan nomor sertifikat massal: " + err.message);
+    alert("Gagal menyimpan pengaturan sertifikat massal: " + err.message);
   } finally {
     btn.disabled = false;
   }
@@ -902,7 +973,8 @@ function eksekusiUnduhExcelRekapan() {
         READING: m.reading ?? "-",
         "SKOR TOEFL UTAMA": m.skor_toefl ?? "-",
         STATUS: m.status_lulus === "LULUS" ? "LULUS" : "BELUM LULUS",
-        "NOMOR SERTIFIKAT": m.nomor_sertifikat || "-"
+        "NOMOR SERTIFIKAT": m.nomor_sertifikat || "-",
+        "TANGGAL TERBIT": m.tanggal_tes || "-"
       };
     }
     if (pilihKategori === "REMEDIAL") {
@@ -911,7 +983,7 @@ function eksekusiUnduhExcelRekapan() {
         "REMEDIAL 1": m.remedial_1 ?? "-",
         "REMEDIAL 2": m.remedial_2 ?? "-",
         "REMEDIAL 3": m.remedial_3 ?? "-",
-        "SKOR AKHIR": m.skor_akhir ?? "-",
+        "SKOR TOEFL AKHIR": m.skor_toefl_akhir ?? "-",
         STATUS: m.status_lulus === "LULUS" ? "LULUS" : "BELUM LULUS"
       };
     }
@@ -924,9 +996,10 @@ function eksekusiUnduhExcelRekapan() {
       "REMEDIAL 1": m.remedial_1 ?? "-",
       "REMEDIAL 2": m.remedial_2 ?? "-",
       "REMEDIAL 3": m.remedial_3 ?? "-",
-      "SKOR AKHIR": m.skor_akhir ?? "-",
+      "SKOR TOEFL AKHIR": m.skor_toefl_akhir ?? "-",
       STATUS: m.status_lulus === "LULUS" ? "LULUS" : "BELUM LULUS",
-      "NOMOR SERTIFIKAT": m.nomor_sertifikat || "-"
+      "NOMOR SERTIFIKAT": m.nomor_sertifikat || "-",
+      "TANGGAL TERBIT": m.tanggal_tes || "-"
     };
   });
 
@@ -939,36 +1012,35 @@ function eksekusiUnduhExcelRekapan() {
   tutupModalUnduhExcel();
 }
 
-// ==================== 7. UNDUH / CETAK SERTIFIKAT RESMI (TEMPLATE ./img/sertif.png A4 LANDSCAPE) ====================
-function unduhSertifikatByNim(nimTarget) {
+// ==================== 7. UNDUH / CETAK SERTIFIKAT RESMI (SSPECT & TOEFL TERPISAH, ./img/sertif.png A4 LANDSCAPE) ====================
+function unduhSertifikatByNim(nimTarget, jenisSertifikat) {
   const m = rekapanState.semuaData.find(x => String(x.nim) === String(nimTarget));
   if (!m) return;
-  cetakHalamanSertifikatResmi(m);
+  cetakHalamanSertifikatResmi(m, jenisSertifikat);
 }
 
-function unduhSertifikatMahasiswaAktif() {
+function unduhSertifikatMahasiswaAktif(jenisSertifikat) {
   const m = rekapanState.mahasiswaDetailAktif;
   if (!m) return;
   m.tempat_tanggal_lahir = document.getElementById("inputDetailTtl").value.trim() || m.tempat_tanggal_lahir;
   m.tanggal_tes = document.getElementById("inputDetailTanggalTes").value.trim() || m.tanggal_tes;
   m.nomor_sertifikat = document.getElementById("inputDetailNomorSertifikat").value.trim() || m.nomor_sertifikat;
-  cetakHalamanSertifikatResmi(m);
+  cetakHalamanSertifikatResmi(m, jenisSertifikat);
 }
 
-function cetakHalamanSertifikatResmi(m) {
-  const punyaToefl = Boolean(m.skor_toefl || m.remedial_1 || m.remedial_2 || m.remedial_3);
-  const isSspectOnly = !punyaToefl && Boolean(m.skor_sspect);
+function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
+  const isSspect = String(jenisSertifikat).toUpperCase() === "SSPECT";
 
-  const jenisTesText = isSspectOnly ? "SSPECT Placement Test" : "Toefl Prediction Test";
-  const defaultKodeSurat = isSspectOnly ? "SSPECT" : "TOEFL-P";
+  const jenisTesText = isSspect ? "SSPECT Placement Test" : "Toefl Prediction Test";
+  const defaultKodeSurat = isSspect ? "SSPECT" : "TOEFL-P";
   const nomor = m.nomor_sertifikat || `0355 / PL7.18 / UPA.BAHASA / ${defaultKodeSurat} / ${new Date().getFullYear()}`;
   const ttl = m.tempat_tanggal_lahir || "Samarinda, -";
   const tglTes = m.tanggal_tes || "04 May 2026";
 
-  const sec1 = isSspectOnly ? (m.sspect_listening ?? m.listening ?? "-") : (m.listening ?? m.sspect_listening ?? "-");
-  const sec2 = isSspectOnly ? (m.sspect_structure ?? m.structure ?? "-") : (m.structure ?? m.sspect_structure ?? "-");
-  const sec3 = isSspectOnly ? (m.sspect_reading ?? m.reading ?? "-") : (m.reading ?? m.sspect_reading ?? "-");
-  const totalSkor = isSspectOnly ? (m.skor_sspect ?? "-") : (m.skor_akhir ?? "-");
+  const sec1 = isSspect ? (m.sspect_listening ?? m.listening ?? "-") : (m.listening ?? "-");
+  const sec2 = isSspect ? (m.sspect_structure ?? m.structure ?? "-") : (m.structure ?? "-");
+  const sec3 = isSspect ? (m.sspect_reading ?? m.reading ?? "-") : (m.reading ?? "-");
+  const totalSkor = isSspect ? (m.skor_sspect ?? "-") : (m.skor_toefl_akhir ?? "-");
 
   const bgUrl = new URL("./img/sertif.png", window.location.href).href;
 
@@ -983,7 +1055,7 @@ function cetakHalamanSertifikatResmi(m) {
     <html lang="id">
     <head>
       <meta charset="UTF-8" />
-      <title>Sertifikat ${isSspectOnly ? "SSPECT" : "TOEFL"} - ${m.nama_mahasiswa} (${m.nim})</title>
+      <title>Sertifikat ${isSspect ? "SSPECT" : "TOEFL"} - ${m.nama_mahasiswa} (${m.nim})</title>
       <style>
         @page {
           size: A4 landscape;
@@ -1014,14 +1086,12 @@ function cetakHalamanSertifikatResmi(m) {
           font-family: Arial, sans-serif;
           font-size: 13px;
         }
-        .toolbar-cetak select, .toolbar-cetak button {
-          padding: 6px 12px;
+        .toolbar-cetak button {
+          padding: 7px 14px;
           border-radius: 6px;
           border: none;
           font-weight: bold;
           cursor: pointer;
-        }
-        .toolbar-cetak button {
           background: #169C53;
           color: #fff;
         }
@@ -1140,11 +1210,7 @@ function cetakHalamanSertifikatResmi(m) {
     <body>
       <div class="toolbar-cetak">
         <div>
-          <span>Jenis Sertifikat: </span>
-          <select id="pilihJenisSertif" onchange="gantiJenisSertifikat(this.value)">
-            <option value="TOEFL" ${!isSspectOnly ? "selected" : ""}>Sertifikat TOEFL (Toefl Prediction Test)</option>
-            <option value="SSPECT" ${isSspectOnly ? "selected" : ""}>Sertifikat SSPECT (SSPECT Placement Test)</option>
-          </select>
+          <strong>Sertifikat ${isSspect ? "SSPECT (SSPECT Placement Test)" : "TOEFL (Toefl Prediction Test)"}</strong> &mdash; ${m.nama_mahasiswa} (${m.nim})
         </div>
         <button type="button" onclick="window.print()">Cetak / Simpan PDF (A4 Landscape)</button>
       </div>
@@ -1153,7 +1219,7 @@ function cetakHalamanSertifikatResmi(m) {
         <div class="cert-overlay">
           <div class="cert-heading">
             <h1>CERTIFICATE OF ACHIEVEMENT</h1>
-            <div class="no-surat" id="teksNomorSurat">No : ${nomor}</div>
+            <div class="no-surat">No : ${nomor}</div>
           </div>
 
           <div class="presented-to">This is presented to</div>
@@ -1187,7 +1253,7 @@ function cetakHalamanSertifikatResmi(m) {
           </table>
 
           <div class="achieved-text">
-            Achieved the following score on <span id="teksJenisTes">${jenisTesText}</span>
+            Achieved the following score on <span>${jenisTesText}</span>
           </div>
 
           <table class="score-grid">
@@ -1201,10 +1267,10 @@ function cetakHalamanSertifikatResmi(m) {
             </thead>
             <tbody>
               <tr>
-                <td id="cellSec1">${sec1}</td>
-                <td id="cellSec2">${sec2}</td>
-                <td id="cellSec3">${sec3}</td>
-                <td id="cellTotal">${totalSkor}</td>
+                <td>${sec1}</td>
+                <td>${sec2}</td>
+                <td>${sec3}</td>
+                <td>${totalSkor}</td>
               </tr>
             </tbody>
           </table>
@@ -1220,34 +1286,6 @@ function cetakHalamanSertifikatResmi(m) {
           </div>
         </div>
       </div>
-
-      <script>
-        const dataCert = {
-          toefl: {
-            jenis: "Toefl Prediction Test",
-            s1: "${m.listening ?? "-"}",
-            s2: "${m.structure ?? "-"}",
-            s3: "${m.reading ?? "-"}",
-            total: "${m.skor_akhir ?? "-"}"
-          },
-          sspect: {
-            jenis: "SSPECT Placement Test",
-            s1: "${m.sspect_listening ?? m.listening ?? "-"}",
-            s2: "${m.sspect_structure ?? m.structure ?? "-"}",
-            s3: "${m.sspect_reading ?? m.reading ?? "-"}",
-            total: "${m.skor_sspect ?? "-"}"
-          }
-        };
-
-        function gantiJenisSertifikat(tipe) {
-          const d = tipe === "SSPECT" ? dataCert.sspect : dataCert.toefl;
-          document.getElementById("teksJenisTes").textContent = d.jenis;
-          document.getElementById("cellSec1").textContent = d.s1;
-          document.getElementById("cellSec2").textContent = d.s2;
-          document.getElementById("cellSec3").textContent = d.s3;
-          document.getElementById("cellTotal").textContent = d.total;
-        }
-      </script>
     </body>
     </html>
   `);

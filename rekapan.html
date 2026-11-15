@@ -32,13 +32,11 @@
 
   <!-- ==================== SIDEBAR NAVIGASI (TERKONEKSI KE FILE ASLI) ==================== -->
   <aside id="sidebarMenu" class="w-60 bg-white border-r border-slate-200/80 hidden lg:flex flex-col fixed inset-y-0 left-0 z-40 overflow-y-auto custom-scrollbar">
-    <!-- Brand Header -->
     <div class="h-16 px-5 border-b border-slate-200/80 flex items-center gap-3 shrink-0">
       <img src="./img/polnes.png" alt="Logo POLNES" onerror="this.style.display='none'" class="w-8 h-8 object-contain shrink-0" />
       <span class="text-sm font-extrabold text-slate-800 tracking-tight">UPA BAHASA</span>
     </div>
 
-    <!-- Menu List -->
     <nav class="px-3.5 py-4 space-y-1 text-[13px] font-semibold flex-1">
       <a href="dashboard.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
         <i class="ri-layout-grid-line text-base text-slate-400"></i>
@@ -95,19 +93,16 @@
         </div>
       </div>
 
-      <!-- Kalkulasi Score -->
       <a href="kalkulasi-score.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
         <i class="ri-calculator-line text-base text-slate-400"></i>
         <span>Kalkulasi Score</span>
       </a>
 
-      <!-- Rekapan (Active) -->
       <a href="rekapan.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-emerald-50 text-[#169C53] font-bold transition-colors">
         <i class="ri-bar-chart-box-line text-base text-[#169C53]"></i>
         <span>Rekapan</span>
       </a>
 
-      <!-- Pusat Informasi -->
       <a href="dashboard.html#informasi" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
         <i class="ri-information-line text-base text-slate-400"></i>
         <span>Pusat Informasi</span>
@@ -147,7 +142,7 @@
   <!-- ==================== AREA KONTEN UTAMA ==================== -->
   <div class="flex-1 lg:pl-60 flex flex-col min-w-0">
 
-    <!-- TOP HEADER SERAGAM -->
+    <!-- TOP HEADER -->
     <header class="bg-white border-b border-slate-200/80 sticky top-0 z-30">
       <div class="max-w-7xl mx-auto px-6 sm:px-8 h-16 flex items-center justify-between">
         <div class="flex items-center gap-3">
@@ -188,10 +183,10 @@
             <span>Sinkron Alur Sistem</span>
           </button>
 
-          <!-- Tombol Nomor Sertifikat Otomatis 1 Angkatan -->
+          <!-- Tombol Atur Nomor & Tanggal Sertifikat 1 Angkatan -->
           <button type="button" onclick="bukaModalBatchNomorSertifikat()" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-extrabold inline-flex items-center gap-2 shadow-2xs transition-all">
-            <i class="ri-vip-crown-line text-sm"></i>
-            <span>Auto Nomor Sertifikat</span>
+            <i class="ri-calendar-check-line text-sm"></i>
+            <span>Atur Nomor &amp; Tanggal Sertifikat</span>
           </button>
 
           <!-- Tombol Unduh Excel per Angkatan / Kategori -->
@@ -250,7 +245,7 @@
         </select>
       </section>
 
-      <!-- ==================== BAR 3: TABEL UTAMA REKAPAN (RINGKAS & BERSIH) ==================== -->
+      <!-- ==================== BAR 3: TABEL UTAMA REKAPAN ==================== -->
       <section class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
         <div class="overflow-x-auto custom-scrollbar">
           <table class="w-full text-left border-collapse text-xs sm:text-sm">
@@ -259,15 +254,16 @@
                 <th class="px-4 py-3.5 w-14">NO</th>
                 <th class="px-4 py-3.5">NIM &amp; NAMA MAHASISWA</th>
                 <th class="px-4 py-3.5">JURUSAN &amp; PRODI</th>
-                <th class="px-4 py-3.5 text-center">ANGKATAN (NIM)</th>
-                <th class="px-4 py-3.5 text-center">SKOR AKHIR</th>
+                <th class="px-4 py-3.5 text-center">ANGKATAN</th>
+                <th class="px-4 py-3.5 text-center">SSPECT</th>
+                <th class="px-4 py-3.5 text-center">SKOR TOEFL</th>
                 <th class="px-4 py-3.5 text-center">STATUS</th>
                 <th class="px-4 py-3.5 text-center">AKSI &amp; SERTIFIKAT</th>
               </tr>
             </thead>
             <tbody id="tbodyRekapanMaster" class="divide-y divide-slate-100">
               <tr>
-                <td colspan="7" class="px-6 py-12 text-center text-slate-400 italic">
+                <td colspan="8" class="px-6 py-12 text-center text-slate-400 italic">
                   Memuat data mahasiswa &amp; sinkronisasi nilai dari database...
                 </td>
               </tr>
@@ -293,7 +289,7 @@
     </main>
   </div>
 
-  <!-- ==================== MODAL 1: DETAIL MAHASISWA & SERTIFIKAT ==================== -->
+  <!-- ==================== MODAL 1: DETAIL MAHASISWA & SERTIFIKAT TERPISAH ==================== -->
   <div id="modalDetailMahasiswa" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
     <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-3xl max-h-[92vh] overflow-y-auto custom-scrollbar">
       <!-- Header Modal -->
@@ -320,9 +316,9 @@
             KOTAK-KOTAK RIWAYAT NILAI TEST
           </div>
           <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            <div class="rounded-2xl border border-slate-200/90 bg-slate-50/50 p-3.5 text-center">
-              <div class="text-[10px] font-extrabold text-slate-400 uppercase">SSPECT</div>
-              <div id="boxSkorSspect" class="text-lg font-extrabold text-slate-800 mt-1">-</div>
+            <div class="rounded-2xl border border-sky-200 bg-sky-50/40 p-3.5 text-center">
+              <div class="text-[10px] font-extrabold text-sky-600 uppercase">SSPECT</div>
+              <div id="boxSkorSspect" class="text-lg font-extrabold text-sky-700 mt-1">-</div>
             </div>
             <div class="rounded-2xl border border-slate-200/90 bg-slate-50/50 p-3.5 text-center">
               <div id="labelBoxLatihan" class="text-[10px] font-extrabold text-slate-400 uppercase">LATIHAN</div>
@@ -348,7 +344,7 @@
 
           <!-- Rincian Section 1, 2, 3 -->
           <div class="mt-3 rounded-xl bg-slate-50 border border-slate-200/70 px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
-            <span class="font-bold text-slate-500">Rincian Section Skor Akhir:</span>
+            <span class="font-bold text-slate-500">Rincian Section Skor:</span>
             <div class="flex flex-wrap items-center gap-4 font-extrabold text-slate-700">
               <span>Listening (Sec 1): <span id="detailSec1" class="text-[#169C53]">-</span></span>
               <span>Structure (Sec 2): <span id="detailSec2" class="text-[#169C53]">-</span></span>
@@ -357,20 +353,20 @@
           </div>
         </div>
 
-        <!-- Panel Status Penerbitan Sertifikat Resmi -->
+        <!-- Panel Status Penerbitan Sertifikat Resmi (Tombol SSPECT & TOEFL Terpisah) -->
         <div class="rounded-2xl border border-slate-200 p-5 space-y-4">
-          <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
             <div>
               <h3 class="text-sm font-extrabold text-slate-800">Status Penerbitan Sertifikat Resmi</h3>
               <p id="detailKeteranganSertifikat" class="text-xs text-slate-500 mt-0.5">
-                Lengkapi Tempat/Tanggal Lahir, Tanggal Tes, dan Nomor Sertifikat untuk mengunduh sertifikat.
+                Tombol sertifikat muncul otomatis sesuai ketersediaan skor SSPECT atau kelengkapan Latihan + TOEFL.
               </p>
             </div>
 
-            <button type="button" onclick="unduhSertifikatMahasiswaAktif()" class="px-4 py-2.5 rounded-xl bg-[#169C53] hover:bg-[#0E7A3F] text-white text-xs font-extrabold inline-flex items-center gap-2 shadow-xs transition-all">
-              <i class="ri-download-2-line text-sm"></i>
-              <span>Unduh Sertifikat (PDF/Print)</span>
-            </button>
+            <!-- Container Tombol Unduh Terpisah (SSPECT & TOEFL) -->
+            <div id="containerTombolSertifikatDetail" class="flex flex-wrap items-center gap-2 shrink-0">
+              <!-- Diisi dinamis oleh JS -->
+            </div>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
@@ -407,13 +403,13 @@
     </div>
   </div>
 
-  <!-- ==================== MODAL 2: GENERATOR NOMOR SERTIFIKAT 1 ANGKATAN ==================== -->
+  <!-- ==================== MODAL 2: ATUR NOMOR & TANGGAL SERTIFIKAT 1 ANGKATAN ==================== -->
   <div id="modalBatchNomorSertifikat" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-xl w-full max-w-md overflow-hidden">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-xl w-full max-w-lg overflow-hidden">
       <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
         <div>
-          <h3 class="text-sm font-extrabold text-slate-800">Penomoran Sertifikat Otomatis 1 Angkatan</h3>
-          <p class="text-xs text-slate-400 mt-0.5">Contoh: isi <span class="font-mono font-bold text-slate-700">A11</span> &rarr; otomatis jadi A11, A12, A13...</p>
+          <h3 class="text-sm font-extrabold text-slate-800">Atur Nomor &amp; Tanggal Sertifikat 1 Angkatan</h3>
+          <p class="text-xs text-slate-400 mt-0.5">Terapkan nomor urut berantai &amp; tanggal terbit serentak untuk 1 angkatan</p>
         </div>
         <button type="button" onclick="tutupModalBatchNomor()" class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-400 flex items-center justify-center">
           <i class="ri-close-line text-lg"></i>
@@ -421,33 +417,42 @@
       </div>
 
       <div class="p-5 space-y-4">
-        <div>
-          <label for="batchTargetAngkatan" class="block text-[11px] font-extrabold text-slate-500 uppercase mb-1">
-            Pilih Tahun Angkatan Target
-          </label>
-          <select id="batchTargetAngkatan" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-bold text-slate-700 bg-white outline-none focus:border-[#169C53]">
-            <option value="2024">Angkatan 2024</option>
-          </select>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label for="batchTargetAngkatan" class="block text-[11px] font-extrabold text-slate-500 uppercase mb-1">
+              1. Tahun Angkatan Target
+            </label>
+            <select id="batchTargetAngkatan" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-bold text-slate-700 bg-white outline-none focus:border-[#169C53]">
+              <option value="2024">Angkatan 2024</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="batchTanggalTerbit" class="block text-[11px] font-extrabold text-slate-500 uppercase mb-1">
+              2. Tanggal Terbit Sertifikat
+            </label>
+            <input type="date" id="batchTanggalTerbit" onchange="updatePreviewBatchNomor()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-bold text-slate-700 bg-white outline-none focus:border-[#169C53]" />
+          </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label for="batchKodeAwal" class="block text-[11px] font-extrabold text-slate-500 uppercase mb-1">
-              Nomor Urut Awal
+              3. Nomor Urut Awal
             </label>
             <input type="text" id="batchKodeAwal" value="A11" oninput="updatePreviewBatchNomor()" placeholder="A11 atau 0001" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-mono font-extrabold text-slate-800 uppercase outline-none focus:border-[#169C53]" />
           </div>
 
           <div>
             <label for="batchFormatSuffix" class="block text-[11px] font-extrabold text-slate-500 uppercase mb-1">
-              Format Akhiran Surat
+              4. Format Akhiran Surat
             </label>
             <input type="text" id="batchFormatSuffix" value="/ PL7.18 / UPA.BAHASA / TOEFL-P / 2026" oninput="updatePreviewBatchNomor()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-mono font-bold text-slate-700 outline-none focus:border-[#169C53]" />
           </div>
         </div>
 
         <div class="rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-900">
-          <div class="font-extrabold mb-1">Pratinjau Urutan Otomatis:</div>
+          <div class="font-extrabold mb-1">Pratinjau Nomor &amp; Tanggal Terbit Serentak:</div>
           <div id="previewUrutanBatchNomor" class="font-mono text-[11px] leading-relaxed">
             1. A11 / PL7.18 / UPA.BAHASA / TOEFL-P / 2026<br />
             2. A12 / PL7.18 / UPA.BAHASA / TOEFL-P / 2026<br />
@@ -461,7 +466,7 @@
           Batal
         </button>
         <button type="button" id="btnEksekusiBatchNomor" onclick="eksekusiBatchNomorSertifikat()" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-extrabold inline-flex items-center gap-1.5">
-          <i class="ri-magic-line"></i>
+          <i class="ri-check-double-line"></i>
           <span>Terapkan ke 1 Angkatan</span>
         </button>
       </div>
