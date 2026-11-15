@@ -297,18 +297,18 @@ function ekstrakSkorDariRiwayatJson(riwayatRaw) {
 function saringPayloadSesuaiSkemaTabel(objRecord) {
   const kandidat = { ...objRecord };
 
-  // Selaraskan alias nama kolom agar cocok dengan skema arsip_master_rekapan
-  if (kandidat.nama_mahasiswa !== undefined && kandidat.nama === undefined) {
-    kandidat.nama = kandidat.nama_mahasiswa;
-  }
-  if (kandidat.nama !== undefined && kandidat.nama_mahasiswa === undefined) {
-    kandidat.nama_mahasiswa = kandidat.nama;
+  // Selaraskan alias nama kolom agar cocok dengan skema arsip_master_rekapan (kolom DB adalah 'nama')
+  if (kandidat.nama_mahasiswa !== undefined) {
+    if (kandidat.nama === undefined) {
+      kandidat.nama = kandidat.nama_mahasiswa;
+    }
+    delete kandidat.nama_mahasiswa;
   }
   if (kandidat.program_studi !== undefined && kandidat.prodi === undefined) {
     kandidat.prodi = kandidat.program_studi;
   }
   
-  // Hapus properti 'angkatan' jika ada, pastikan hanya menggunakan 'tahun_angkatan' sesuai skema database Supabase
+  // Hapus properti 'angkatan' agar tidak error, gunakan 'tahun_angkatan'
   if (kandidat.angkatan !== undefined) {
     if (kandidat.tahun_angkatan === undefined) {
       kandidat.tahun_angkatan = kandidat.angkatan;
@@ -383,7 +383,7 @@ async function sinkronkanDatabaseRekapan(tampilkanNotif = false) {
 
         mapByNim.set(nimKey, {
           nim: nimKey,
-          nama_mahasiswa: String(ambilNilaiKolom(rawRow, ["nama_mahasiswa", "nama", "nama_lengkap", "full_name"], "-")).toUpperCase(),
+          nama_mahasiswa: String(ambilNilaiKolom(rawRow, ["nama", "nama_mahasiswa", "nama_lengkap", "full_name"], "-")).toUpperCase(),
           jurusan: infoProdi.jurusan,
           program_studi: infoProdi.prodi,
           jenjang: infoProdi.jenjang,
@@ -414,7 +414,7 @@ async function sinkronkanDatabaseRekapan(tampilkanNotif = false) {
       if (!nimKey) return;
 
       const rec = getOrCreateRecord(nimKey, row);
-      const nama = String(ambilNilaiKolom(row, ["nama_mahasiswa", "nama", "nama_lengkap"], "-")).toUpperCase();
+      const nama = String(ambilNilaiKolom(row, ["nama", "nama_mahasiswa", "nama_lengkap"], "-")).toUpperCase();
       if (nama !== "-") rec.nama_mahasiswa = nama;
 
       const prodiRaw = ambilNilaiKolom(row, ["program_studi", "prodi", "kelas"], "-");
@@ -460,7 +460,7 @@ async function sinkronkanDatabaseRekapan(tampilkanNotif = false) {
       if (!nimKey) return;
       const rec = getOrCreateRecord(nimKey, mhs);
 
-      const nama = String(ambilNilaiKolom(mhs, ["nama_mahasiswa", "nama", "nama_lengkap"], "-")).toUpperCase();
+      const nama = String(ambilNilaiKolom(mhs, ["nama", "nama_mahasiswa", "nama_lengkap"], "-")).toUpperCase();
       if ((rec.nama_mahasiswa === "-" || !rec.nama_mahasiswa) && nama !== "-") {
         rec.nama_mahasiswa = nama;
       }
@@ -483,7 +483,7 @@ async function sinkronkanDatabaseRekapan(tampilkanNotif = false) {
 
       const rec = getOrCreateRecord(nimKey, item);
 
-      const nama = String(ambilNilaiKolom(item, ["nama_mahasiswa", "nama", "nama_lengkap"], "-")).toUpperCase();
+      const nama = String(ambilNilaiKolom(item, ["nama", "nama_mahasiswa", "nama_lengkap"], "-")).toUpperCase();
       if ((rec.nama_mahasiswa === "-" || !rec.nama_mahasiswa) && nama !== "-") {
         rec.nama_mahasiswa = nama;
       }
@@ -586,7 +586,6 @@ async function perbaikiDataMasterDiDatabase(db, daftarMahasiswa) {
     const payload = saringPayloadSesuaiSkemaTabel({
       nim: m.nim,
       nama: m.nama_mahasiswa || "-",
-      nama_mahasiswa: m.nama_mahasiswa || "-",
       jurusan: m.jurusan,
       prodi: m.program_studi,
       program_studi: m.program_studi,
@@ -823,7 +822,6 @@ async function prosesImportArsipCerdas() {
         const recBaru = mapInsertBaru.get(nimRaw) || {
           nim: nimRaw,
           nama: namaFinal,
-          nama_mahasiswa: namaFinal,
           jurusan: infoProdi.jurusan,
           prodi: infoProdi.prodi,
           program_studi: infoProdi.prodi,
