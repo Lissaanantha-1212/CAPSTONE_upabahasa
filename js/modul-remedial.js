@@ -1,8 +1,9 @@
 // ============================================================================
 // MODUL PENJADWALAN UJIAN REMEDIAL TOEFL (UPA BAHASA POLNES)
 // - Antrean mentah dibaca dari tabel `pendaftaran_remedial`
-// - Saat dikunci, sesi masuk ke `jadwal_log` (kolom asli) + `peserta_ujian`
-// - Antrean mentah di `pendaftaran_remedial` otomatis dihapus setelah dikunci
+// - Saat dikunci, sesi masuk ke `jadwal_log` + `peserta_ujian`
+// - Antrean mentah di `pendaftaran_remedial` langsung dihapus & disembunyikan
+// - Setelah dicocokkan di Hasil Test / Rekapan, log otomatis hilang dari tabel
 // ============================================================================
 
 const KAPASITAS_MAKS_LAB_REMEDIAL = 25;
@@ -27,8 +28,26 @@ function formatTanggalIndoRem(tglStr) {
 }
 
 function isRowSudahSelesaiLog(item) {
-  const st = String(item.status || "").toUpperCase();
-  return ["SELESAI", "LOGGED", "ARSIP", "ARCHIVED", "MATCHED", "DONE", "TERARSIP"].includes(st);
+  if (!item) return true;
+  const st = String(item.status || item.status_log || "").trim().toUpperCase();
+  if ([
+    "SELESAI",
+    "LOGGED",
+    "ARSIP",
+    "ARCHIVED",
+    "MATCHED",
+    "DONE",
+    "TERARSIP",
+    "SUDAH DICOCOKKAN",
+    "DICOCOKKAN",
+    "COMPLETED"
+  ].includes(st)) {
+    return true;
+  }
+  if (item.is_logged === true || item.sudah_log === true || item.is_matched === true) {
+    return true;
+  }
+  return false;
 }
 
 // ==================== 1. MUAT ANTREAN & LOG TERKUNCI ====================
@@ -50,15 +69,14 @@ async function muatSemuaDataRemedial(tampilkanNotif = false) {
     if (resJadwal.error) throw resJadwal.error;
     if (resPeserta.error) throw resPeserta.error;
 
-    const antrean = resAntrean.data || [];
+    const rawAntrean = resAntrean.data || [];
     const allJadwal = resJadwal.data || [];
     const allPeserta = resPeserta.data || [];
 
-    remedialState.antreanMenunggu = antrean;
     remedialState.semuaJadwalLog = allJadwal;
     remedialState.semuaPesertaUjian = allPeserta;
 
-    // Sesi remedial yang sudah dikunci masuk ke jadwal_log dengan jenis_tes / status REMEDIAL
+    // 1. Filter Sesi Remedial Terkunci (hanya yang BELUM dicocokkan / belum selesai di Hasil Test)
     const terkunci = allJadwal.filter(item => {
       if (isRowSudahSelesaiLog(item)) return false;
       const jenis = String(item.jenis_tes || "").toUpperCase();
@@ -66,11 +84,24 @@ async function muatSemuaDataRemedial(tampilkanNotif = false) {
       return jenis.includes("REMEDIAL") || st === "REMEDIAL";
     });
 
+    // Kumpulkan semua NIM yang sudah masuk sesi remedial aktif agar tidak pernah muncul ganda di antrean
+    const idSesiAktifSet = new Set(terkunci.map(j => j.id));
+    const namaKelasAktifSet = new Set(terkunci.map(j => String(j.nama_kelas || "").trim().toUpperCase()));
+    const nimSudahDijadwalkanSet = new Set(
+      allPeserta
+        .filter(p => idSesiAktifSet.has(p.jadwal_id) || namaKelasAktifSet.has(String(p.nama_kelas || "").trim().toUpperCase()))
+        .map(p => String(p.nim || "").trim())
+    );
+
+    // 2. Filter Antrean Menunggu (kecualikan NIM yang sudah terjadwal)
+    const antrean = rawAntrean.filter(item => !nimSudahDijadwalkanSet.has(String(item.nim || "").trim()));
+
     const validIdSet = new Set(antrean.map(x => String(x.id)));
     Array.from(remedialState.selectedIds).forEach(idStr => {
       if (!validIdSet.has(idStr)) remedialState.selectedIds.delete(idStr);
     });
 
+    remedialState.antreanMenunggu = antrean;
     remedialState.sesiTerkunci = terkunci;
 
     const inputNamaRombongan = document.getElementById("remNamaRombongan");
@@ -326,7 +357,7 @@ async function kunciSesiRemedial() {
   btn.innerHTML = `<i class="ri-loader-4-line animate-spin"></i><span>Mengunci Sesi &amp; Plotting Meja...</span>`;
 
   try {
-    // 1. Insert 1 baris sesi FIX ke `jadwal_log` memakai kolom asli tabelmu
+    // 1. Insert 1 baris sesi FIX ke `jadwal_log` memakai kolom asli tabel
     const { data: insertedJadwal, error: errJadwal } = await db
       .from("jadwal_log")
       .insert([{
@@ -343,7 +374,7 @@ async function kunciSesiRemedial() {
 
     if (errJadwal) throw errJadwal;
 
-    // 2. Masukkan rincian mahasiswa & nomor mejanya ke `peserta_ujian` (sesuai kolom tabel peserta_ujian)
+    // 2. Masukkan rincian mahasiswa & nomor mejanya ke `peserta_ujian`
     const payloadPeserta = pesertaTerpilih.map((mhs, idx) => {
       const noMeja = `${kodePrefixMeja}-${String(idx + 1).padStart(2, "0")}`;
       return {
@@ -358,14 +389,14 @@ async function kunciSesiRemedial() {
     const { error: errPeserta } = await db.from("peserta_ujian").insert(payloadPeserta);
     if (errPeserta) throw errPeserta;
 
-    // 3. Hapus antrean mentah dari `pendaftaran_remedial`
+    // 3. Hapus antrean mentah dari `pendaftaran_remedial` berdasarkan ID & NIM agar daftar antrean langsung bersih
     const idsUntukHapus = pesertaTerpilih.map(m => m.id);
-    const { error: errHapusAntrean } = await db
-      .from("pendaftaran_remedial")
-      .delete()
-      .in("id", idsUntukHapus);
+    const nimsUntukHapus = pesertaTerpilih.map(m => String(m.nim || "").trim()).filter(Boolean);
 
-    if (errHapusAntrean) throw errHapusAntrean;
+    await db.from("pendaftaran_remedial").delete().in("id", idsUntukHapus);
+    if (nimsUntukHapus.length > 0) {
+      await db.from("pendaftaran_remedial").delete().in("nim", nimsUntukHapus);
+    }
 
     remedialState.selectedIds.clear();
     document.getElementById("remNamaRombongan").value = "";
@@ -377,7 +408,8 @@ async function kunciSesiRemedial() {
     alert(
       `Sesi "${kodeRombongan}" Berhasil Dikunci & Masuk Jadwal Log!\n` +
       `• Lokasi & Waktu: ${ruangLab}, ${formatTanggalIndoRem(tanggal)} (${sesi})\n` +
-      `• Total Peserta Terplot: ${payloadPeserta.length} Mahasiswa (Meja ${kodePrefixMeja}-01 s/d ${kodePrefixMeja}-${String(payloadPeserta.length).padStart(2, "0")})`
+      `• Total Peserta Terplot: ${payloadPeserta.length} Mahasiswa (Meja ${kodePrefixMeja}-01 s/d ${kodePrefixMeja}-${String(payloadPeserta.length).padStart(2, "0")})\n` +
+      `• Daftar antrean telah dibersihkan otomatis.`
     );
   } catch (err) {
     console.error("Gagal mengunci sesi remedial:", err);
@@ -397,7 +429,7 @@ function renderTabelLogTerkunciRemedial(list) {
     tbody.innerHTML = `
       <tr>
         <td colspan="7" class="px-6 py-10 text-center text-slate-400 italic">
-          Belum ada sesi ujian remedial yang dikunci.
+          Belum ada sesi ujian remedial aktif yang terkunci (sesi yang sudah dicocokkan nilainya otomatis dipindahkan ke Rekapan).
         </td>
       </tr>
     `;
@@ -472,7 +504,7 @@ function bukaModalPesertaSesiRemedial(jadwalId) {
             <td class="px-3 py-2.5 font-mono font-extrabold text-[#169C53]">${p.id_meja || "-"}</td>
             <td class="px-3 py-2.5 font-mono font-bold text-slate-800">${p.nim || "-"}</td>
             <td class="px-3 py-2.5 font-extrabold text-slate-900 uppercase">${p.nama || "-"}</td>
-            <td class="px-3 py-2.5 text-slate-600">${p.prodi || p.program_studi || p.nama_kelas || "-"}</td>
+            <td class="px-3 py-2.5 text-slate-600">${p.nama_kelas || "-"}</td>
           </tr>
         `)
         .join("");
@@ -511,7 +543,7 @@ async function batalkanKunciSesiRemedial(jadwalId, namaRombongan) {
       const kembalikanAntrean = pesertaSesi.map(p => ({
         nim: p.nim,
         nama_mahasiswa: p.nama,
-        program_studi: p.prodi || p.program_studi || "Peserta Remedial",
+        program_studi: "Peserta Remedial",
         nama_kelas: p.nama_kelas || "-"
       }));
       await db.from("pendaftaran_remedial").insert(kembalikanAntrean);
@@ -547,7 +579,7 @@ function cetakPdfBeritaAcaraRemedial(jadwalId) {
         <td style="text-align:center; font-weight:bold;">${p.id_meja || "-"}</td>
         <td style="text-align:center;">${p.nim || "-"}</td>
         <td style="text-transform:uppercase; font-weight:bold;">${p.nama || "-"}</td>
-        <td>${p.prodi || p.program_studi || p.nama_kelas || "-"}</td>
+        <td>${p.nama_kelas || "-"}</td>
         <td style="height:24px;">${idx % 2 === 0 ? `${idx + 1}.` : ""}</td>
         <td style="height:24px;">${idx % 2 === 1 ? `${idx + 1}.` : ""}</td>
       </tr>
@@ -697,12 +729,6 @@ function toggleSubmenuSidebar(submenuId, chevronId) {
   const chev = document.getElementById(chevronId);
   if (sub) sub.classList.toggle("hidden");
   if (chev) chev.classList.toggle("rotate-180");
-}
-
-function logoutStaff() {
-  if (confirm("Keluar dari panel staf UPA Bahasa?")) {
-    window.location.href = "login.html";
-  }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
