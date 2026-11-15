@@ -297,6 +297,7 @@ function ekstrakSkorDariRiwayatJson(riwayatRaw) {
 function saringPayloadSesuaiSkemaTabel(objRecord) {
   const kandidat = { ...objRecord };
 
+  // Selaraskan alias nama kolom agar cocok dengan skema arsip_master_rekapan (nama / nama_mahasiswa, prodi / program_studi, dll.)
   if (kandidat.nama_mahasiswa !== undefined && kandidat.nama === undefined) {
     kandidat.nama = kandidat.nama_mahasiswa;
   }
@@ -619,7 +620,7 @@ async function perbaikiDataMasterDiDatabase(db, daftarMahasiswa) {
   }
 }
 
-// ==================== 2. IMPORT ARSIP CERDAS (MENGAKOMODASI FORMAT EXCEL UPA BAHASA) ====================
+// ==================== 2. IMPORT ARSIP CERDAS (DINAMIS UNTUK SEMUA ANGKATAN) ====================
 function bukaModalImportArsip() {
   const fileInput = document.getElementById("inputFileExcelArsip");
   if (fileInput) fileInput.value = "";
@@ -632,6 +633,18 @@ function tutupModalImportArsip() {
   const modal = document.getElementById("modalImportArsipRekapan");
   modal.classList.add("hidden");
   modal.classList.remove("flex");
+}
+
+function cariKolomBarisExcel(rowObj, daftarKandidat) {
+  const keys = Object.keys(rowObj || {});
+  for (const kandidat of daftarKandidat) {
+    const kUpper = kandidat.toUpperCase();
+    const foundKey = keys.find(k => k.trim().toUpperCase() === kUpper || k.trim().toUpperCase().includes(kUpper));
+    if (foundKey && rowObj[foundKey] !== undefined && rowObj[foundKey] !== null && String(rowObj[foundKey]).trim() !== "") {
+      return rowObj[foundKey];
+    }
+  }
+  return null;
 }
 
 function parseSkorBulatExcel(valRaw) {
@@ -661,77 +674,15 @@ async function prosesImportArsipCerdas() {
   try {
     const buffer = await file.arrayBuffer();
     const workbook = XLSX.read(buffer, { type: "array" });
+    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
 
-    let semuaBarisMentah = [];
-
-    // Baca seluruh sheet (misal: D3, D4, dll.)
-    workbook.SheetNames.forEach(sheetName => {
-      const worksheet = workbook.Sheets[sheetName];
-      const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
-      let headerIndeks = -1;
-      let colMap = { nama: -1, nim: -1, sec1: -1, sec2: -1, sec3: -1, total: -1 };
-
-      // Cari baris header yang mengandung kata 'NIM' atau 'NAMA'
-      for (let i = 0; i < rows.length; i++) {
-        const rowStr = (rows[i] || []).map(cell => String(cell || "").trim().toUpperCase());
-        const idxNim = rowStr.findIndex(c => c === "NIM" || c === "NO. INDUK" || c.includes("NIM"));
-        const idxNama = rowStr.findIndex(c => c === "NAMA" || c.includes("NAMA"));
-
-        if (idxNim !== -1 || idxNama !== -1) {
-          headerIndeks = i;
-          rowStr.forEach((val, cIdx) => {
-            if (val.includes("NAMA")) colMap.nama = cIdx;
-            else if (val.includes("NIM")) colMap.nim = cIdx;
-            else if (val.includes("SECTION 1") || val.includes("SEC 1") || val.includes("LISTENING") || val === "4") colMap.sec1 = cIdx;
-            else if (val.includes("SECTION 2") || val.includes("SEC 2") || val.includes("STRUCTURE") || val === "5") colMap.sec2 = cIdx;
-            else if (val.includes("SECTION 3") || val.includes("SEC 3") || val.includes("READING") || val === "6") colMap.sec3 = cIdx;
-            else if (val.includes("TOTAL") || val.includes("SKOR") || val.includes("SCORE") || val === "7") colMap.total = cIdx;
-          });
-          break;
-        }
-      }
-
-      // Fallback posisi standar UPA Bahasa jika header teks tidak terdeteksi eksplisit
-      if (headerIndeks === -1) {
-        headerIndeks = 10;
-        colMap = { nama: 2, nim: 3, sec1: 4, sec2: 5, sec3: 6, total: 7 };
-      }
-
-      // Ambil baris data di bawah header
-      for (let i = headerIndeks + 1; i < rows.length; i++) {
-        const r = rows[i];
-        if (!r || r.length === 0) continue;
-
-        const nimVal = String(r[colMap.nim !== -1 ? colMap.nim : 3] || "").replace(/\s+/g, "").trim();
-        const namaVal = String(r[colMap.nama !== -1 ? colMap.nama : 2] || "").trim().toUpperCase();
-
-        if (!nimVal || !namaVal || nimVal === "NIM" || namaVal === "NAMA") {
-          continue;
-        }
-
-        const s1 = parseSkorBulatExcel(r[colMap.sec1 !== -1 ? colMap.sec1 : 4]);
-        const s2 = parseSkorBulatExcel(r[colMap.sec2 !== -1 ? colMap.sec2 : 5]);
-        const s3 = parseSkorBulatExcel(r[colMap.sec3 !== -1 ? colMap.sec3 : 6]);
-        const totalVal = parseSkorBulatExcel(r[colMap.total !== -1 ? colMap.total : 7]) || (s1 && s3 ? s1 + s3 : null);
-
-        semuaBarisMentah.push({
-          nim: nimVal,
-          nama: namaVal,
-          sec1: s1,
-          sec2: s2,
-          sec3: s3,
-          total: totalVal,
-          sheet: sheetName
-        });
-      }
-    });
-
-    if (semuaBarisMentah.length === 0) {
-      alert("File Excel kosong atau struktur kolom NIM dan NAMA tidak ditemukan.");
+    if (!rows || rows.length === 0) {
+      alert("File Excel kosong atau tidak terbaca.");
       return;
     }
 
+    // 1. Peta dinamis seluruh data yang SUDAH ADA di database (untuk tahun angkatan apa pun)
     const mapDbByNim = new Map();
     const mapDbByNamaAngkatan = new Map();
     const setAngkatanSudahAdaDiDb = new Set();
@@ -743,28 +694,34 @@ async function prosesImportArsipCerdas() {
       if (!isNaN(thn) && thn > 0) {
         setAngkatanSudahAdaDiDb.add(thn);
       }
+
       const keyNama = `${normalisasiNamaPencocokan(m.nama_mahasiswa)}|${thn}`;
       if (!mapDbByNamaAngkatan.has(keyNama)) {
         mapDbByNamaAngkatan.set(keyNama, m);
       }
     });
 
+    // 2. Proses baris file Excel secara dinamis berdasarkan 2 digit awal NIM & status angkatan di DB
     const mapPatchDbExisting = new Map();
     const mapInsertBaru = new Map();
     const setAngkatanTerdeteksi = new Set();
     let jmlDilewati = 0;
 
-    semuaBarisMentah.forEach(item => {
-      const nimRaw = item.nim;
-      const namaRaw = item.nama;
+    rows.forEach(row => {
+      const nimRaw = String(cariKolomBarisExcel(row, ["NIM", "NO INDUK", "NPM"]) || "").replace(/\s+/g, "").trim();
+      const namaRaw = String(cariKolomBarisExcel(row, ["NAMA MAHASISWA", "NAMA_MAHASISWA", "NAMA LENGKAP", "NAMA", "FULL NAME"]) || "").trim().toUpperCase();
 
-      const sourceSheet = String(item.sheet || "").toUpperCase();
-      const fallbackProdiSheet = sourceSheet.includes("D4") ? "D4 - PROGRAM STUDI" : sourceSheet.includes("D3") ? "D3 - PROGRAM STUDI" : "-";
+      if (!nimRaw && !namaRaw) {
+        jmlDilewati++;
+        return;
+      }
 
-      const angkatanNim = ekstrakAngkatanNim(nimRaw);
+      // Baca 2 digit awal NIM sebagai tahun angkatan (misal 20->2020, 21->2021, 22->2022, 23->2023, dst.)
+      const angkatanNim = ekstrakAngkatanNim(nimRaw, cariKolomBarisExcel(row, ["TAHUN_ANGKATAN", "ANGKATAN", "TAHUN"]));
       setAngkatanTerdeteksi.add(angkatanNim);
       const angkatanSudahAdaDiDb = setAngkatanSudahAdaDiDb.has(angkatanNim);
 
+      // Cocokkan dengan data yang SUDAH ADA di database
       let existingDb = null;
       if (nimRaw && mapDbByNim.has(nimRaw)) {
         existingDb = mapDbByNim.get(nimRaw);
@@ -773,15 +730,21 @@ async function prosesImportArsipCerdas() {
         existingDb = mapDbByNamaAngkatan.get(keyNama) || null;
       }
 
-      const skorAngka = item.total;
-      const s1 = item.sec1;
-      const s2 = item.sec2;
-      const s3 = item.sec3;
+      // Ambil angka skor & bulatkan ke integer
+      const skorUtamaRaw = cariKolomBarisExcel(row, [
+        "TOTAL_SCORE", "TOTAL SCORE", "SKOR TOTAL", "SKOR AKHIR", "SKOR", "SCORE", "NILAI",
+        "SSPECT", "LATIHAN", "TOEFL", "REMEDIAL 1", "REMEDIAL 2", "REMEDIAL 3", "REMEDIAL"
+      ]);
+      const skorAngka = parseSkorBulatExcel(skorUtamaRaw);
+
+      const s1 = parseSkorBulatExcel(cariKolomBarisExcel(row, ["LISTENING", "SEC 1", "SECTION_1", "SECTION 1"]));
+      const s2 = parseSkorBulatExcel(cariKolomBarisExcel(row, ["STRUCTURE", "SEC 2", "SECTION_2", "SECTION 2"]));
+      const s3 = parseSkorBulatExcel(cariKolomBarisExcel(row, ["READING", "SEC 3", "SECTION_3", "SECTION 3"]));
 
       const terapkanSkorKeObjek = (targetObj) => {
         let terisi = false;
-        if (kategoriImport === "SSPECT" && (skorAngka || s1 || s3)) {
-          targetObj.skor_sspect = skorAngka || (s1 && s3 ? s1 + s3 : null);
+        if (kategoriImport === "SSPECT" && skorAngka) {
+          targetObj.skor_sspect = skorAngka;
           if (s1) targetObj.sspect_listening = s1;
           if (s2) targetObj.sspect_structure = s2;
           if (s3) targetObj.sspect_reading = s3;
@@ -792,8 +755,8 @@ async function prosesImportArsipCerdas() {
           if (s2) targetObj.structure = s2;
           if (s3) targetObj.reading = s3;
           terisi = true;
-        } else if (kategoriImport === "TOEFL" && (skorAngka || s1 || s3)) {
-          targetObj.skor_toefl = skorAngka || (s1 && s3 ? s1 + s3 : null);
+        } else if (kategoriImport === "TOEFL" && skorAngka) {
+          targetObj.skor_toefl = skorAngka;
           if (s1) targetObj.listening = s1;
           if (s2) targetObj.structure = s2;
           if (s3) targetObj.reading = s3;
@@ -816,11 +779,21 @@ async function prosesImportArsipCerdas() {
           if (s2) targetObj.structure = s2;
           if (s3) targetObj.reading = s3;
           terisi = true;
+        } else if (kategoriImport === "BIODATA_TTL") {
+          const ttlGabungan = cariKolomBarisExcel(row, ["PLACE, DATE OF BIRTH", "TEMPAT TANGGAL LAHIR", "TTL"]);
+          const tempat = cariKolomBarisExcel(row, ["TEMPAT LAHIR", "KOTA LAHIR"]);
+          const tglLahir = cariKolomBarisExcel(row, ["TANGGAL LAHIR", "TGL LAHIR"]);
+          const finalTtl = ttlGabungan || (tempat && tglLahir ? `${tempat}, ${tglLahir}` : "");
+          if (finalTtl) {
+            targetObj.tempat_tanggal_lahir = String(finalTtl).trim();
+            terisi = true;
+          }
         }
         return terisi;
       };
 
       if (existingDb) {
+        // MAHASISWA SUDAH ADA DI DATABASE -> UPDATE KOLOM SKORNYA SAJA (TIDAK DUPLIKASI NAMA)
         const patch = mapPatchDbExisting.get(existingDb.nim) || { nim: existingDb.nim };
         const adaSkor = terapkanSkorKeObjek(patch);
         if (adaSkor) {
@@ -829,12 +802,15 @@ async function prosesImportArsipCerdas() {
           jmlDilewati++;
         }
       } else {
+        // MAHASISWA / ANGKATAN BELUM ADA DI DATABASE -> TERIMA SEBAGAI DATA BARU
         if (!nimRaw) {
           jmlDilewati++;
           return;
         }
 
-        const infoProdi = deteksiJurusanDariProdiSensitif(fallbackProdiSheet, "-");
+        const prodiRaw = cariKolomBarisExcel(row, ["PROGRAM STUDI", "PROGRAM_STUDI", "PRODI", "KELAS"]) || "-";
+        const jurusanRaw = cariKolomBarisExcel(row, ["JURUSAN"]) || "-";
+        const infoProdi = deteksiJurusanDariProdiSensitif(prodiRaw, jurusanRaw);
         const namaFinal = namaRaw || "-";
 
         const recBaru = mapInsertBaru.get(nimRaw) || {
@@ -856,6 +832,7 @@ async function prosesImportArsipCerdas() {
     const daftarUpdateExisting = Array.from(mapPatchDbExisting.values());
     const daftarInsertBaru = Array.from(mapInsertBaru.values());
 
+    // Eksekusi UPDATE skor ke mahasiswa lama
     const chunkSize = 150;
     for (let i = 0; i < daftarUpdateExisting.length; i += chunkSize) {
       const slice = daftarUpdateExisting.slice(i, i + chunkSize);
@@ -872,6 +849,7 @@ async function prosesImportArsipCerdas() {
       }
     }
 
+    // Eksekusi INSERT langsung untuk mahasiswa/angkatan baru
     for (let i = 0; i < daftarInsertBaru.length; i += chunkSize) {
       const batchBaru = daftarInsertBaru.slice(i, i + chunkSize).map(item => saringPayloadSesuaiSkemaTabel(item));
       const { error: errInsert } = await db
@@ -1423,25 +1401,37 @@ function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
   let htmlTabelSkor = "";
   if (isSspect) {
     htmlTabelSkor = `
+      <!-- ========================================================================= -->
+      <!-- [PENANDA KHUSUS SERTIFIKAT SSPECT]                                         -->
+      <!-- Saat ini menampilkan 3 kolom: Listening, Reading, dan Total Score.        -->
+      <!-- JIKA CLIENT MEMINTA TOTAL SCORE SAJA:                                     -->
+      <!-- Cukup hapus baris <th> & <td> untuk Listening dan Reading di bawah ini!   -->
+      <!-- ========================================================================= -->
       <table class="score-grid">
         <thead>
           <tr>
+            <!-- [HAPUS <th> INI JIKA HANYA TOTAL SCORE] -->
             <th>Listening<br />Comprehension</th>
+            <!-- [HAPUS <th> INI JIKA HANYA TOTAL SCORE] -->
             <th>Reading<br />Comprehension</th>
             <th style="font-style:normal;">Total Score</th>
           </tr>
         </thead>
         <tbody>
           <tr>
+            <!-- [HAPUS <td> INI JIKA HANYA TOTAL SCORE] -->
             <td>${sec1}</td>
+            <!-- [HAPUS <td> INI JIKA HANYA TOTAL SCORE] -->
             <td>${sec3}</td>
             <td>${totalSkor}</td>
           </tr>
         </tbody>
       </table>
+      <!-- ================= [AKHIR PENANDA KHUSUS SERTIFIKAT SSPECT] ================ -->
     `;
   } else {
     htmlTabelSkor = `
+      <!-- TABEL NILAI TOEFL (4 KOLOM STANDAR) -->
       <table class="score-grid">
         <thead>
           <tr>
