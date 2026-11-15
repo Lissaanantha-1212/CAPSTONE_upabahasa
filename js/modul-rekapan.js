@@ -1,5 +1,6 @@
 // ============================================================================
 // MODUL REKAPAN INDUK MAHASISWA & SERTIFIKAT RESMI (UPA BAHASA POLNES)
+// Terkoneksi ke: arsip_master_rekapan, Rekapan, HasilTes, dan Mahasiswa
 // ============================================================================
 
 const rekapanState = {
@@ -15,11 +16,142 @@ function getDbClientRekapan() {
   return window.supabaseClient || window.supabase || null;
 }
 
-// Helper mengambil nilai pertama yang tidak kosong dari beberapa kemungkinan nama kolom DB
+// ==================== PEMETAAN SENSITIF 10 JURUSAN & 26 PRODI POLNES ====================
+const DAFTAR_JURUSAN_PRODI_POLNES = [
+  {
+    jurusan: "AKUNTANSI",
+    prodi: [
+      { nama: "D3 - AKUNTANSI", kataKunci: ["D3 - AKUNTANSI", "D3 AKUNTANSI"] },
+      { nama: "D4 - AKUNTANSI MANAJERIAL", kataKunci: ["AKUNTANSI MANAJERIAL"] },
+      { nama: "D4 - KEUANGAN PERBANKAN", kataKunci: ["KEUANGAN PERBANKAN"] }
+    ]
+  },
+  {
+    jurusan: "ADMINISTRASI BISNIS",
+    prodi: [
+      { nama: "D4 - MANAJEMEN PEMASARAN", kataKunci: ["MANAJEMEN PEMASARAN"] },
+      { nama: "D4 - BISNIS DIGITAL", kataKunci: ["BISNIS DIGITAL"] },
+      { nama: "D3 - ADMINISTRASI BISNIS", kataKunci: ["ADMINISTRASI BISNIS"] }
+    ]
+  },
+  {
+    jurusan: "KEMARITIMAN",
+    prodi: [
+      { nama: "D3 - KETATALAKSANAAN PELAYARAN DAN NIAGA KEPELABUHAN", kataKunci: ["KETATALAKSANAAN PELAYARAN", "KPNK", "NIAGA KEPELABUHAN"] },
+      { nama: "D3 - TEKNIKA", kataKunci: ["TEKNIKA"] },
+      { nama: "D3 - NAUTIKA", kataKunci: ["NAUTIKA"] }
+    ]
+  },
+  {
+    jurusan: "PARIWISATA",
+    prodi: [
+      { nama: "D3 - PARIWISATA", kataKunci: ["D3 - PARIWISATA", "D3 PARIWISATA"] },
+      { nama: "D4 - USAHA PERJALANAN WISATA", kataKunci: ["USAHA PERJALANAN WISATA", "UPW"] },
+      { nama: "D4 - PENGELOLAAN PERHOTELAN", kataKunci: ["PERHOTELAN"] }
+    ]
+  },
+  {
+    jurusan: "TEKNOLOGI INFORMASI",
+    prodi: [
+      { nama: "D3 - TEKNIK INFORMATIKA", kataKunci: ["D3 - TEKNIK INFORMATIKA", "D3 TEKNIK INFORMATIKA"] },
+      { nama: "D3 - TEKNIK KOMPUTER", kataKunci: ["D3 - TEKNIK KOMPUTER", "D3 TEKNIK KOMPUTER"] },
+      { nama: "D4 - TEKNIK INFORMATIKA MULTIMEDIA", kataKunci: ["INFORMATIKA MULTIMEDIA", "TIM"] },
+      { nama: "D4 - TEKNOLOGI REKAYASA KOMPUTER", kataKunci: ["TEKNOLOGI REKAYASA KOMPUTER", "TRK"] }
+    ]
+  },
+  {
+    jurusan: "DESAIN",
+    prodi: [
+      { nama: "D4 - DESAIN PRODUK KAYU DAN SERAT", kataKunci: ["DESAIN PRODUK KAYU", "KAYU DAN SERAT"] },
+      { nama: "D4 - ARSITEKTUR BANGUNAN GEDUNG", kataKunci: ["ARSITEKTUR BANGUNAN GEDUNG"] }
+    ]
+  },
+  {
+    jurusan: "TEKNIK KIMIA",
+    prodi: [
+      { nama: "D3 - PETRO DAN OLEO KIMIA", kataKunci: ["PETRO DAN OLEO KIMIA", "PETRO"] },
+      { nama: "D4 - TEKNOLOGI KIMIA INDUSTRI", kataKunci: ["TEKNOLOGI KIMIA INDUSTRI", "KIMIA INDUSTRI"] }
+    ]
+  },
+  {
+    jurusan: "TEKNIK SIPIL",
+    prodi: [
+      { nama: "D4 - TEKNOLOGI REKAYASA KONSTRUKSI BANGUNAN GEDUNG", kataKunci: ["REKAYASA KONSTRUKSI BANGUNAN GEDUNG", "TRKBG"] },
+      { nama: "D4 - REKAYASA JALAN DAN JEMBATAN", kataKunci: ["REKAYASA JALAN DAN JEMBATAN", "JALAN DAN JEMBATAN"] },
+      { nama: "D4 - REKAYASA KONSTRUKSI BANGUNAN AIR", kataKunci: ["REKAYASA KONSTRUKSI BANGUNAN AIR", "BANGUNAN AIR"] },
+      { nama: "D3 - TEKNIK SIPIL", kataKunci: ["TEKNIK SIPIL"] }
+    ]
+  },
+  {
+    jurusan: "TEKNIK MESIN",
+    prodi: [
+      { nama: "D3 - PERAWATAN DAN PERBAIKAN MESIN", kataKunci: ["PERAWATAN DAN PERBAIKAN MESIN"] },
+      { nama: "D3 - TEKNIK ALAT BERAT", kataKunci: ["TEKNIK ALAT BERAT", "ALAT BERAT"] },
+      { nama: "D4 - TEKNIK MESIN PRODUKSI DAN PERAWATAN", kataKunci: ["TEKNIK MESIN PRODUKSI", "PRODUKSI DAN PERAWATAN"] }
+    ]
+  },
+  {
+    jurusan: "TEKNIK ELEKTRO",
+    prodi: [
+      { nama: "D3 - TEKNIK LISTRIK", kataKunci: ["D3 - TEKNIK LISTRIK", "D3 TEKNIK LISTRIK", "D3 - TEKNIK ELEKTRO", "D3 TEKNIK ELEKTRO"] },
+      { nama: "D4 - TEKNIK LISTRIK", kataKunci: ["D4 - TEKNIK LISTRIK", "D4 TEKNIK LISTRIK", "D4 - TEKNI LISTRIK", "D4 - TEKNIK ELEKTRO"] }
+    ]
+  }
+];
+
+// Fungsi sensitif pembaca Prodi -> Otomatis menghasilkan Jurusan, Prodi Standar, dan Jenjang
+function deteksiJurusanDariProdiSensitif(prodiRaw, jurusanFallback = "-") {
+  const teks = String(prodiRaw || "").trim().toUpperCase().replace(/\s+/g, " ");
+  if (!teks || teks === "-") {
+    return {
+      jurusan: String(jurusanFallback || "-").toUpperCase(),
+      prodi: "-",
+      jenjang: "D3"
+    };
+  }
+
+  for (const kelompok of DAFTAR_JURUSAN_PRODI_POLNES) {
+    for (const item of kelompok.prodi) {
+      for (const kw of item.kataKunci) {
+        if (teks.includes(kw)) {
+          const jenjang = item.nama.startsWith("D4") || teks.includes("D4") ? "D4" : "D3";
+          return {
+            jurusan: kelompok.jurusan,
+            prodi: item.nama,
+            jenjang
+          };
+        }
+      }
+    }
+  }
+
+  // Pencocokan parsial jika format ditulis tanpa D3/D4 (misal "TEKNOLOGI KIMIA INDUSTRI")
+  for (const kelompok of DAFTAR_JURUSAN_PRODI_POLNES) {
+    for (const item of kelompok.prodi) {
+      const namaTanpaJenjang = item.nama.replace(/^D[34]\s*-\s*/, "");
+      if (teks.includes(namaTanpaJenjang)) {
+        const jenjang = item.nama.startsWith("D4") || teks.includes("D4") ? "D4" : "D3";
+        return {
+          jurusan: kelompok.jurusan,
+          prodi: item.nama,
+          jenjang
+        };
+      }
+    }
+  }
+
+  const jenjangFallback = teks.includes("D4") ? "D4" : "D3";
+  return {
+    jurusan: String(jurusanFallback || "-").toUpperCase(),
+    prodi: teks,
+    jenjang: jenjangFallback
+  };
+}
+
 function ambilNilaiKolom(obj, daftarKey, fallback = null) {
   if (!obj) return fallback;
   for (const key of daftarKey) {
-    if (obj[key] !== undefined && obj[key] !== null && String(obj[key]).trim() !== "") {
+    if (obj[key] !== undefined && obj[key] !== null && String(obj[key]).trim() !== "" && String(obj[key]).trim().toUpperCase() !== "NULL") {
       return obj[key];
     }
   }
@@ -51,7 +183,7 @@ function ekstrakAngkatanNim(nimRaw, fallback = null) {
 function getBatasLulusJenjang(prodi, jenjangRaw) {
   const gabungan = `${jenjangRaw || ""} ${prodi || ""}`.toUpperCase();
   if (gabungan.includes("D4") || gabungan.includes("SARJANA TERAPAN")) return 450;
-  return 400; // Default D3
+  return 400;
 }
 
 function hitungSkorAkhirMahasiswa(m) {
@@ -61,11 +193,11 @@ function hitungSkorAkhirMahasiswa(m) {
 
   if (skorToeflUtama.length > 0) return Math.max(...skorToeflUtama);
 
-  const semuaSkor = [m.skor_latihan, m.skor_sspect]
+  const skorPendahuluan = [m.skor_latihan, m.skor_sspect]
     .map(v => Number(v))
     .filter(v => !isNaN(v) && v > 0);
 
-  return semuaSkor.length > 0 ? Math.max(...semuaSkor) : null;
+  return skorPendahuluan.length > 0 ? Math.max(...skorPendahuluan) : null;
 }
 
 function cekStatusKelulusan(m) {
@@ -107,141 +239,271 @@ async function fetchAllRowsSupabase(db, namaTabel, orderByCol = null) {
   return { data: semuaBaris, error: null };
 }
 
-// ==================== 1. MUAT & SINKRONISASI SELURUH 1.836+ DATA DATABASE ====================
+// Parsing kolom riwayat_json dari tabel Rekapan / HasilTes
+function ekstrakSkorDariRiwayatJson(riwayatRaw) {
+  if (!riwayatRaw) return {};
+  let obj = riwayatRaw;
+  if (typeof riwayatRaw === "string") {
+    try {
+      obj = JSON.parse(riwayatRaw);
+    } catch (_) {
+      return {};
+    }
+  }
+  if (!obj || typeof obj !== "object") return {};
+
+  return {
+    sspect: ambilAngkaKolom(obj, ["sspect", "skor_sspect", "nilai_sspect"]),
+    latihan: ambilAngkaKolom(obj, ["latihan", "latihan_d3", "latihan_d4", "skor_latihan"]),
+    toefl: ambilAngkaKolom(obj, ["toefl", "toefl_d3", "toefl_d4", "skor_toefl", "toefl_utama"]),
+    rem1: ambilAngkaKolom(obj, ["remedial_1", "rem1", "rem_1"]),
+    rem2: ambilAngkaKolom(obj, ["remedial_2", "rem2", "rem_2"]),
+    rem3: ambilAngkaKolom(obj, ["remedial_3", "rem3", "rem_3"]),
+    listening: ambilAngkaKolom(obj, ["listening", "sec1", "section_1"]),
+    structure: ambilAngkaKolom(obj, ["structure", "sec2", "section_2"]),
+    reading: ambilAngkaKolom(obj, ["reading", "sec3", "section_3"])
+  };
+}
+
+// ==================== 1. MUAT & SINKRONISASI DATA DARI SEMUA TABEL ASLI SUPABASE ====================
 async function sinkronkanDatabaseRekapan(tampilkanNotif = false) {
   const db = getDbClientRekapan();
   if (!db) return;
 
   const tbody = document.getElementById("tbodyRekapanMaster");
   if (tbody) {
-    tbody.innerHTML = `<tr><td colspan="7" class="px-6 py-10 text-center text-slate-400 italic">Menarik seluruh 1.836+ data mahasiswa & nilai dari database...</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" class="px-6 py-10 text-center text-slate-400 italic">Menarik & menggabungkan seluruh data mahasiswa, jurusan, SSPECT, dan TOEFL dari database...</td></tr>`;
   }
 
   try {
-    // 1. Ambil SEMUA baris dari arsip_master_rekapan (menembus limit 1000 baris Supabase)
-    const { data: dataMaster, error: errMaster } = await fetchAllRowsSupabase(db, "arsip_master_rekapan", "nim");
-    if (errMaster) throw errMaster;
+    // 1. Tarik data dari arsip_master_rekapan, Rekapan, HasilTes, dan Mahasiswa secara paralel
+    const [resMaster, resRekapan, resHasilTes, resMahasiswa] = await Promise.all([
+      fetchAllRowsSupabase(db, "arsip_master_rekapan", "nim"),
+      fetchAllRowsSupabase(db, "Rekapan"),
+      fetchAllRowsSupabase(db, "HasilTes"),
+      fetchAllRowsSupabase(db, "Mahasiswa")
+    ]);
 
     const mapByNim = new Map();
 
-    (dataMaster || []).forEach(row => {
-      const nimKey = String(ambilNilaiKolom(row, ["nim", "nim_mahasiswa", "student_id"], "")).trim();
-      if (!nimKey) return;
+    // Helper memastikan record NIM ada di map
+    function getOrCreateRecord(nimKey, rawRow = {}) {
+      if (!mapByNim.has(nimKey)) {
+        const prodiRaw = ambilNilaiKolom(rawRow, ["program_studi", "prodi", "study_program", "kelas"], "-");
+        const jurusanRaw = ambilNilaiKolom(rawRow, ["jurusan", "department"], "-");
+        const infoProdi = deteksiJurusanDariProdiSensitif(prodiRaw, jurusanRaw);
 
-      const namaAsli = String(
-        ambilNilaiKolom(row, ["nama_mahasiswa", "nama", "nama_lengkap", "full_name", "student_name"], "-")
-      ).toUpperCase();
-
-      const prodiAsli = String(
-        ambilNilaiKolom(row, ["program_studi", "prodi", "study_program", "kelas"], "-")
-      ).toUpperCase();
-
-      const jurusanAsli = String(
-        ambilNilaiKolom(row, ["jurusan", "department"], "-")
-      ).toUpperCase();
-
-      mapByNim.set(nimKey, {
-        ...row,
-        nim: nimKey,
-        nama_mahasiswa: namaAsli,
-        jurusan: jurusanAsli,
-        program_studi: prodiAsli,
-        tahun_angkatan: ekstrakAngkatanNim(nimKey, ambilNilaiKolom(row, ["tahun_angkatan", "angkatan"], null)),
-        skor_sspect: ambilAngkaKolom(row, ["skor_sspect", "nilai_sspect", "sspect"]),
-        skor_latihan: ambilAngkaKolom(row, ["skor_latihan", "nilai_latihan", "latihan"]),
-        skor_toefl: ambilAngkaKolom(row, ["skor_toefl", "nilai_toefl", "toefl", "skor_utama"]),
-        remedial_1: ambilAngkaKolom(row, ["remedial_1", "rem_1", "rem1"]),
-        remedial_2: ambilAngkaKolom(row, ["remedial_2", "rem_2", "rem2"]),
-        remedial_3: ambilAngkaKolom(row, ["remedial_3", "rem_3", "rem3"]),
-        listening: ambilAngkaKolom(row, ["listening", "section_1", "sec_1", "s1"]),
-        structure: ambilAngkaKolom(row, ["structure", "section_2", "sec_2", "s2"]),
-        reading: ambilAngkaKolom(row, ["reading", "section_3", "sec_3", "s3"]),
-        tempat_tanggal_lahir: ambilNilaiKolom(row, ["tempat_tanggal_lahir", "ttl", "birth"], ""),
-        tanggal_tes: ambilNilaiKolom(row, ["tanggal_tes", "tgl_tes", "test_date"], ""),
-        nomor_sertifikat: ambilNilaiKolom(row, ["nomor_sertifikat", "no_sertifikat", "certificate_number"], "")
-      });
-    });
-
-    // 2. Gabungkan juga tabel hasil tes / SSPECT / TOEFL jika disimpan terpisah
-    const kandidatTabelHasil = ["hasil_sspect", "nilai_sspect", "sspect_hasil", "hasil_tes", "hasil_toefl"];
-    for (const namaTabel of kandidatTabelHasil) {
-      const { data: rowsHasil, error: errHasil } = await fetchAllRowsSupabase(db, namaTabel);
-      if (!errHasil && Array.isArray(rowsHasil) && rowsHasil.length > 0) {
-        rowsHasil.forEach(s => {
-          const nimKey = String(ambilNilaiKolom(s, ["nim", "nim_mahasiswa", "student_id"], "")).trim();
-          if (!nimKey) return;
-
-          const jenis = String(ambilNilaiKolom(s, ["kategori_tes", "jenis_tes", "kategori"], namaTabel)).toUpperCase();
-          const skorVal = ambilAngkaKolom(s, ["skor_sspect", "skor_toefl", "total_skor", "skor_akhir", "nilai"]);
-
-          const namaDariHasil = String(
-            ambilNilaiKolom(s, ["nama_mahasiswa", "nama", "nama_lengkap", "student_name"], "-")
-          ).toUpperCase();
-
-          const prodiDariHasil = String(
-            ambilNilaiKolom(s, ["program_studi", "prodi", "kelas"], "-")
-          ).toUpperCase();
-
-          const existing = mapByNim.get(nimKey) || {
-            nim: nimKey,
-            nama_mahasiswa: namaDariHasil,
-            jurusan: String(ambilNilaiKolom(s, ["jurusan"], "-")).toUpperCase(),
-            program_studi: prodiDariHasil,
-            tahun_angkatan: ekstrakAngkatanNim(nimKey, ambilNilaiKolom(s, ["tahun_angkatan", "angkatan"], null))
-          };
-
-          if ((existing.nama_mahasiswa === "-" || !existing.nama_mahasiswa) && namaDariHasil !== "-") {
-            existing.nama_mahasiswa = namaDariHasil;
-          }
-          if ((existing.program_studi === "-" || !existing.program_studi) && prodiDariHasil !== "-") {
-            existing.program_studi = prodiDariHasil;
-          }
-
-          if (skorVal) {
-            if (jenis.includes("SSPECT")) {
-              existing.skor_sspect = skorVal;
-              existing.sspect_listening = existing.sspect_listening || ambilAngkaKolom(s, ["section_1", "listening"]);
-              existing.sspect_structure = existing.sspect_structure || ambilAngkaKolom(s, ["section_2", "structure"]);
-              existing.sspect_reading = existing.sspect_reading || ambilAngkaKolom(s, ["section_3", "reading"]);
-            } else if (jenis.includes("LATIHAN")) {
-              existing.skor_latihan = skorVal;
-            } else if (jenis.includes("REM") && jenis.includes("3")) {
-              existing.remedial_3 = skorVal;
-            } else if (jenis.includes("REM") && jenis.includes("2")) {
-              existing.remedial_2 = skorVal;
-            } else if (jenis.includes("REM")) {
-              existing.remedial_1 = skorVal;
-            } else if (!existing.skor_toefl && jenis.includes("TOEFL")) {
-              existing.skor_toefl = skorVal;
-            }
-          }
-
-          existing.listening = existing.listening || ambilAngkaKolom(s, ["section_1", "listening"]);
-          existing.structure = existing.structure || ambilAngkaKolom(s, ["section_2", "structure"]);
-          existing.reading = existing.reading || ambilAngkaKolom(s, ["section_3", "reading"]);
-
-          mapByNim.set(nimKey, existing);
+        mapByNim.set(nimKey, {
+          nim: nimKey,
+          nama_mahasiswa: String(ambilNilaiKolom(rawRow, ["nama_mahasiswa", "nama", "nama_lengkap", "full_name"], "-")).toUpperCase(),
+          jurusan: infoProdi.jurusan,
+          program_studi: infoProdi.prodi,
+          jenjang: infoProdi.jenjang,
+          tahun_angkatan: ekstrakAngkatanNim(nimKey, ambilNilaiKolom(rawRow, ["tahun_angkatan", "angkatan"], null)),
+          skor_sspect: null,
+          skor_latihan: null,
+          skor_toefl: null,
+          remedial_1: null,
+          remedial_2: null,
+          remedial_3: null,
+          listening: null,
+          structure: null,
+          reading: null,
+          sspect_listening: null,
+          sspect_structure: null,
+          sspect_reading: null,
+          tempat_tanggal_lahir: "",
+          tanggal_tes: "",
+          nomor_sertifikat: ""
         });
       }
+      return mapByNim.get(nimKey);
     }
 
-    rekapanState.semuaData = Array.from(mapByNim.values()).map(m => ({
-      ...m,
-      skor_akhir: hitungSkorAkhirMahasiswa(m),
-      status_lulus: cekStatusKelulusan(m)
-    }));
+    // A. Proses arsip_master_rekapan
+    (resMaster.data || []).forEach(row => {
+      const nimKey = String(ambilNilaiKolom(row, ["nim", "nim_mahasiswa"], "")).trim();
+      if (!nimKey) return;
+
+      const rec = getOrCreateRecord(nimKey, row);
+      const nama = String(ambilNilaiKolom(row, ["nama_mahasiswa", "nama", "nama_lengkap"], "-")).toUpperCase();
+      if (nama !== "-") rec.nama_mahasiswa = nama;
+
+      const prodiRaw = ambilNilaiKolom(row, ["program_studi", "prodi", "kelas"], "-");
+      const jurusanRaw = ambilNilaiKolom(row, ["jurusan"], rec.jurusan);
+      const infoProdi = deteksiJurusanDariProdiSensitif(prodiRaw, jurusanRaw);
+      if (infoProdi.prodi !== "-") rec.program_studi = infoProdi.prodi;
+      if (infoProdi.jurusan !== "-") rec.jurusan = infoProdi.jurusan;
+      rec.jenjang = infoProdi.jenjang;
+
+      rec.skor_sspect = ambilAngkaKolom(row, ["skor_sspect", "nilai_sspect", "sspect"]) ?? rec.skor_sspect;
+      rec.skor_latihan = ambilAngkaKolom(row, ["skor_latihan", "nilai_latihan", "latihan"]) ?? rec.skor_latihan;
+      rec.skor_toefl = ambilAngkaKolom(row, ["skor_toefl", "nilai_toefl", "toefl", "skor_utama"]) ?? rec.skor_toefl;
+      rec.remedial_1 = ambilAngkaKolom(row, ["remedial_1", "rem_1"]) ?? rec.remedial_1;
+      rec.remedial_2 = ambilAngkaKolom(row, ["remedial_2", "rem_2"]) ?? rec.remedial_2;
+      rec.remedial_3 = ambilAngkaKolom(row, ["remedial_3", "rem_3"]) ?? rec.remedial_3;
+
+      rec.listening = ambilAngkaKolom(row, ["listening", "section_1"]) ?? rec.listening;
+      rec.structure = ambilAngkaKolom(row, ["structure", "section_2"]) ?? rec.structure;
+      rec.reading = ambilAngkaKolom(row, ["reading", "section_3"]) ?? rec.reading;
+      rec.sspect_listening = ambilAngkaKolom(row, ["sspect_listening"]) ?? rec.sspect_listening;
+      rec.sspect_structure = ambilAngkaKolom(row, ["sspect_structure"]) ?? rec.sspect_structure;
+      rec.sspect_reading = ambilAngkaKolom(row, ["sspect_reading"]) ?? rec.sspect_reading;
+
+      rec.tempat_tanggal_lahir = ambilNilaiKolom(row, ["tempat_tanggal_lahir", "ttl"], rec.tempat_tanggal_lahir);
+      rec.tanggal_tes = ambilNilaiKolom(row, ["tanggal_tes", "tgl_tes"], rec.tanggal_tes);
+      rec.nomor_sertifikat = ambilNilaiKolom(row, ["nomor_sertifikat", "no_sertifikat"], rec.nomor_sertifikat);
+    });
+
+    // B. Lengkapi identitas & prodi sensitif dari tabel Mahasiswa (jika ada)
+    (resMahasiswa.data || []).forEach(mhs => {
+      const nimKey = String(ambilNilaiKolom(mhs, ["nim", "nim_mahasiswa"], "")).trim();
+      if (!nimKey) return;
+      const rec = getOrCreateRecord(nimKey, mhs);
+
+      const nama = String(ambilNilaiKolom(mhs, ["nama_mahasiswa", "nama", "nama_lengkap"], "-")).toUpperCase();
+      if ((rec.nama_mahasiswa === "-" || !rec.nama_mahasiswa) && nama !== "-") {
+        rec.nama_mahasiswa = nama;
+      }
+
+      const prodiRaw = ambilNilaiKolom(mhs, ["program_studi", "prodi", "kelas"], "-");
+      if (prodiRaw !== "-") {
+        const infoProdi = deteksiJurusanDariProdiSensitif(prodiRaw, rec.jurusan);
+        rec.program_studi = infoProdi.prodi;
+        rec.jurusan = infoProdi.jurusan;
+        rec.jenjang = infoProdi.jenjang;
+      }
+    });
+
+    // C. Proses tabel Rekapan & HasilTes (Sumber utama SSPECT, Latihan, TOEFL, Remedial, dan riwayat_json)
+    const gabunganHasilTes = [...(resRekapan.data || []), ...(resHasilTes.data || [])];
+    gabunganHasilTes.forEach(item => {
+      const nimKey = String(ambilNilaiKolom(item, ["nim", "nim_mahasiswa", "student_id"], "")).trim();
+      if (!nimKey) return;
+
+      const rec = getOrCreateRecord(nimKey, item);
+
+      const nama = String(ambilNilaiKolom(item, ["nama_mahasiswa", "nama", "nama_lengkap"], "-")).toUpperCase();
+      if ((rec.nama_mahasiswa === "-" || !rec.nama_mahasiswa) && nama !== "-") {
+        rec.nama_mahasiswa = nama;
+      }
+
+      const prodiRaw = ambilNilaiKolom(item, ["program_studi", "prodi", "kelas"], "-");
+      if (prodiRaw !== "-") {
+        const infoProdi = deteksiJurusanDariProdiSensitif(prodiRaw, rec.jurusan);
+        rec.program_studi = infoProdi.prodi;
+        rec.jurusan = infoProdi.jurusan;
+        rec.jenjang = infoProdi.jenjang;
+      }
+
+      // 1. Cek kolom kategori_tes + skor_total (seperti pada screenshot Supabase image_a3c3e2.png)
+      const kategori = String(ambilNilaiKolom(item, ["kategori_tes", "jenis_tes", "kategori"], "")).toUpperCase();
+      const skorTotal = ambilAngkaKolom(item, ["skor_total", "total_skor", "skor_akhir", "nilai"]);
+
+      if (skorTotal) {
+        if (kategori.includes("SSPECT")) {
+          rec.skor_sspect = skorTotal;
+        } else if (kategori.includes("LATIHAN")) {
+          rec.skor_latihan = skorTotal;
+        } else if (kategori.includes("REM") && kategori.includes("3")) {
+          rec.remedial_3 = skorTotal;
+        } else if (kategori.includes("REM") && kategori.includes("2")) {
+          rec.remedial_2 = skorTotal;
+        } else if (kategori.includes("REM")) {
+          rec.remedial_1 = skorTotal;
+        } else if (kategori.includes("TOEFL")) {
+          rec.skor_toefl = skorTotal;
+        }
+      }
+
+      // 2. Cek kolom skor spesifik langsung jika ada
+      rec.skor_sspect = ambilAngkaKolom(item, ["skor_sspect", "nilai_sspect"]) ?? rec.skor_sspect;
+      rec.skor_latihan = ambilAngkaKolom(item, ["skor_latihan", "nilai_latihan"]) ?? rec.skor_latihan;
+      rec.skor_toefl = ambilAngkaKolom(item, ["skor_toefl", "nilai_toefl"]) ?? rec.skor_toefl;
+      rec.remedial_1 = ambilAngkaKolom(item, ["remedial_1", "rem_1"]) ?? rec.remedial_1;
+      rec.remedial_2 = ambilAngkaKolom(item, ["remedial_2", "rem_2"]) ?? rec.remedial_2;
+      rec.remedial_3 = ambilAngkaKolom(item, ["remedial_3", "rem_3"]) ?? rec.remedial_3;
+
+      // 3. Ekstrak dari kolom riwayat_json (mis. {"sspect":410, ...})
+      const dariJson = ekstrakSkorDariRiwayatJson(item.riwayat_json);
+      if (dariJson.sspect) rec.skor_sspect = dariJson.sspect;
+      if (dariJson.latihan) rec.skor_latihan = dariJson.latihan;
+      if (dariJson.toefl) rec.skor_toefl = dariJson.toefl;
+      if (dariJson.rem1) rec.remedial_1 = dariJson.rem1;
+      if (dariJson.rem2) rec.remedial_2 = dariJson.rem2;
+      if (dariJson.rem3) rec.remedial_3 = dariJson.rem3;
+
+      // 4. Rincian Section 1, 2, 3
+      const s1 = ambilAngkaKolom(item, ["listening", "section_1", "sec_1", "s1"]) ?? dariJson.listening;
+      const s2 = ambilAngkaKolom(item, ["structure", "section_2", "sec_2", "s2"]) ?? dariJson.structure;
+      const s3 = ambilAngkaKolom(item, ["reading", "section_3", "sec_3", "s3"]) ?? dariJson.reading;
+
+      if (kategori.includes("SSPECT")) {
+        if (s1) rec.sspect_listening = s1;
+        if (s2) rec.sspect_structure = s2;
+        if (s3) rec.sspect_reading = s3;
+      } else {
+        if (s1) rec.listening = s1;
+        if (s2) rec.structure = s2;
+        if (s3) rec.reading = s3;
+      }
+    });
+
+    rekapanState.semuaData = Array.from(mapByNim.values()).map(m => {
+      // Pastikan ulang jurusan & prodi selalu konsisten sebelum dirender
+      const fixedProdi = deteksiJurusanDariProdiSensitif(m.program_studi, m.jurusan);
+      const itemFinal = {
+        ...m,
+        jurusan: fixedProdi.jurusan,
+        program_studi: fixedProdi.prodi,
+        jenjang: fixedProdi.jenjang
+      };
+      return {
+        ...itemFinal,
+        skor_akhir: hitungSkorAkhirMahasiswa(itemFinal),
+        status_lulus: cekStatusKelulusan(itemFinal)
+      };
+    });
 
     renderTabAngkatan();
     terapkanFilterRekapan();
 
+    // Jika staff menekan tombol "Sinkron Alur Sistem", perbarui juga kolom jurusan & skor di arsip_master_rekapan agar database ikut rapi
     if (tampilkanNotif) {
-      alert(`Sinkronisasi selesai! Berhasil memuat seluruh ${rekapanState.semuaData.length} data mahasiswa dari database.`);
+      await perbaikiDataMasterDiDatabase(db, rekapanState.semuaData);
+      alert(`Sinkronisasi & perbaikan jurusan selesai! Total ${rekapanState.semuaData.length} data mahasiswa (termasuk skor SSPECT & TOEFL) berhasil diselaraskan.`);
     }
   } catch (err) {
     console.error("Gagal memuat rekapan:", err);
     if (tbody) {
       tbody.innerHTML = `<tr><td colspan="7" class="px-6 py-10 text-center text-rose-500 font-bold">Gagal memuat data dari database: ${err.message}</td></tr>`;
     }
+  }
+}
+
+async function perbaikiDataMasterDiDatabase(db, daftarMahasiswa) {
+  const chunkSize = 250;
+  for (let i = 0; i < daftarMahasiswa.length; i += chunkSize) {
+    const batch = daftarMahasiswa.slice(i, i + chunkSize).map(m => ({
+      nim: m.nim,
+      nama_mahasiswa: m.nama_mahasiswa,
+      jurusan: m.jurusan,
+      program_studi: m.program_studi,
+      tahun_angkatan: m.tahun_angkatan,
+      skor_sspect: m.skor_sspect,
+      skor_latihan: m.skor_latihan,
+      skor_toefl: m.skor_toefl,
+      remedial_1: m.remedial_1,
+      remedial_2: m.remedial_2,
+      remedial_3: m.remedial_3,
+      listening: m.listening,
+      structure: m.structure,
+      reading: m.reading,
+      sspect_listening: m.sspect_listening,
+      sspect_structure: m.sspect_structure,
+      sspect_reading: m.sspect_reading
+    }));
+    await db.from("arsip_master_rekapan").upsert(batch, { onConflict: "nim" });
   }
 }
 
@@ -428,9 +690,9 @@ function bukaModalDetailMahasiswa(nimTarget) {
   }
 
   document.getElementById("detailNamaMahasiswa").textContent = m.nama_mahasiswa;
-  document.getElementById("detailSubIdentitas").textContent = `NIM: ${m.nim} • ${m.jurusan || "-"} • ${m.program_studi || "-"}`;
+  document.getElementById("detailSubIdentitas").textContent = `NIM: ${m.nim} • JURUSAN ${m.jurusan || "-"} • ${m.program_studi || "-"}`;
 
-  // Isi 6 kotak riwayat skor
+  // Isi 6 kotak riwayat skor sesuai kategori tesnya masing-masing
   document.getElementById("boxSkorSspect").textContent = m.skor_sspect ?? "-";
   document.getElementById("labelBoxLatihan").textContent = `LAT. ${jenjang}`;
   document.getElementById("boxSkorLatihan").textContent = m.skor_latihan ?? "-";
@@ -489,7 +751,7 @@ async function simpanPerubahanDetailMahasiswa() {
   alert("Identitas & Nomor Sertifikat mahasiswa berhasil diperbarui!");
 }
 
-// ==================== 5. GENERATOR NOMOR SERTIFIKAT BERANTAI 1 ANGKATAN (A11 -> A12, A13...) ====================
+// ==================== 5. GENERATOR NOMOR SERTIFIKAT BERANTAI 1 ANGKATAN ====================
 function bukaModalBatchNomorSertifikat() {
   updatePreviewBatchNomor();
   const modal = document.getElementById("modalBatchNomorSertifikat");
@@ -558,7 +820,6 @@ async function eksekusiBatchNomorSertifikat() {
   btn.disabled = true;
 
   try {
-    // Update hanya kolom nomor_sertifikat per batch agar nama_mahasiswa, prodi, dan nilai asli tidak tertimpa
     const chunkSize = 200;
     for (let i = 0; i < daftarTarget.length; i += chunkSize) {
       const slice = daftarTarget.slice(i, i + chunkSize);
@@ -695,7 +956,6 @@ function unduhSertifikatMahasiswaAktif() {
 }
 
 function cetakHalamanSertifikatResmi(m) {
-  // Deteksi apakah sertifikat TOEFL atau SSPECT berdasarkan nilai yang dimiliki
   const punyaToefl = Boolean(m.skor_toefl || m.remedial_1 || m.remedial_2 || m.remedial_3);
   const isSspectOnly = !punyaToefl && Boolean(m.skor_sspect);
 
@@ -710,7 +970,6 @@ function cetakHalamanSertifikatResmi(m) {
   const sec3 = isSspectOnly ? (m.sspect_reading ?? m.reading ?? "-") : (m.reading ?? m.sspect_reading ?? "-");
   const totalSkor = isSspectOnly ? (m.skor_sspect ?? "-") : (m.skor_akhir ?? "-");
 
-  // Resolusi URL absolut untuk ./img/sertif.png agar tetap muncul di window.open
   const bgUrl = new URL("./img/sertif.png", window.location.href).href;
 
   const win = window.open("", "_blank", "width=1120,height=800");
@@ -777,7 +1036,6 @@ function cetakHalamanSertifikatResmi(m) {
           background-position: center;
           overflow: hidden;
         }
-        /* Area Konten Utama tepat di tengah template ./img/sertif.png */
         .cert-overlay {
           position: absolute;
           top: 42mm;
