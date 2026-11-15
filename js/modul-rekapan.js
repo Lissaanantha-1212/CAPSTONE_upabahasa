@@ -9,7 +9,8 @@ const rekapanState = {
   tabAngkatanAktif: "SEMUA",
   halamanSaatIni: 1,
   perHalaman: 25,
-  mahasiswaDetailAktif: null
+  mahasiswaDetailAktif: null,
+  kolomTabelMaster: null
 };
 
 function getDbClientRekapan() {
@@ -267,13 +268,28 @@ function ekstrakSkorDariRiwayatJson(riwayatRaw) {
   };
 }
 
+// ==================== SANITASI KOLOM SUPABASE AGAR TIDAK GAGAL INSERT ====================
+function saringPayloadSesuaiSkemaTabel(objRecord) {
+  const kolomValid = rekapanState.kolomTabelMaster;
+  if (!kolomValid || kolomValid.size === 0) {
+    return objRecord;
+  }
+  const hasil = {};
+  Object.keys(objRecord).forEach(key => {
+    if (kolomValid.has(key) && objRecord[key] !== undefined) {
+      hasil[key] = objRecord[key];
+    }
+  });
+  return hasil;
+}
+
 // ==================== 1. MUAT & SINKRONISASI DATA DARI SEMUA TABEL ASLI SUPABASE ====================
 async function sinkronkanDatabaseRekapan(tampilkanNotif = false) {
   const db = getDbClientRekapan();
   if (!db) return;
 
   const tbody = document.getElementById("tbodyRekapanMaster");
-  if (tbody) {
+  if (tbody && rekapanState.semuaData.length === 0) {
     tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-10 text-center text-slate-400 italic">Menarik & menggabungkan seluruh data mahasiswa, jurusan, SSPECT, Latihan, dan TOEFL dari database...</td></tr>`;
   }
 
@@ -284,6 +300,11 @@ async function sinkronkanDatabaseRekapan(tampilkanNotif = false) {
       fetchAllRowsSupabase(db, "HasilTes"),
       fetchAllRowsSupabase(db, "Mahasiswa")
     ]);
+
+    // Catat skema kolom aktual dari arsip_master_rekapan
+    if (resMaster.data && resMaster.data.length > 0) {
+      rekapanState.kolomTabelMaster = new Set(Object.keys(resMaster.data[0]));
+    }
 
     const mapByNim = new Map();
 
@@ -487,25 +508,27 @@ async function sinkronkanDatabaseRekapan(tampilkanNotif = false) {
 async function perbaikiDataMasterDiDatabase(db, daftarMahasiswa) {
   const chunkSize = 250;
   for (let i = 0; i < daftarMahasiswa.length; i += chunkSize) {
-    const batch = daftarMahasiswa.slice(i, i + chunkSize).map(m => ({
-      nim: m.nim,
-      nama_mahasiswa: m.nama_mahasiswa,
-      jurusan: m.jurusan,
-      program_studi: m.program_studi,
-      tahun_angkatan: m.tahun_angkatan,
-      skor_sspect: m.skor_sspect,
-      skor_latihan: m.skor_latihan,
-      skor_toefl: m.skor_toefl,
-      remedial_1: m.remedial_1,
-      remedial_2: m.remedial_2,
-      remedial_3: m.remedial_3,
-      listening: m.listening,
-      structure: m.structure,
-      reading: m.reading,
-      sspect_listening: m.sspect_listening,
-      sspect_structure: m.sspect_structure,
-      sspect_reading: m.sspect_reading
-    }));
+    const batch = daftarMahasiswa.slice(i, i + chunkSize).map(m =>
+      saringPayloadSesuaiSkemaTabel({
+        nim: m.nim,
+        nama_mahasiswa: m.nama_mahasiswa,
+        jurusan: m.jurusan,
+        program_studi: m.program_studi,
+        tahun_angkatan: m.tahun_angkatan,
+        skor_sspect: m.skor_sspect,
+        skor_latihan: m.skor_latihan,
+        skor_toefl: m.skor_toefl,
+        remedial_1: m.remedial_1,
+        remedial_2: m.remedial_2,
+        remedial_3: m.remedial_3,
+        listening: m.listening,
+        structure: m.structure,
+        reading: m.reading,
+        sspect_listening: m.sspect_listening,
+        sspect_structure: m.sspect_structure,
+        sspect_reading: m.sspect_reading
+      })
+    );
     await db.from("arsip_master_rekapan").upsert(batch, { onConflict: "nim" });
   }
 }
@@ -565,22 +588,26 @@ async function prosesImportArsipCerdas() {
       return;
     }
 
-    // Peta pencocokan cepat berdasarkan NIM maupun kombinasi (NAMA + ANGKATAN)
-    const mapExistingByNim = new Map();
-    const mapExistingByNamaAngkatan = new Map();
+    // 1. Peta data yang SUDAH ADA di database saat ini (sebelum file ini dibaca)
+    const mapDbByNim = new Map();
+    const mapDbByNamaAngkatan = new Map();
+    const setAngkatanSudahAdaDiDb = new Set();
 
     rekapanState.semuaData.forEach(m => {
-      mapExistingByNim.set(String(m.nim).trim(), m);
-      const keyNama = `${normalisasiNamaPencocokan(m.nama_mahasiswa)}|${m.tahun_angkatan}`;
-      if (!mapExistingByNamaAngkatan.has(keyNama)) {
-        mapExistingByNamaAngkatan.set(keyNama, m);
+      const nimClean = String(m.nim).trim();
+      const thn = Number(m.tahun_angkatan);
+      mapDbByNim.set(nimClean, m);
+      setAngkatanSudahAdaDiDb.add(thn);
+
+      const keyNama = `${normalisasiNamaPencocokan(m.nama_mahasiswa)}|${thn}`;
+      if (!mapDbByNamaAngkatan.has(keyNama)) {
+        mapDbByNamaAngkatan.set(keyNama, m);
       }
     });
 
-    const daftarUpdateExisting = [];
-    const daftarInsertBaru = [];
-    let jmlDiperbarui = 0;
-    let jmlBaru = 0;
+    // 2. Kumpulkan & rapikan baris dari file Excel baru terlebih dahulu
+    const mapPatchDbExisting = new Map();
+    const mapInsertBaru = new Map();
     let jmlDilewati = 0;
 
     rows.forEach(row => {
@@ -592,13 +619,20 @@ async function prosesImportArsipCerdas() {
         return;
       }
 
-      const angkatanTerdeteksi = ekstrakAngkatanNim(nimRaw, cariKolomBarisExcel(row, ["ANGKATAN", "TAHUN"]));
-      const keyNamaAngkatan = `${normalisasiNamaPencocokan(namaRaw)}|${angkatanTerdeteksi}`;
+      // Baca 2 digit awal NIM sebagai tahun angkatan
+      const angkatanNim = ekstrakAngkatanNim(nimRaw, cariKolomBarisExcel(row, ["TAHUN_ANGKATAN", "ANGKATAN", "TAHUN"]));
+      const angkatanSudahAdaDiDb = setAngkatanSudahAdaDiDb.has(angkatanNim);
 
-      // Cek apakah mahasiswa sudah ada di database (prioritas NIM, fallback Nama + Angkatan)
-      const existing = (nimRaw && mapExistingByNim.get(nimRaw)) || mapExistingByNamaAngkatan.get(keyNamaAngkatan) || null;
+      // Cocokkan dengan data yang SUDAH ADA di database
+      let existingDb = null;
+      if (nimRaw && mapDbByNim.has(nimRaw)) {
+        existingDb = mapDbByNim.get(nimRaw);
+      } else if (!nimRaw && angkatanSudahAdaDiDb) {
+        const keyNama = `${normalisasiNamaPencocokan(namaRaw)}|${angkatanNim}`;
+        existingDb = mapDbByNamaAngkatan.get(keyNama) || null;
+      }
 
-      // Ambil angka skor sesuai kategori import yang dipilih staf
+      // Ambil angka skor sesuai kategori import
       const skorUtamaRaw = cariKolomBarisExcel(row, [
         "TOTAL SCORE", "SKOR TOTAL", "SKOR AKHIR", "SKOR", "SCORE", "NILAI",
         "SSPECT", "LATIHAN", "TOEFL", "REMEDIAL 1", "REMEDIAL 2", "REMEDIAL 3", "REMEDIAL"
@@ -614,63 +648,65 @@ async function prosesImportArsipCerdas() {
       const s2 = sec2Raw !== null && !isNaN(Number(sec2Raw)) && Number(sec2Raw) > 0 ? Number(sec2Raw) : null;
       const s3 = sec3Raw !== null && !isNaN(Number(sec3Raw)) && Number(sec3Raw) > 0 ? Number(sec3Raw) : null;
 
-      if (existing) {
-        // MAHASISWA SUDAH ADA -> HANYA UPDATE KOLOM SKOR / TTL SAJA (TIDAK DUPLIKASI NAMA)
-        const patchObj = { nim: existing.nim };
-        let adaPerubahan = false;
-
+      const terapkanSkorKeObjek = (targetObj) => {
+        let terisi = false;
         if (kategoriImport === "SSPECT" && skorAngka) {
-          patchObj.skor_sspect = skorAngka;
-          if (s1) patchObj.sspect_listening = s1;
-          if (s2) patchObj.sspect_structure = s2;
-          if (s3) patchObj.sspect_reading = s3;
-          adaPerubahan = true;
+          targetObj.skor_sspect = skorAngka;
+          if (s1) targetObj.sspect_listening = s1;
+          if (s2) targetObj.sspect_structure = s2;
+          if (s3) targetObj.sspect_reading = s3;
+          terisi = true;
         } else if (kategoriImport === "LATIHAN" && skorAngka) {
-          patchObj.skor_latihan = skorAngka;
-          adaPerubahan = true;
+          targetObj.skor_latihan = skorAngka;
+          terisi = true;
         } else if (kategoriImport === "TOEFL" && skorAngka) {
-          patchObj.skor_toefl = skorAngka;
-          if (s1) patchObj.listening = s1;
-          if (s2) patchObj.structure = s2;
-          if (s3) patchObj.reading = s3;
-          adaPerubahan = true;
+          targetObj.skor_toefl = skorAngka;
+          if (s1) targetObj.listening = s1;
+          if (s2) targetObj.structure = s2;
+          if (s3) targetObj.reading = s3;
+          terisi = true;
         } else if (kategoriImport === "REMEDIAL_1" && skorAngka) {
-          patchObj.remedial_1 = skorAngka;
-          if (s1) patchObj.listening = s1;
-          if (s2) patchObj.structure = s2;
-          if (s3) patchObj.reading = s3;
-          adaPerubahan = true;
+          targetObj.remedial_1 = skorAngka;
+          if (s1) targetObj.listening = s1;
+          if (s2) targetObj.structure = s2;
+          if (s3) targetObj.reading = s3;
+          terisi = true;
         } else if (kategoriImport === "REMEDIAL_2" && skorAngka) {
-          patchObj.remedial_2 = skorAngka;
-          if (s1) patchObj.listening = s1;
-          if (s2) patchObj.structure = s2;
-          if (s3) patchObj.reading = s3;
-          adaPerubahan = true;
+          targetObj.remedial_2 = skorAngka;
+          if (s1) targetObj.listening = s1;
+          if (s2) targetObj.structure = s2;
+          if (s3) targetObj.reading = s3;
+          terisi = true;
         } else if (kategoriImport === "REMEDIAL_3" && skorAngka) {
-          patchObj.remedial_3 = skorAngka;
-          if (s1) patchObj.listening = s1;
-          if (s2) patchObj.structure = s2;
-          if (s3) patchObj.reading = s3;
-          adaPerubahan = true;
+          targetObj.remedial_3 = skorAngka;
+          if (s1) targetObj.listening = s1;
+          if (s2) targetObj.structure = s2;
+          if (s3) targetObj.reading = s3;
+          terisi = true;
         } else if (kategoriImport === "BIODATA_TTL") {
           const ttlGabungan = cariKolomBarisExcel(row, ["PLACE, DATE OF BIRTH", "TEMPAT TANGGAL LAHIR", "TTL"]);
           const tempat = cariKolomBarisExcel(row, ["TEMPAT LAHIR", "KOTA LAHIR"]);
           const tglLahir = cariKolomBarisExcel(row, ["TANGGAL LAHIR", "TGL LAHIR"]);
           const finalTtl = ttlGabungan || (tempat && tglLahir ? `${tempat}, ${tglLahir}` : "");
           if (finalTtl) {
-            patchObj.tempat_tanggal_lahir = String(finalTtl).trim();
-            adaPerubahan = true;
+            targetObj.tempat_tanggal_lahir = String(finalTtl).trim();
+            terisi = true;
           }
         }
+        return terisi;
+      };
 
-        if (adaPerubahan) {
-          daftarUpdateExisting.push(patchObj);
-          jmlDiperbarui++;
+      if (existingDb) {
+        // MAHASISWA SUDAH ADA DI DATABASE -> HANYA UPDATE KOLOM SKORNYA SAJA (TIDAK DUPLIKASI NAMA)
+        const patch = mapPatchDbExisting.get(existingDb.nim) || { nim: existingDb.nim };
+        const adaSkor = terapkanSkorKeObjek(patch);
+        if (adaSkor) {
+          mapPatchDbExisting.set(existingDb.nim, patch);
         } else {
           jmlDilewati++;
         }
       } else {
-        // MAHASISWA BELUM ADA DI ANGKATAN INI -> BUAT RECORD BARU DENGAN NIM & ANGKATAN OTOMATIS
+        // BELUM ADA DI DATABASE -> TERIMA SEBAGAI MAHASISWA BARU DI ANGKATAN TERSEBUT
         if (!nimRaw) {
           jmlDilewati++;
           return;
@@ -680,68 +716,65 @@ async function prosesImportArsipCerdas() {
         const jurusanRaw = cariKolomBarisExcel(row, ["JURUSAN"]) || "-";
         const infoProdi = deteksiJurusanDariProdiSensitif(prodiRaw, jurusanRaw);
 
-        const newRecord = {
+        const recBaru = mapInsertBaru.get(nimRaw) || {
           nim: nimRaw,
           nama_mahasiswa: namaRaw || "-",
           jurusan: infoProdi.jurusan,
           program_studi: infoProdi.prodi,
-          tahun_angkatan: angkatanTerdeteksi
+          tahun_angkatan: angkatanNim
         };
 
-        if (kategoriImport === "SSPECT" && skorAngka) {
-          newRecord.skor_sspect = skorAngka;
-          if (s1) newRecord.sspect_listening = s1;
-          if (s3) newRecord.sspect_reading = s3;
-        } else if (kategoriImport === "LATIHAN" && skorAngka) {
-          newRecord.skor_latihan = skorAngka;
-        } else if (kategoriImport === "TOEFL" && skorAngka) {
-          newRecord.skor_toefl = skorAngka;
-          if (s1) newRecord.listening = s1;
-          if (s2) newRecord.structure = s2;
-          if (s3) newRecord.reading = s3;
-        } else if (kategoriImport === "REMEDIAL_1" && skorAngka) {
-          newRecord.remedial_1 = skorAngka;
-        } else if (kategoriImport === "REMEDIAL_2" && skorAngka) {
-          newRecord.remedial_2 = skorAngka;
-        } else if (kategoriImport === "REMEDIAL_3" && skorAngka) {
-          newRecord.remedial_3 = skorAngka;
-        }
-
-        daftarInsertBaru.push(newRecord);
-        mapExistingByNim.set(nimRaw, newRecord);
-        jmlBaru++;
+        terapkanSkorKeObjek(recBaru);
+        mapInsertBaru.set(nimRaw, recBaru);
       }
     });
 
-    // Eksekusi update skor ke mahasiswa yang sudah ada (tanpa duplikasi)
+    const daftarUpdateExisting = Array.from(mapPatchDbExisting.values());
+    const daftarInsertBaru = Array.from(mapInsertBaru.values());
+
+    // Eksekusi UPDATE skor ke mahasiswa lama (dengan pengecekan error eksplisit)
     const chunkSize = 150;
     for (let i = 0; i < daftarUpdateExisting.length; i += chunkSize) {
       const slice = daftarUpdateExisting.slice(i, i + chunkSize);
-      await Promise.all(
+      const results = await Promise.all(
         slice.map(patch => {
           const { nim, ...fields } = patch;
-          return db.from("arsip_master_rekapan").update(fields).eq("nim", nim);
+          const cleanFields = saringPayloadSesuaiSkemaTabel(fields);
+          return db.from("arsip_master_rekapan").update(cleanFields).eq("nim", nim);
         })
       );
+      const firstErr = results.find(r => r.error)?.error;
+      if (firstErr) {
+        throw new Error(`Gagal memperbarui skor mahasiswa lama: ${firstErr.message}`);
+      }
     }
 
-    // Eksekusi insert hanya untuk mahasiswa yang benar-benar baru
+    // Eksekusi INSERT untuk mahasiswa/angkatan baru (dengan sanitasi kolom & pengecekan error eksplisit)
     for (let i = 0; i < daftarInsertBaru.length; i += chunkSize) {
-      const batchBaru = daftarInsertBaru.slice(i, i + chunkSize);
-      await db.from("arsip_master_rekapan").upsert(batchBaru, { onConflict: "nim" });
+      const batchBaru = daftarInsertBaru.slice(i, i + chunkSize).map(item => saringPayloadSesuaiSkemaTabel(item));
+      const { error: errInsert } = await db
+        .from("arsip_master_rekapan")
+        .upsert(batchBaru, { onConflict: "nim" });
+
+      if (errInsert) {
+        throw new Error(`Gagal menyimpan data angkatan baru ke database: ${errInsert.message}`);
+      }
     }
 
     tutupModalImportArsip();
+    // Pindah otomatis ke tab "SEMUA" agar angkatan yang baru diimport langsung terlihat
+    rekapanState.tabAngkatanAktif = "SEMUA";
     await sinkronkanDatabaseRekapan(false);
 
     alert(
       `Import Kategori ${kategoriImport} Selesai!\n` +
-      `• Skor digabung ke data mahasiswa lama: ${jmlDiperbarui} mahasiswa (tanpa duplikat)\n` +
-      `• Data mahasiswa baru ditambahkan: ${jmlBaru} mahasiswa\n` +
+      `• Skor digabung ke data mahasiswa lama: ${daftarUpdateExisting.length} mahasiswa (tanpa duplikat)\n` +
+      `• Data mahasiswa baru diterima: ${daftarInsertBaru.length} mahasiswa\n` +
       `• Baris kosong/tanpa skor dilewati: ${jmlDilewati}`
     );
   } catch (err) {
-    alert("Gagal memproses file Excel: " + err.message);
+    console.error("Error Import Arsip:", err);
+    alert("Gagal memproses import: " + err.message);
   } finally {
     btn.disabled = false;
     btn.innerHTML = `<i class="ri-upload-cloud-2-line"></i><span>Proses Import &amp; Gabung Skor</span>`;
@@ -1102,10 +1135,12 @@ async function eksekusiBatchNomorSertifikat() {
         m.tanggal_tes = tanggalTerbitFormatted;
         return db
           .from("arsip_master_rekapan")
-          .update({
-            nomor_sertifikat: nomorLengkap,
-            tanggal_tes: tanggalTerbitFormatted
-          })
+          .update(
+            saringPayloadSesuaiSkemaTabel({
+              nomor_sertifikat: nomorLengkap,
+              tanggal_tes: tanggalTerbitFormatted
+            })
+          )
           .eq("nim", m.nim);
       });
       await Promise.all(promises);
