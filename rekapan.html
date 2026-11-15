@@ -30,7 +30,7 @@
 </head>
 <body class="bg-[#F8FAFC] text-slate-800 antialiased min-h-screen flex">
 
-  <!-- ==================== SIDEBAR NAVIGASI (TERKONEKSI KE FILE ASLI) ==================== -->
+  <!-- ==================== SIDEBAR NAVIGASI ==================== -->
   <aside id="sidebarMenu" class="w-60 bg-white border-r border-slate-200/80 hidden lg:flex flex-col fixed inset-y-0 left-0 z-40 overflow-y-auto custom-scrollbar">
     <div class="h-16 px-5 border-b border-slate-200/80 flex items-center gap-3 shrink-0">
       <img src="./img/polnes.png" alt="Logo POLNES" onerror="this.style.display='none'" class="w-8 h-8 object-contain shrink-0" />
@@ -47,7 +47,6 @@
         LAYANAN TEST
       </div>
 
-      <!-- Penjadwalan -->
       <div>
         <button type="button" onclick="toggleSubmenuSidebar('submenuPenjadwalan', 'chevronPenjadwalan')" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
           <span class="flex items-center gap-3">
@@ -72,7 +71,6 @@
         </div>
       </div>
 
-      <!-- Hasil Test -->
       <div>
         <button type="button" onclick="toggleSubmenuSidebar('submenuHasilTest', 'chevronHasilTest')" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
           <span class="flex items-center gap-3">
@@ -177,25 +175,21 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2.5">
-          <!-- Sinkronisasi Ulang dari Database -->
           <button type="button" onclick="sinkronkanDatabaseRekapan(true)" class="px-4 py-2.5 rounded-xl bg-[#0284C7] hover:bg-[#0369A1] text-white text-xs font-extrabold inline-flex items-center gap-2 shadow-2xs transition-all">
             <i class="ri-refresh-line text-sm"></i>
             <span>Sinkron Alur Sistem</span>
           </button>
 
-          <!-- Tombol Atur Nomor & Tanggal Sertifikat 1 Angkatan -->
           <button type="button" onclick="bukaModalBatchNomorSertifikat()" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-extrabold inline-flex items-center gap-2 shadow-2xs transition-all">
             <i class="ri-calendar-check-line text-sm"></i>
             <span>Atur Nomor &amp; Tanggal Sertifikat</span>
           </button>
 
-          <!-- Tombol Unduh Excel per Angkatan / Kategori -->
           <button type="button" onclick="bukaModalUnduhExcelRekapan()" class="px-4 py-2.5 rounded-xl bg-[#169C53] hover:bg-[#0E7A3F] text-white text-xs font-extrabold inline-flex items-center gap-2 shadow-2xs transition-all">
             <i class="ri-file-excel-2-line text-sm"></i>
             <span>Unduh Data Excel</span>
           </button>
 
-          <!-- Import Excel Arsip -->
           <label for="inputImportExcelArsip" class="cursor-pointer px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-extrabold inline-flex items-center gap-2 shadow-2xs transition-all">
             <input type="file" id="inputImportExcelArsip" accept=".xlsx,.xls,.csv" class="hidden" onchange="handleImportExcelArsip(event)" />
             <i class="ri-upload-2-line text-sm text-[#169C53]"></i>
@@ -245,7 +239,7 @@
         </select>
       </section>
 
-      <!-- ==================== BAR 3: TABEL UTAMA REKAPAN (RINGKAS, SKOR DI MODAL DETAIL) ==================== -->
+      <!-- ==================== BAR 3: TABEL UTAMA REKAPAN ==================== -->
       <section class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
         <div class="overflow-x-auto custom-scrollbar">
           <table class="w-full text-left border-collapse text-xs sm:text-sm">
@@ -287,7 +281,7 @@
     </main>
   </div>
 
-  <!-- ==================== MODAL 1: DETAIL MAHASISWA & SERTIFIKAT TERPISAH ==================== -->
+  <!-- ==================== MODAL 1: DETAIL MAHASISWA (TANPA INPUT MANUAL NOMOR/TANGGAL) ==================== -->
   <div id="modalDetailMahasiswa" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
     <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-3xl max-h-[92vh] overflow-y-auto custom-scrollbar">
       <!-- Header Modal -->
@@ -351,50 +345,17 @@
           </div>
         </div>
 
-        <!-- Panel Status Penerbitan Sertifikat Resmi (Tombol SSPECT & TOEFL Terpisah) -->
-        <div class="rounded-2xl border border-slate-200 p-5 space-y-4">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
-            <div>
-              <h3 class="text-sm font-extrabold text-slate-800">Status Penerbitan Sertifikat Resmi</h3>
-              <p id="detailKeteranganSertifikat" class="text-xs text-slate-500 mt-0.5">
-                Tombol sertifikat muncul otomatis sesuai ketersediaan skor SSPECT atau kelengkapan Latihan + TOEFL.
-              </p>
-            </div>
-
-            <!-- Container Tombol Unduh Terpisah (SSPECT & TOEFL) -->
-            <div id="containerTombolSertifikatDetail" class="flex flex-wrap items-center gap-2 shrink-0">
-              <!-- Diisi dinamis oleh JS -->
-            </div>
+        <!-- Panel Penerbitan & Unduh Sertifikat Resmi (Otomatis dari Pengaturan Angkatan) -->
+        <div class="rounded-2xl border border-slate-200 bg-slate-50/40 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="space-y-1">
+            <h3 class="text-sm font-extrabold text-slate-800">Penerbitan Sertifikat Resmi (QR Verified)</h3>
+            <p id="detailInfoNomorTanggal" class="text-xs font-semibold text-slate-500">
+              No. Sertifikat: - &bull; Tanggal Terbit: -
+            </p>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-            <div>
-              <label for="inputDetailTtl" class="block text-[10px] font-extrabold text-slate-400 uppercase mb-1">
-                PLACE, DATE OF BIRTH (UNTUK SERTIFIKAT)
-              </label>
-              <input type="text" id="inputDetailTtl" placeholder="Samarinda, 12 Mei 2005" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-bold text-slate-700 focus:border-[#169C53] outline-none" />
-            </div>
-
-            <div>
-              <label for="inputDetailTanggalTes" class="block text-[10px] font-extrabold text-slate-400 uppercase mb-1">
-                DATE OF TEST TAKEN
-              </label>
-              <input type="text" id="inputDetailTanggalTes" placeholder="15 November 2026" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-bold text-slate-700 focus:border-[#169C53] outline-none" />
-            </div>
-
-            <div>
-              <label for="inputDetailNomorSertifikat" class="block text-[10px] font-extrabold text-slate-400 uppercase mb-1">
-                NOMOR SERTIFIKAT
-              </label>
-              <input type="text" id="inputDetailNomorSertifikat" placeholder="A11 / PL7.18 / UPA.BAHASA / TOEFL-P / 2026" class="w-full px-3.5 py-2.5 rounded-xl border-2 border-[#169C53] text-xs sm:text-sm font-mono font-extrabold text-slate-800 outline-none" />
-            </div>
-          </div>
-
-          <div class="flex justify-end">
-            <button type="button" onclick="simpanPerubahanDetailMahasiswa()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-extrabold inline-flex items-center gap-1.5">
-              <i class="ri-save-line"></i>
-              <span>Simpan Perubahan Sertifikat</span>
-            </button>
+          <div id="containerTombolSertifikatDetail" class="flex flex-wrap items-center gap-2 shrink-0">
+            <!-- Tombol Unduh Sertifikat SSPECT & TOEFL dirender otomatis -->
           </div>
         </div>
       </div>
@@ -438,7 +399,7 @@
             <label for="batchKodeAwal" class="block text-[11px] font-extrabold text-slate-500 uppercase mb-1">
               3. Nomor Urut Awal
             </label>
-            <input type="text" id="batchKodeAwal" value="A11" oninput="updatePreviewBatchNomor()" placeholder="A11 atau 0001" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-mono font-extrabold text-slate-800 uppercase outline-none focus:border-[#169C53]" />
+            <input type="text" id="batchKodeAwal" value="0355" oninput="updatePreviewBatchNomor()" placeholder="0355 atau A11" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-mono font-extrabold text-slate-800 uppercase outline-none focus:border-[#169C53]" />
           </div>
 
           <div>
@@ -452,9 +413,9 @@
         <div class="rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-900">
           <div class="font-extrabold mb-1">Pratinjau Nomor &amp; Tanggal Terbit Serentak:</div>
           <div id="previewUrutanBatchNomor" class="font-mono text-[11px] leading-relaxed">
-            1. A11 / PL7.18 / UPA.BAHASA / TOEFL-P / 2026<br />
-            2. A12 / PL7.18 / UPA.BAHASA / TOEFL-P / 2026<br />
-            3. A13 / PL7.18 / UPA.BAHASA / TOEFL-P / 2026
+            1. 0355 / PL7.18 / UPA.BAHASA / TOEFL-P / 2026<br />
+            2. 0356 / PL7.18 / UPA.BAHASA / TOEFL-P / 2026<br />
+            3. 0357 / PL7.18 / UPA.BAHASA / TOEFL-P / 2026
           </div>
         </div>
       </div>

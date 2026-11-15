@@ -197,7 +197,6 @@ function cekStatusKelulusan(m) {
   return tertinggi >= batas ? "LULUS" : "BELUM_LULUS";
 }
 
-// Syarat tombol Unduh Sertifikat TOEFL muncul: wajib punya skor Latihan DAN skor TOEFL Utama (atau Remedial)
 function cekSiapSertifikatToefl(m) {
   const adaLatihan = m.skor_latihan !== null && Number(m.skor_latihan) > 0;
   const adaToefl = hitungSkorToeflTertinggi(m) !== null;
@@ -208,7 +207,6 @@ function cekSiapSertifikatSspect(m) {
   return m.skor_sspect !== null && Number(m.skor_sspect) > 0;
 }
 
-// Ambil SEMUA baris dari tabel Supabase tanpa terpotong limit 1000
 async function fetchAllRowsSupabase(db, namaTabel, orderByCol = null) {
   const pageSize = 1000;
   let from = 0;
@@ -375,6 +373,7 @@ async function sinkronkanDatabaseRekapan(tampilkanNotif = false) {
         rec.jurusan = infoProdi.jurusan;
         rec.jenjang = infoProdi.jenjang;
       }
+      rec.tempat_tanggal_lahir = ambilNilaiKolom(mhs, ["tempat_tanggal_lahir", "ttl"], rec.tempat_tanggal_lahir);
     });
 
     // C. Rekapan & HasilTes (sumber nilai pencocokan: SSPECT, Latihan, TOEFL, Remedial, dan riwayat_json)
@@ -562,7 +561,7 @@ function pilihTabAngkatan(tahun) {
   terapkanFilterRekapan();
 }
 
-// ==================== 3. FILTER PENCARIAN & RENDER TABEL UTAMA (6 KOLOM BERSIH) ====================
+// ==================== 3. FILTER PENCARIAN & RENDER TABEL UTAMA ====================
 function terapkanFilterRekapan() {
   const keyword = String(document.getElementById("inputCariRekapan")?.value || "").trim().toUpperCase();
   const statusFilter = document.getElementById("filterStatusRekapan")?.value || "SEMUA";
@@ -675,7 +674,7 @@ function gantiHalamanRekapan(delta) {
   renderTabelRekapan();
 }
 
-// ==================== 4. MODAL DETAIL MAHASISWA & TOMBOL SERTIFIKAT TERPISAH ====================
+// ==================== 4. MODAL DETAIL MAHASISWA ====================
 function bukaModalDetailMahasiswa(nimTarget) {
   const m = rekapanState.semuaData.find(x => String(x.nim) === String(nimTarget));
   if (!m) return;
@@ -699,7 +698,6 @@ function bukaModalDetailMahasiswa(nimTarget) {
   document.getElementById("detailNamaMahasiswa").textContent = m.nama_mahasiswa;
   document.getElementById("detailSubIdentitas").textContent = `NIM: ${m.nim} • JURUSAN ${m.jurusan || "-"} • ${m.program_studi || "-"}`;
 
-  // Isi 6 kartu riwayat skor
   document.getElementById("boxSkorSspect").textContent = m.skor_sspect ?? "-";
   document.getElementById("labelBoxLatihan").textContent = `LAT. ${jenjang}`;
   document.getElementById("boxSkorLatihan").textContent = m.skor_latihan ?? "-";
@@ -713,10 +711,10 @@ function bukaModalDetailMahasiswa(nimTarget) {
   document.getElementById("detailSec2").textContent = m.structure ?? m.sspect_structure ?? "-";
   document.getElementById("detailSec3").textContent = m.reading ?? m.sspect_reading ?? "-";
 
-  document.getElementById("inputDetailTtl").value = m.tempat_tanggal_lahir || "";
-  document.getElementById("inputDetailTanggalTes").value = m.tanggal_tes || "";
-  document.getElementById("inputDetailNomorSertifikat").value =
-    m.nomor_sertifikat || `0001 / PL7.18 / UPA.BAHASA / TOEFL-P / ${new Date().getFullYear()}`;
+  const infoNomorTgl = document.getElementById("detailInfoNomorTanggal");
+  if (infoNomorTgl) {
+    infoNomorTgl.textContent = `No. Sertifikat: ${m.nomor_sertifikat || "Belum diatur"} • Tanggal Terbit: ${m.tanggal_tes || "Belum diatur"}`;
+  }
 
   const containerBtn = document.getElementById("containerTombolSertifikatDetail");
   const siapSspect = cekSiapSertifikatSspect(m);
@@ -755,35 +753,6 @@ function tutupModalDetail() {
   modal.classList.remove("flex");
 }
 
-async function simpanPerubahanDetailMahasiswa() {
-  const m = rekapanState.mahasiswaDetailAktif;
-  const db = getDbClientRekapan();
-  if (!m || !db) return;
-
-  const ttl = document.getElementById("inputDetailTtl").value.trim();
-  const tglTes = document.getElementById("inputDetailTanggalTes").value.trim();
-  const noSertif = document.getElementById("inputDetailNomorSertifikat").value.trim();
-
-  const { error } = await db
-    .from("arsip_master_rekapan")
-    .update({
-      tempat_tanggal_lahir: ttl,
-      tanggal_tes: tglTes,
-      nomor_sertifikat: noSertif
-    })
-    .eq("nim", m.nim);
-
-  if (error) {
-    alert("Gagal menyimpan detail sertifikat: " + error.message);
-    return;
-  }
-
-  m.tempat_tanggal_lahir = ttl;
-  m.tanggal_tes = tglTes;
-  m.nomor_sertifikat = noSertif;
-  alert("Identitas & Nomor Sertifikat mahasiswa berhasil diperbarui!");
-}
-
 // ==================== 5. ATUR NOMOR & TANGGAL SERTIFIKAT 1 ANGKATAN ====================
 function formatTanggalInggrisSertifikat(dateIsoStr) {
   if (!dateIsoStr) return "04 May 2026";
@@ -817,7 +786,7 @@ function tutupModalBatchNomor() {
 }
 
 function generateNomorBerantai(kodeAwal, indeksOffset) {
-  const clean = String(kodeAwal || "A11").trim().toUpperCase();
+  const clean = String(kodeAwal || "0355").trim().toUpperCase();
   const match = clean.match(/^([A-Z]*)(\d+)$/);
   if (!match) return `${clean}-${indeksOffset + 1}`;
 
@@ -829,7 +798,7 @@ function generateNomorBerantai(kodeAwal, indeksOffset) {
 }
 
 function updatePreviewBatchNomor() {
-  const awal = document.getElementById("batchKodeAwal")?.value || "A11";
+  const awal = document.getElementById("batchKodeAwal")?.value || "0355";
   const suffix = document.getElementById("batchFormatSuffix")?.value || "";
   const tglRaw = document.getElementById("batchTanggalTerbit")?.value || "";
   const tglFormatted = formatTanggalInggrisSertifikat(tglRaw);
@@ -1001,7 +970,7 @@ function eksekusiUnduhExcelRekapan() {
   tutupModalUnduhExcel();
 }
 
-// ==================== 7. UNDUH / CETAK SERTIFIKAT RESMI (SSPECT & TOEFL TERPISAH, ./img/sertif.png A4 LANDSCAPE) ====================
+// ==================== 7. CETAK SERTIFIKAT RESMI (100% SAMA CONTOH + QR VERIFIKASI) ====================
 function unduhSertifikatByNim(nimTarget, jenisSertifikat) {
   const m = rekapanState.semuaData.find(x => String(x.nim) === String(nimTarget));
   if (!m) return;
@@ -1011,10 +980,18 @@ function unduhSertifikatByNim(nimTarget, jenisSertifikat) {
 function unduhSertifikatMahasiswaAktif(jenisSertifikat) {
   const m = rekapanState.mahasiswaDetailAktif;
   if (!m) return;
-  m.tempat_tanggal_lahir = document.getElementById("inputDetailTtl").value.trim() || m.tempat_tanggal_lahir;
-  m.tanggal_tes = document.getElementById("inputDetailTanggalTes").value.trim() || m.tanggal_tes;
-  m.nomor_sertifikat = document.getElementById("inputDetailNomorSertifikat").value.trim() || m.nomor_sertifikat;
   cetakHalamanSertifikatResmi(m, jenisSertifikat);
+}
+
+function formatProgramStudySertifikat(prodiRaw) {
+  // Mengubah "D3 - TEKNIK ALAT BERAT" menjadi "D3 - Teknik Alat Berat" seperti contoh fisik
+  const teks = String(prodiRaw || "-").trim();
+  if (teks === "-") return "-";
+  return teks
+    .toLowerCase()
+    .replace(/\bd3\b/gi, "D3")
+    .replace(/\bd4\b/gi, "D4")
+    .replace(/\b\w/g, c => c.toUpperCase());
 }
 
 function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
@@ -1025,15 +1002,82 @@ function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
   const nomor = m.nomor_sertifikat || `0355 / PL7.18 / UPA.BAHASA / ${defaultKodeSurat} / ${new Date().getFullYear()}`;
   const ttl = m.tempat_tanggal_lahir || "Samarinda, -";
   const tglTes = m.tanggal_tes || "04 May 2026";
+  const prodiCantik = formatProgramStudySertifikat(m.program_studi);
 
   const sec1 = isSspect ? (m.sspect_listening ?? m.listening ?? "-") : (m.listening ?? "-");
   const sec2 = isSspect ? (m.sspect_structure ?? m.structure ?? "-") : (m.structure ?? "-");
   const sec3 = isSspect ? (m.sspect_reading ?? m.reading ?? "-") : (m.reading ?? "-");
   const totalSkor = isSspect ? (m.skor_sspect ?? "-") : (m.skor_toefl_akhir ?? "-");
 
-  const bgUrl = new URL("./img/sertif.png", window.location.href).href;
+  // Panggil gambar asli dari folder img/ (polnes.png dan sertif.jpg)
+  const logoUrl = new URL("./img/polnes.png", window.location.href).href;
+  const bgGedungUrl = new URL("./img/sertif.jpg", window.location.href).href;
 
-  const win = window.open("", "_blank", "width=1120,height=800");
+  // URL Validasi Anti-Pemalsuan saat QR Code di-scan
+  const urlValidasi = new URL(
+    `./validasi-sertifikat.html?nim=${encodeURIComponent(m.nim)}&jenis=${encodeURIComponent(isSspect ? "SSPECT" : "TOEFL")}`,
+    window.location.href
+  ).href;
+
+  // Bangun tabel skor sesuai jenis sertifikat:
+  // - TOEFL: 4 kolom (Listening, Structure, Reading, Total Score)
+  // - SSPECT: 3 kolom (Listening, Reading, Total Score) dengan komentar penanda yang sangat jelas
+  let htmlTabelSkor = "";
+  if (isSspect) {
+    htmlTabelSkor = `
+      <!-- ========================================================================= -->
+      <!-- [PENANDA KHUSUS SERTIFIKAT SSPECT]                                         -->
+      <!-- Saat ini menampilkan 3 kolom: Listening, Reading, dan Total Score.        -->
+      <!-- JIKA CLIENT MEMINTA TOTAL SCORE SAJA:                                     -->
+      <!-- Cukup hapus baris <th> & <td> untuk Listening dan Reading di bawah ini!   -->
+      <!-- ========================================================================= -->
+      <table class="score-grid">
+        <thead>
+          <tr>
+            <!-- [HAPUS <th> INI JIKA HANYA TOTAL SCORE] -->
+            <th>Listening<br />Comprehension</th>
+            <!-- [HAPUS <th> INI JIKA HANYA TOTAL SCORE] -->
+            <th>Reading<br />Comprehension</th>
+            <th style="font-style:normal;">Total Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <!-- [HAPUS <td> INI JIKA HANYA TOTAL SCORE] -->
+            <td>${sec1}</td>
+            <!-- [HAPUS <td> INI JIKA HANYA TOTAL SCORE] -->
+            <td>${sec3}</td>
+            <td>${totalSkor}</td>
+          </tr>
+        </tbody>
+      </table>
+      <!-- ================= [AKHIR PENANDA KHUSUS SERTIFIKAT SSPECT] ================ -->
+    `;
+  } else {
+    htmlTabelSkor = `
+      <!-- TABEL NILAI TOEFL (4 KOLOM STANDAR) -->
+      <table class="score-grid">
+        <thead>
+          <tr>
+            <th>Listening<br />Comprehension</th>
+            <th>Structure and<br />Written Expression</th>
+            <th>Reading<br />Comprehension</th>
+            <th style="font-style:normal;">Total Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>${sec1}</td>
+            <td>${sec2}</td>
+            <td>${sec3}</td>
+            <td>${totalSkor}</td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+  }
+
+  const win = window.open("", "_blank", "width=1160,height=820");
   if (!win) {
     alert("Pop-up diblokir browser. Izinkan pop-up untuk mencetak/mengunduh sertifikat PDF.");
     return;
@@ -1045,6 +1089,8 @@ function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
     <head>
       <meta charset="UTF-8" />
       <title>Sertifikat ${isSspect ? "SSPECT" : "TOEFL"} - ${m.nama_mahasiswa} (${m.nim})</title>
+      <!-- Library QRCode JS agar QR Code tercetak tajam & valid saat discan -->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
       <style>
         @page {
           size: A4 landscape;
@@ -1076,7 +1122,7 @@ function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
           font-size: 13px;
         }
         .toolbar-cetak button {
-          padding: 7px 14px;
+          padding: 7px 16px;
           border-radius: 6px;
           border: none;
           font-weight: bold;
@@ -1088,57 +1134,118 @@ function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
           width: 297mm;
           height: 210mm;
           position: relative;
-          background-color: #ffffff;
-          background-image: url('${bgUrl}');
-          background-size: 100% 100%;
-          background-repeat: no-repeat;
-          background-position: center;
+          background: #ffffff;
           overflow: hidden;
         }
-        .cert-overlay {
+        /* Frame Bingkai Hijau Melengkung Persis Contoh Sertifikat POLNES */
+        .outer-frame {
           position: absolute;
-          top: 42mm;
-          left: 28mm;
-          right: 22mm;
-          bottom: 18mm;
+          top: 9mm;
+          left: 11mm;
+          right: 11mm;
+          bottom: 9mm;
+          border: 2.2px solid #2b6e44;
+          border-top-left-radius: 46mm;
+          border-bottom-right-radius: 46mm;
+          overflow: hidden;
+          background: #ffffff;
+        }
+        /* Watermark Gedung POLNES dari ./img/sertif.jpg */
+        .watermark-gedung {
+          position: absolute;
+          inset: 0;
+          background-image: url('${bgGedungUrl}');
+          background-size: cover;
+          background-position: center;
+          opacity: 0.16;
+          filter: saturate(0.85) contrast(1.05);
+          pointer-events: none;
+        }
+        /* Kode Dokumen Pojok Kanan Atas di Luar Frame */
+        .doc-code {
+          position: absolute;
+          top: 4.5mm;
+          right: 12mm;
+          font-family: Arial, sans-serif;
+          font-size: 7.5pt;
+          color: #334155;
+          letter-spacing: 0.3px;
+        }
+        /* Header Kementerian & Logo POLNES */
+        .kop-header {
+          position: relative;
+          z-index: 2;
+          display: flex;
+          align-items: center;
+          padding: 5.5mm 14mm 3mm 26mm;
+          gap: 5mm;
+        }
+        .kop-header img {
+          width: 17mm;
+          height: 17mm;
+          object-fit: contain;
+        }
+        .kop-text {
+          font-family: 'Times New Roman', Times, serif;
+          color: #1e293b;
+          line-height: 1.2;
+        }
+        .kop-text .ministry {
+          font-size: 11pt;
+          font-weight: bold;
+          letter-spacing: 0.4px;
+        }
+        .kop-text .campus {
+          font-size: 12.5pt;
+          font-weight: bold;
+          letter-spacing: 0.5px;
+        }
+        .kop-text .unit {
+          font-size: 11pt;
+          font-weight: bold;
+          letter-spacing: 0.4px;
+        }
+        /* Konten Utama Tengah */
+        .cert-body {
+          position: relative;
+          z-index: 2;
           display: flex;
           flex-direction: column;
           align-items: center;
+          padding: 1mm 24mm 0 24mm;
           color: #111827;
         }
-        .cert-heading {
+        .cert-title {
           text-align: center;
-          margin-bottom: 3mm;
+          margin-bottom: 2.5mm;
         }
-        .cert-heading h1 {
+        .cert-title h1 {
           margin: 0;
-          font-size: 17pt;
+          font-size: 16pt;
           font-weight: bold;
-          letter-spacing: 1px;
-          text-transform: uppercase;
+          letter-spacing: 0.8px;
         }
-        .cert-heading .no-surat {
-          margin-top: 1.5mm;
-          font-size: 11pt;
-          font-weight: normal;
+        .cert-title .no-surat {
+          font-size: 10.5pt;
+          margin-top: 1mm;
         }
         .presented-to {
-          font-size: 11.5pt;
+          font-size: 11pt;
           font-style: italic;
-          margin-bottom: 3mm;
+          margin-bottom: 2.5mm;
         }
         .biodata-table {
           width: 155mm;
           border-collapse: collapse;
-          font-size: 11.5pt;
-          margin-bottom: 3.5mm;
+          font-size: 11pt;
+          margin-bottom: 3mm;
         }
         .biodata-table td {
-          padding: 1.2mm 2mm;
+          padding: 1mm 1.5mm;
           vertical-align: top;
         }
         .biodata-table td.lbl {
-          width: 48mm;
+          width: 46mm;
         }
         .biodata-table td.sep {
           width: 5mm;
@@ -1146,49 +1253,76 @@ function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
         }
         .biodata-table td.val-name {
           font-weight: bold;
-          font-size: 13pt;
+          font-size: 12.5pt;
           text-transform: uppercase;
-          letter-spacing: 0.4px;
         }
-        .achieved-text {
-          font-size: 11.5pt;
+        .achieved-line {
+          font-size: 11pt;
           font-style: italic;
-          margin-bottom: 3mm;
+          margin-bottom: 2.5mm;
         }
         .score-grid {
-          width: 175mm;
+          width: 172mm;
           border-collapse: collapse;
           text-align: center;
-          font-size: 11pt;
-          margin-bottom: 5mm;
+          font-size: 10.5pt;
+          margin-bottom: 4.5mm;
         }
         .score-grid th, .score-grid td {
           border: 1.2px solid #1e293b;
-          padding: 2.2mm 3mm;
+          padding: 2mm 3mm;
+          background: rgba(255, 255, 255, 0.55);
         }
         .score-grid th {
           font-weight: bold;
           font-style: italic;
-          background: rgba(255, 255, 255, 0.72);
         }
         .score-grid td {
-          font-size: 13pt;
+          font-size: 12.5pt;
           font-weight: bold;
-          background: rgba(255, 255, 255, 0.82);
         }
-        .ttd-wrapper {
-          width: 175mm;
+        /* Area Tanda Tangan & QR Code Validasi */
+        .bottom-sign-row {
+          width: 172mm;
           display: flex;
-          justify-content: flex-start;
-          padding-left: 10mm;
-          margin-top: 1mm;
+          justify-content: space-between;
+          align-items: flex-end;
+          padding-left: 8mm;
         }
         .ttd-box {
-          font-size: 11pt;
+          font-size: 10.5pt;
           line-height: 1.35;
         }
         .ttd-space {
-          height: 16mm;
+          height: 15mm;
+        }
+        .qr-verify-box {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+          background: rgba(255, 255, 255, 0.85);
+          padding: 2mm;
+          border-radius: 2mm;
+          border: 0.8px solid #cbd5e1;
+        }
+        .qr-verify-box span {
+          font-family: Arial, sans-serif;
+          font-size: 6.5pt;
+          font-weight: bold;
+          color: #1e293b;
+          margin-top: 1mm;
+        }
+        /* Footer Alamat Kampus Persis Contoh */
+        .footer-kampus {
+          position: absolute;
+          left: 14mm;
+          bottom: 3.5mm;
+          z-index: 2;
+          font-size: 7.5pt;
+          font-style: italic;
+          color: #334155;
+          line-height: 1.3;
         }
         @media print {
           body { background: none; }
@@ -1199,82 +1333,106 @@ function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
     <body>
       <div class="toolbar-cetak">
         <div>
-          <strong>Sertifikat ${isSspect ? "SSPECT (SSPECT Placement Test)" : "TOEFL (Toefl Prediction Test)"}</strong> &mdash; ${m.nama_mahasiswa} (${m.nim})
+          <strong>Sertifikat Resmi ${isSspect ? "SSPECT" : "TOEFL"}</strong> &mdash; ${m.nama_mahasiswa} (${m.nim})
         </div>
         <button type="button" onclick="window.print()">Cetak / Simpan PDF (A4 Landscape)</button>
       </div>
 
       <div class="page-a4">
-        <div class="cert-overlay">
-          <div class="cert-heading">
-            <h1>CERTIFICATE OF ACHIEVEMENT</h1>
-            <div class="no-surat">No : ${nomor}</div>
-          </div>
+        <div class="doc-code">FM-P2M-04-01-01A/R3</div>
 
-          <div class="presented-to">This is presented to</div>
+        <div class="outer-frame">
+          <div class="watermark-gedung"></div>
 
-          <table class="biodata-table">
-            <tr>
-              <td class="lbl">Name</td>
-              <td class="sep">:</td>
-              <td class="val-name">${m.nama_mahasiswa}</td>
-            </tr>
-            <tr>
-              <td class="lbl">NIM</td>
-              <td class="sep">:</td>
-              <td>${m.nim}</td>
-            </tr>
-            <tr>
-              <td class="lbl">Place, date of birth</td>
-              <td class="sep">:</td>
-              <td>${ttl}</td>
-            </tr>
-            <tr>
-              <td class="lbl">Program Study</td>
-              <td class="sep">:</td>
-              <td>${m.program_studi || "-"}</td>
-            </tr>
-            <tr>
-              <td class="lbl">Date of test taken</td>
-              <td class="sep">:</td>
-              <td>${tglTes}</td>
-            </tr>
-          </table>
-
-          <div class="achieved-text">
-            Achieved the following score on <span>${jenisTesText}</span>
-          </div>
-
-          <table class="score-grid">
-            <thead>
-              <tr>
-                <th>Listening<br />Comprehension</th>
-                <th>Structure and<br />Written Expression</th>
-                <th>Reading<br />Comprehension</th>
-                <th style="font-style:normal;">Total Score</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>${sec1}</td>
-                <td>${sec2}</td>
-                <td>${sec3}</td>
-                <td>${totalSkor}</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <div class="ttd-wrapper">
-            <div class="ttd-box">
-              <div>Samarinda, ${tglTes}</div>
-              <div>Head of UPA. Bahasa</div>
-              <div class="ttd-space"></div>
-              <div><b><u>Dwi Titi Maesaroh, S.Pd., M.Pd.</u></b></div>
-              <div>NIP. 198901172024062002</div>
+          <!-- KOP KEMENTERIAN & LOGO POLNES -->
+          <div class="kop-header">
+            <img src="${logoUrl}" alt="Logo POLNES" />
+            <div class="kop-text">
+              <div class="ministry">KEMENTERIAN PENDIDIKAN, TINGGI, SAINS, DAN TEKNOLOGI</div>
+              <div class="campus">POLITEKNIK NEGERI SAMARINDA</div>
+              <div class="unit">UPA. BAHASA</div>
             </div>
+          </div>
+
+          <!-- ISI UTAMA SERTIFIKAT -->
+          <div class="cert-body">
+            <div class="cert-title">
+              <h1>CERTIFICATE OF ACHIEVEMENT</h1>
+              <div class="no-surat">No : ${nomor}</div>
+            </div>
+
+            <div class="presented-to">This is presented to</div>
+
+            <table class="biodata-table">
+              <tr>
+                <td class="lbl">Name</td>
+                <td class="sep">:</td>
+                <td class="val-name">${m.nama_mahasiswa}</td>
+              </tr>
+              <tr>
+                <td class="lbl">NIM</td>
+                <td class="sep">:</td>
+                <td>${m.nim}</td>
+              </tr>
+              <tr>
+                <td class="lbl">Place, date of birth</td>
+                <td class="sep">:</td>
+                <td>${ttl}</td>
+              </tr>
+              <tr>
+                <td class="lbl">Program Study</td>
+                <td class="sep">:</td>
+                <td>${prodiCantik}</td>
+              </tr>
+              <tr>
+                <td class="lbl">Date of test taken</td>
+                <td class="sep">:</td>
+                <td>${tglTes}</td>
+              </tr>
+            </table>
+
+            <div class="achieved-line">
+              Achieved the following score on <span>${jenisTesText}</span>
+            </div>
+
+            ${htmlTabelSkor}
+
+            <div class="bottom-sign-row">
+              <div class="ttd-box">
+                <div>Samarinda, ${tglTes}</div>
+                <div>Head of UPA. Bahasa</div>
+                <div class="ttd-space"></div>
+                <div><b><u>Dwi Titi Maesaroh, S.Pd., M.Pd.</u></b></div>
+                <div>NIP. 198901172024062002</div>
+              </div>
+
+              <!-- QR CODE VALIDASI KEASLIAN SERTIFIKAT -->
+              <div class="qr-verify-box">
+                <div id="qrcodeContainer"></div>
+                <span>Scan to Verify Certificate</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- FOOTER ALAMAT KAMPUS -->
+          <div class="footer-kampus">
+            <div>Jalan Dr. Ciptomangunkusumo Kampus Gunung Panjang Samarinda 75131</div>
+            <div>Telepon: 0541-260588, 260553, 262018 FAX 260355</div>
+            <div>Laman : www.polnes.ac.id Surel : bahasa@polnes.ac.id ; polnes@polnes.ac.id</div>
           </div>
         </div>
       </div>
+
+      <script>
+        new QRCode(document.getElementById("qrcodeContainer"), {
+          text: "${urlValidasi}",
+          width: 68,
+          height: 68,
+          colorDark: "#0f172a",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.M
+        });
+      </script>
     </body>
     </html>
   `);
