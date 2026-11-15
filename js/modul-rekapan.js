@@ -103,13 +103,9 @@ const DAFTAR_JURUSAN_PRODI_POLNES = [
 
 const KOLOM_SKOR_INTEGER = new Set([
   "tahun_angkatan",
-  "angkatan",
   "skor_sspect",
-  "nilai_sspect",
   "skor_latihan",
-  "nilai_latihan",
   "skor_toefl",
-  "nilai_toefl",
   "remedial_1",
   "remedial_2",
   "remedial_3",
@@ -282,8 +278,8 @@ function ekstrakSkorDariRiwayatJson(riwayatRaw) {
 
   return {
     sspect: ambilAngkaKolom(obj, ["sspect", "skor_sspect", "nilai_sspect"]),
-    latihan: ambilAngkaKolom(obj, ["latihan", "latihan_d3", "latihan_d4", "skor_latihan"]),
-    toefl: ambilAngkaKolom(obj, ["toefl", "toefl_d3", "toefl_d4", "skor_toefl", "toefl_utama"]),
+    latihan: ambilAngkaKolom(obj, ["latihan", "latihan_d3", "latihan_d4", "skor_latihan", "nilai_latihan"]),
+    toefl: ambilAngkaKolom(obj, ["toefl", "toefl_d3", "toefl_d4", "skor_toefl", "nilai_toefl", "toefl_utama"]),
     rem1: ambilAngkaKolom(obj, ["remedial_1", "rem1", "rem_1"]),
     rem2: ambilAngkaKolom(obj, ["remedial_2", "rem2", "rem_2"]),
     rem3: ambilAngkaKolom(obj, ["remedial_3", "rem3", "rem_3"]),
@@ -297,18 +293,20 @@ function ekstrakSkorDariRiwayatJson(riwayatRaw) {
 function saringPayloadSesuaiSkemaTabel(objRecord) {
   const kandidat = { ...objRecord };
 
-  // Selaraskan alias nama kolom agar cocok dengan skema arsip_master_rekapan (kolom DB adalah 'nama')
+  // 1. Selaraskan nama mahasiswa ('nama_mahasiswa' -> 'nama')
   if (kandidat.nama_mahasiswa !== undefined) {
     if (kandidat.nama === undefined) {
       kandidat.nama = kandidat.nama_mahasiswa;
     }
     delete kandidat.nama_mahasiswa;
   }
+  
+  // 2. Selaraskan prodi ('program_studi' -> 'prodi')
   if (kandidat.program_studi !== undefined && kandidat.prodi === undefined) {
     kandidat.prodi = kandidat.program_studi;
   }
   
-  // Hapus properti 'angkatan' agar tidak error, gunakan 'tahun_angkatan'
+  // 3. Hapus 'angkatan', gunakan 'tahun_angkatan'
   if (kandidat.angkatan !== undefined) {
     if (kandidat.tahun_angkatan === undefined) {
       kandidat.tahun_angkatan = kandidat.angkatan;
@@ -316,14 +314,18 @@ function saringPayloadSesuaiSkemaTabel(objRecord) {
     delete kandidat.angkatan;
   }
 
-  if (kandidat.skor_sspect !== undefined && kandidat.nilai_sspect === undefined) {
-    kandidat.nilai_sspect = kandidat.skor_sspect;
+  // 4. Selaraskan kolom skor agar cocok mutlak dengan tabel Supabase (skor_latihan, skor_sspect, skor_toefl)
+  if (kandidat.nilai_sspect !== undefined) {
+    if (kandidat.skor_sspect === undefined) kandidat.skor_sspect = kandidat.nilai_sspect;
+    delete kandidat.nilai_sspect;
   }
-  if (kandidat.skor_latihan !== undefined && kandidat.nilai_latihan === undefined) {
-    kandidat.nilai_latihan = kandidat.skor_latihan;
+  if (kandidat.nilai_latihan !== undefined) {
+    if (kandidat.skor_latihan === undefined) kandidat.skor_latihan = kandidat.nilai_latihan;
+    delete kandidat.nilai_latihan;
   }
-  if (kandidat.skor_toefl !== undefined && kandidat.nilai_toefl === undefined) {
-    kandidat.nilai_toefl = kandidat.skor_toefl;
+  if (kandidat.nilai_toefl !== undefined) {
+    if (kandidat.skor_toefl === undefined) kandidat.skor_toefl = kandidat.nilai_toefl;
+    delete kandidat.nilai_toefl;
   }
 
   const kolomValid = rekapanState.kolomTabelMaster;
