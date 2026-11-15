@@ -101,6 +101,22 @@ const DAFTAR_JURUSAN_PRODI_POLNES = [
   }
 ];
 
+const KOLOM_SKOR_INTEGER = new Set([
+  "tahun_angkatan",
+  "skor_sspect",
+  "skor_latihan",
+  "skor_toefl",
+  "remedial_1",
+  "remedial_2",
+  "remedial_3",
+  "listening",
+  "structure",
+  "reading",
+  "sspect_listening",
+  "sspect_structure",
+  "sspect_reading"
+]);
+
 function deteksiJurusanDariProdiSensitif(prodiRaw, jurusanFallback = "-") {
   const teks = String(prodiRaw || "").trim().toUpperCase().replace(/\s+/g, " ");
   if (!teks || teks === "-") {
@@ -160,8 +176,9 @@ function ambilNilaiKolom(obj, daftarKey, fallback = null) {
 function ambilAngkaKolom(obj, daftarKey) {
   const raw = ambilNilaiKolom(obj, daftarKey, null);
   if (raw === null) return null;
-  const num = Number(raw);
-  return !isNaN(num) && num > 0 ? num : null;
+  const bersih = String(raw).replace(",", ".").trim();
+  const num = Number(bersih);
+  return !isNaN(num) && num > 0 ? Math.round(num) : null;
 }
 
 // ==================== DETEKSI TAHUN ANGKATAN DINAMIS DARI 2 DIGIT AWAL NIM ====================
@@ -200,7 +217,7 @@ function hitungSkorToeflTertinggi(m) {
   const daftar = [m.remedial_3, m.remedial_2, m.remedial_1, m.skor_toefl]
     .map(v => Number(v))
     .filter(v => !isNaN(v) && v > 0);
-  return daftar.length > 0 ? Math.max(...daftar) : null;
+  return daftar.length > 0 ? Math.round(Math.max(...daftar)) : null;
 }
 
 function cekStatusKelulusan(m) {
@@ -272,18 +289,30 @@ function ekstrakSkorDariRiwayatJson(riwayatRaw) {
   };
 }
 
-// ==================== SANITASI KOLOM SESUAI SKEMA SUPABASE ====================
+// ==================== SANITASI KOLOM & PEMBULATAN INTEGER SUPABASE ====================
 function saringPayloadSesuaiSkemaTabel(objRecord) {
   const kolomValid = rekapanState.kolomTabelMaster;
-  if (!kolomValid || kolomValid.size === 0) {
-    return objRecord;
-  }
   const hasil = {};
+
   Object.keys(objRecord).forEach(key => {
-    if (kolomValid.has(key) && objRecord[key] !== undefined) {
-      hasil[key] = objRecord[key];
+    if (kolomValid && kolomValid.size > 0 && !kolomValid.has(key)) {
+      return;
+    }
+    const val = objRecord[key];
+    if (val === undefined) return;
+
+    if (KOLOM_SKOR_INTEGER.has(key)) {
+      if (val === null || String(val).trim() === "") {
+        hasil[key] = null;
+      } else {
+        const num = Number(String(val).replace(",", ".").trim());
+        hasil[key] = !isNaN(num) ? Math.round(num) : null;
+      }
+    } else {
+      hasil[key] = val;
     }
   });
+
   return hasil;
 }
 
@@ -586,6 +615,13 @@ function cariKolomBarisExcel(rowObj, daftarKandidat) {
   return null;
 }
 
+function parseSkorBulatExcel(valRaw) {
+  if (valRaw === null || valRaw === undefined || String(valRaw).trim() === "") return null;
+  const bersih = String(valRaw).replace(",", ".").trim();
+  const angka = Number(bersih);
+  return !isNaN(angka) && angka > 0 ? Math.round(angka) : null;
+}
+
 async function prosesImportArsipCerdas() {
   const db = getDbClientRekapan();
   if (!db) return;
@@ -664,21 +700,16 @@ async function prosesImportArsipCerdas() {
         existingDb = mapDbByNamaAngkatan.get(keyNama) || null;
       }
 
-      // Ambil angka skor sesuai kategori yang dipilih
+      // Ambil angka skor & bulatkan ke integer (misal 476.666666666667 -> 477)
       const skorUtamaRaw = cariKolomBarisExcel(row, [
-        "TOTAL SCORE", "SKOR TOTAL", "SKOR AKHIR", "SKOR", "SCORE", "NILAI",
+        "TOTAL_SCORE", "TOTAL SCORE", "SKOR TOTAL", "SKOR AKHIR", "SKOR", "SCORE", "NILAI",
         "SSPECT", "LATIHAN", "TOEFL", "REMEDIAL 1", "REMEDIAL 2", "REMEDIAL 3", "REMEDIAL"
       ]);
-      const skorAngka = skorUtamaRaw !== null && !isNaN(Number(skorUtamaRaw)) && Number(skorUtamaRaw) > 0
-        ? Number(skorUtamaRaw)
-        : null;
+      const skorAngka = parseSkorBulatExcel(skorUtamaRaw);
 
-      const sec1Raw = cariKolomBarisExcel(row, ["LISTENING", "SEC 1", "SECTION 1"]);
-      const sec2Raw = cariKolomBarisExcel(row, ["STRUCTURE", "SEC 2", "SECTION 2"]);
-      const sec3Raw = cariKolomBarisExcel(row, ["READING", "SEC 3", "SECTION 3"]);
-      const s1 = sec1Raw !== null && !isNaN(Number(sec1Raw)) && Number(sec1Raw) > 0 ? Number(sec1Raw) : null;
-      const s2 = sec2Raw !== null && !isNaN(Number(sec2Raw)) && Number(sec2Raw) > 0 ? Number(sec2Raw) : null;
-      const s3 = sec3Raw !== null && !isNaN(Number(sec3Raw)) && Number(sec3Raw) > 0 ? Number(sec3Raw) : null;
+      const s1 = parseSkorBulatExcel(cariKolomBarisExcel(row, ["LISTENING", "SEC 1", "SECTION_1", "SECTION 1"]));
+      const s2 = parseSkorBulatExcel(cariKolomBarisExcel(row, ["STRUCTURE", "SEC 2", "SECTION_2", "SECTION 2"]));
+      const s3 = parseSkorBulatExcel(cariKolomBarisExcel(row, ["READING", "SEC 3", "SECTION_3", "SECTION 3"]));
 
       const terapkanSkorKeObjek = (targetObj) => {
         let terisi = false;
@@ -690,6 +721,9 @@ async function prosesImportArsipCerdas() {
           terisi = true;
         } else if (kategoriImport === "LATIHAN" && skorAngka) {
           targetObj.skor_latihan = skorAngka;
+          if (s1) targetObj.listening = s1;
+          if (s2) targetObj.structure = s2;
+          if (s3) targetObj.reading = s3;
           terisi = true;
         } else if (kategoriImport === "TOEFL" && skorAngka) {
           targetObj.skor_toefl = skorAngka;
@@ -744,7 +778,7 @@ async function prosesImportArsipCerdas() {
           return;
         }
 
-        const prodiRaw = cariKolomBarisExcel(row, ["PROGRAM STUDI", "PRODI", "KELAS"]) || "-";
+        const prodiRaw = cariKolomBarisExcel(row, ["PROGRAM STUDI", "PROGRAM_STUDI", "PRODI", "KELAS"]) || "-";
         const jurusanRaw = cariKolomBarisExcel(row, ["JURUSAN"]) || "-";
         const infoProdi = deteksiJurusanDariProdiSensitif(prodiRaw, jurusanRaw);
 
