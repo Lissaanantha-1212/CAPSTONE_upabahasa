@@ -110,7 +110,7 @@
   <!-- ==================== MAIN CONTENT ==================== -->
   <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
     
-    <!-- Top Header Bersih (Tanpa Search, Hanya Ikon ST di Pojok Kanan Atas) -->
+    <!-- Top Header Bersih -->
     <header class="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between sticky top-0 z-10 shrink-0">
       <div>
         <p class="text-[10px] uppercase tracking-wider font-extrabold text-slate-400">DASHBOARD / OVERVIEW</p>
@@ -255,7 +255,7 @@
       <!-- BARIS GRAFIK 1: TREN PER TAHUN (ANGKATAN) & TREN BULANAN -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        <!-- Grafik Tren Per Tahun / Angkatan (Otomatis bertambah saat upload tahun berapa pun) -->
+        <!-- Grafik Tren Per Tahun / Angkatan -->
         <div class="lg:col-span-6 bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col justify-between space-y-4">
           <div>
             <p class="text-[11px] font-bold text-polnes-main uppercase">Analisis Lintas Tahun / Angkatan</p>
@@ -267,7 +267,7 @@
           </div>
         </div>
 
-        <!-- Grafik Statistik Pelaksanaan Test Bulanan (Asli Anda) -->
+        <!-- Grafik Statistik Pelaksanaan Test Bulanan -->
         <div class="lg:col-span-6 bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col justify-between space-y-4">
           <div>
             <p class="text-[11px] font-bold text-slate-400 uppercase">Statistik Pelaksanaan Test</p>
@@ -288,7 +288,7 @@
             <p class="text-[11px] font-bold text-polnes-main uppercase">Perbandingan Antar Jurusan</p>
             <h3 class="text-base font-extrabold text-slate-900 mt-0.5">Analisis Tingkat Kelulusan (%) &amp; Rata-rata TOEFL Per Jurusan</h3>
           </div>
-          <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-[11px] font-bold">Standar Lulus: D3 = 400 | D4 = 450</span>
+          <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-[11px] font-bold">Standar Lulus: D3 = 400 | D4 = 430</span>
         </div>
 
         <div class="h-[300px] w-full">
@@ -356,7 +356,7 @@
         prodi: [
           { nama: "D3 - AKUNTANSI", kw: ["D3 - AKUNTANSI", "D3 AKUNTANSI"] },
           { nama: "D4 - AKUNTANSI MANAJERIAL", kw: ["AKUNTANSI MANAJERIAL"] },
-          { nama: "D4 - KEUANGAN PERBANKAN", kw: ["KEUANGAN PERBANKAN"] }
+          { nama: "D4 - KEUANGAN PERBANKAN", kw: ["KEUANGAN PERBANKAN", "KEUANGAN DAN PERBANKAN"] }
         ]
       },
       {
@@ -433,7 +433,13 @@
     ];
 
     function deteksiJurusanProdiOtomatis(prodiRaw, jurusanFallback = "-") {
-      const teks = String(prodiRaw || "").trim().toUpperCase().replace(/\s+/g, " ");
+      const teks = String(prodiRaw || "")
+        .trim()
+        .toUpperCase()
+        .replace(/[–—−]/g, "-")
+        .replace(/\s*-\s*/g, " - ")
+        .replace(/\s+/g, " ");
+
       if (!teks || teks === "-") {
         return { jurusan: String(jurusanFallback || "LAINNYA").toUpperCase(), prodi: "BELUM TERDATA", jenjang: "D3" };
       }
@@ -523,7 +529,7 @@
             });
           }
 
-          // 3. Tarik & Gabungkan Seluruh Data Rekapan (arsip_master_rekapan, Rekapan, HasilTes, Mahasiswa)
+          // 3. Tarik & Gabungkan Seluruh Data Rekapan
           const [rekapanMaster, rekapanTabel, hasilTesTabel, mhsTabel] = await Promise.all([
             fetchSemuaBarisTabel(window.supabaseClient, 'arsip_master_rekapan'),
             fetchSemuaBarisTabel(window.supabaseClient, 'Rekapan'),
@@ -546,7 +552,6 @@
             });
           }
 
-          // Gabungkan per NIM untuk Analisis Tren Lintas Tahun, Jurusan, & Prodi
           const mapByNim = new Map();
           const parseNum = (v) => {
             if (v === null || v === undefined || String(v).trim() === "") return null;
@@ -625,10 +630,11 @@
             rec.remedial_3 = parseNum(h.remedial_3) ?? rec.remedial_3;
           });
 
+          // Batas Lulus: D4 = 430, D3 = 400
           dashAnalisisState.semuaRekapan = Array.from(mapByNim.values()).map(m => {
             const arrSkor = [m.remedial_3, m.remedial_2, m.remedial_1, m.skor_toefl].filter(v => v !== null && v > 0);
             const skorAkhir = arrSkor.length > 0 ? Math.max(...arrSkor) : null;
-            const batas = m.jenjang === "D4" ? 450 : 400;
+            const batas = m.jenjang === "D4" ? 430 : 400;
             return {
               ...m,
               skor_toefl_akhir: skorAkhir,
