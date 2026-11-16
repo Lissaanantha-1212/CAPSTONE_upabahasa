@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Validasi Sertifikat Digital - UPA Bahasa POLNES</title>
+  <link rel="icon" type="image/png" href="./img/polnes.png" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Sesuaikan path script konfigurasi Supabase Anda jika berbeda -->
+  <script src="./supabase-config.js"></script>
+</head>
+<body class="min-h-screen bg-slate-100 text-slate-800 flex flex-col justify-between font-sans">
+
+  <!-- HEADER KAMPUS -->
+  <header class="bg-white border-b border-slate-200 shadow-2xs">
+    <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3.5">
+        <img src="./img/polnes.png" alt="Logo POLNES" class="w-12 h-12 object-contain" />
+        <div>
+          <p class="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Kementerian Pendidikan, Tinggi, Sains, dan Teknologi</p>
+          <h1 class="text-sm sm:text-base font-extrabold text-slate-900 leading-tight">POLITEKNIK NEGERI SAMARINDA</h1>
+          <p class="text-xs font-extrabold text-[#169C53]">UNIT PENUNJANG AKADEMIK (UPA) BAHASA</p>
+        </div>
+      </div>
+      <span class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 text-xs font-bold">
+        <i class="ri-shield-check-fill text-[#169C53] text-sm"></i>
+        Sistem Verifikasi SHA-256
+      </span>
+    </div>
+  </header>
+
+  <!-- KONTEN UTAMA VALIDASI -->
+  <main class="max-w-3xl w-full mx-auto px-4 py-8 flex-1">
+
+    <!-- STATE 1: LOADING -->
+    <div id="stateLoading" class="bg-white rounded-3xl border border-slate-200 p-10 text-center shadow-xs">
+      <i class="ri-loader-4-line animate-spin text-4xl text-[#169C53] inline-block mb-3"></i>
+      <h2 class="text-lg font-extrabold text-slate-800">Memverifikasi Keaslian Sertifikat...</h2>
+      <p class="text-xs text-slate-500 mt-1">Mencocokkan tanda tangan kriptografi SHA-256 dengan arsip resmi UPA Bahasa POLNES.</p>
+    </div>
+
+    <!-- STATE 2: VALID / TERVERIFIKASI -->
+    <div id="stateValid" class="hidden bg-white rounded-3xl border border-emerald-200 shadow-sm overflow-hidden">
+      <div class="bg-gradient-to-r from-[#0E7A3F] to-[#169C53] px-6 py-6 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div class="flex items-center gap-3.5">
+          <div class="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-xs flex items-center justify-center text-2xl shrink-0">
+            <i class="ri-verified-badge-fill"></i>
+          </div>
+          <div>
+            <span class="inline-block px-2.5 py-0.5 rounded-full bg-white/20 text-[10px] font-extrabold tracking-wider uppercase mb-1">
+              DOKUMEN RESMI &amp; TERVERIFIKASI
+            </span>
+            <h2 class="text-xl font-extrabold leading-tight">Sertifikat Asli UPA Bahasa POLNES</h2>
+          </div>
+        </div>
+        <div id="badgeJenisTes" class="px-3.5 py-1.5 rounded-xl bg-white text-[#0E7A3F] font-extrabold text-xs tracking-wide shadow-2xs">
+          TOEFL PREDICTION
+        </div>
+      </div>
+
+      <div class="p-6 sm:p-8 space-y-6">
+        <!-- BIODATA MAHASISWA -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-5 rounded-2xl border border-slate-200/80">
+          <div>
+            <p class="text-[11px] font-bold text-slate-400 uppercase">Nama Lengkap</p>
+            <p id="valNama" class="text-base font-extrabold text-slate-900 uppercase mt-0.5">-</p>
+          </div>
+          <div>
+            <p class="text-[11px] font-bold text-slate-400 uppercase">Nomor Induk Mahasiswa (NIM)</p>
+            <p id="valNim" class="text-base font-mono font-extrabold text-[#169C53] mt-0.5">-</p>
+          </div>
+          <div>
+            <p class="text-[11px] font-bold text-slate-400 uppercase">Program Studi / Jurusan</p>
+            <p id="valProdi" class="text-sm font-bold text-slate-800 mt-0.5">-</p>
+          </div>
+          <div>
+            <p class="text-[11px] font-bold text-slate-400 uppercase">Nomor Sertifikat Resmi</p>
+            <p id="valNomorSurat" class="text-sm font-mono font-bold text-slate-800 mt-0.5">-</p>
+          </div>
+          <div>
+            <p class="text-[11px] font-bold text-slate-400 uppercase">Tanggal Terbit Sertifikat</p>
+            <p id="valTanggalTes" class="text-sm font-bold text-slate-800 mt-0.5">-</p>
+          </div>
+          <div>
+            <p class="text-[11px] font-bold text-slate-400 uppercase">Penandatangan Sah</p>
+            <p class="text-sm font-bold text-slate-800 mt-0.5">Dwi Titi Maesaroh, S.Pd., M.Pd.</p>
+            <p class="text-[11px] text-slate-500">Kepala UPA Bahasa POLNES</p>
+          </div>
+        </div>
+
+        <!-- RINCIAN SKOR -->
+        <div>
+          <h3 class="text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-3">Rincian Hasil Tes Terverifikasi</h3>
+          <div id="gridSkorValidasi" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <!-- Diisi otomatis via JS -->
+          </div>
+        </div>
+
+        <!-- DIGITAL SIGNATURE SHA-256 -->
+        <div class="bg-slate-900 text-slate-200 rounded-2xl p-4 sm:p-5 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-extrabold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+              <i class="ri-lock-2-fill"></i> SHA-256 Cryptographic Fingerprint
+            </span>
+            <span id="badgeHashMatch" class="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">
+              SIGNATURE MATCH
+            </span>
+          </div>
+          <p id="valHashSha256" class="font-mono text-[11px] sm:text-xs text-slate-300 break-all bg-slate-800/90 p-3 rounded-xl border border-slate-700">
+            -
+          </p>
+          <p class="text-[11px] text-slate-400">
+            Hash SHA-256 ini dihitung secara real-time dari data database server dan dicocokkan dengan kode terenkripsi pada QR Code sertifikat untuk menjamin tidak ada manipulasi nilai.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATE 3: INVALID / TIDAK DITEMUKAN / DIMANIPULASI -->
+    <div id="stateInvalid" class="hidden bg-white rounded-3xl border border-rose-200 p-8 sm:p-10 text-center shadow-sm">
+      <div class="w-16 h-16 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center text-3xl mx-auto mb-4">
+        <i class="ri-error-warning-fill"></i>
+      </div>
+      <span class="inline-block px-3 py-1 rounded-full bg-rose-50 text-rose-700 text-xs font-extrabold uppercase tracking-wider mb-2">
+        VERIFIKASI GAGAL / TIDAK VALID
+      </span>
+      <h2 id="judulInvalid" class="text-xl font-extrabold text-slate-900">Sertifikat Tidak Terdaftar</h2>
+      <p id="pesanInvalid" class="text-sm text-slate-600 max-w-lg mx-auto mt-2">
+        Data sertifikat tidak ditemukan di arsip UPA Bahasa Politeknik Negeri Samarinda atau tanda tangan SHA-256 pada QR Code telah dimodifikasi.
+      </p>
+
+      <!-- Form Cek Manual Jika Pengguna Membuka Halaman Tanpa Scan QR -->
+      <form onsubmit="cekManualDariForm(event)" class="max-w-md mx-auto mt-6 pt-6 border-t border-slate-100 text-left space-y-3">
+        <p class="text-xs font-extrabold text-slate-700">Cek Manual Berdasarkan NIM:</p>
+        <div class="flex gap-2">
+          <input type="text" id="inputManualNim" placeholder="Masukkan NIM (contoh: 226151001)" required
+            class="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:border-[#169C53]" />
+          <select id="selectManualJenis" class="px-3 py-2.5 rounded-xl border border-slate-300 text-xs font-bold bg-white">
+            <option value="TOEFL">TOEFL</option>
+            <option value="SSPECT">SSPECT</option>
+          </select>
+          <button type="submit" class="px-4 py-2.5 rounded-xl bg-[#169C53] hover:bg-[#0E7A3F] text-white text-xs font-extrabold">
+            Cek
+          </button>
+        </div>
+      </form>
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-white border-t border-slate-200 py-5 px-4 text-center text-xs text-slate-500">
+    <p class="font-bold text-slate-700">UPA Bahasa &mdash; Politeknik Negeri Samarinda</p>
+    <p class="mt-0.5">Jl. Dr. Ciptomangunkusumo Kampus Gunung Panjang Samarinda 75131 • Surel: bahasa@polnes.ac.id</p>
+  </footer>
+
+  <script>
+    const SECRET_SALT_UPA_BAHASA_POLNES = "UPA-BAHASA-POLNES-2026-OFFICIAL-SIGN";
+
+    async function buatSignatureSha256Sertifikat(nim, jenis, nomorSertifikat, totalSkor) {
+      const payload = `${String(nim).trim()}|${String(jenis).toUpperCase()}|${String(nomorSertifikat).trim()}|${String(totalSkor).trim()}|${SECRET_SALT_UPA_BAHASA_POLNES}`;
+      const encoder = new TextEncoder();
+      const data = encoder.encode(payload);
+      const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+    }
+
+    function hitungSkorToeflTertinggi(m) {
+      const daftar = [m.remedial_3, m.remedial_2, m.remedial_1, m.skor_toefl]
+        .map(v => Number(v))
+        .filter(v => !isNaN(v) && v > 0);
+      return daftar.length > 0 ? Math.round(Math.max(...daftar)) : null;
+    }
+
+    function cekManualDariForm(e) {
+      e.preventDefault();
+      const nim = document.getElementById("inputManualNim").value.trim();
+      const jenis = document.getElementById("selectManualJenis").value;
+      if (!nim) return;
+      window.location.href = `?nim=${encodeURIComponent(nim)}&jenis=${encodeURIComponent(jenis)}`;
+    }
+
+    function tampilkanGagal(judul, pesan) {
+      document.getElementById("stateLoading").classList.add("hidden");
+      document.getElementById("stateValid").classList.add("hidden");
+      document.getElementById("stateInvalid").classList.remove("hidden");
+      document.getElementById("judulInvalid").textContent = judul;
+      document.getElementById("pesanInvalid").textContent = pesan;
+    }
+
+    async function jalankanValidasiSertifikat() {
+      const params = new URLSearchParams(window.location.search);
+      const nimParam = (params.get("nim") || "").trim();
+      const jenisParam = (params.get("jenis") || "TOEFL").trim().toUpperCase();
+      const sigParam = (params.get("sig") || "").trim().toLowerCase();
+
+      if (!nimParam) {
+        tampilkanGagal(
+          "Parameter QR Code Tidak Lengkap",
+          "Silakan pindai QR Code yang tertera pada sertifikat fisik/PDF UPA Bahasa POLNES atau masukkan NIM pada kolom di bawah."
+        );
+        return;
+      }
+
+      const db = window.supabaseClient || window.supabase;
+      if (!db || typeof db.from !== "function") {
+        tampilkanGagal(
+          "Koneksi Database Belum Terinisialisasi",
+          "Pastikan file konfigurasi Supabase (supabase-config.js) telah dimuat dengan benar."
+        );
+        return;
+      }
+
+      try {
+        const { data, error } = await db
+          .from("arsip_master_rekapan")
+          .select("*")
+          .eq("nim", nimParam)
+          .maybeSingle();
+
+        if (error) throw error;
+
+        if (!data) {
+          tampilkanGagal(
+            "Data Mahasiswa Tidak Ditemukan",
+            `NIM ${nimParam} tidak tercatat dalam arsip sertifikat resmi UPA Bahasa Politeknik Negeri Samarinda.`
+          );
+          return;
+        }
+
+        const isSspect = jenisParam === "SSPECT";
+        const defaultKodeSurat = isSspect ? "SSPECT" : "TOEFL-P";
+        const nomorSertifikat = data.nomor_sertifikat || `0355 / PL7.18 / UPA.BAHASA / ${defaultKodeSurat} / ${new Date().getFullYear()}`;
+        const tglTes = data.tanggal_tes || "04 May 2026";
+        const totalSkor = isSspect ? (data.skor_sspect ?? "-") : (hitungSkorToeflTertinggi(data) ?? "-");
+
+        if (totalSkor === "-" || totalSkor === null) {
+          tampilkanGagal(
+            `Sertifikat ${jenisParam} Belum Tersedia`,
+            `Mahasiswa dengan NIM ${nimParam} belum memiliki skor sah untuk kategori ${jenisParam}.`
+          );
+          return;
+        }
+
+        // Hitung ulang SHA-256 dari data asli database
+        const expectedSha256 = await buatSignatureSha256Sertifikat(data.nim, jenisParam, nomorSertifikat, totalSkor);
+
+        // Jika QR code membawa parameter sig, wajib cocok 100%
+        if (sigParam && sigParam !== expectedSha256) {
+          tampilkanGagal(
+            "Peringatan: Tanda Tangan SHA-256 Tidak Cocok!",
+            "Hash kriptografi pada QR Code tidak sesuai dengan data asli di server. Dokumen ini terindikasi telah diubah atau tidak sah."
+          );
+          return;
+        }
+
+        // Tampilkan hasil validasi resmi
+        document.getElementById("stateLoading").classList.add("hidden");
+        document.getElementById("stateInvalid").classList.add("hidden");
+        document.getElementById("stateValid").classList.remove("hidden");
+
+        document.getElementById("badgeJenisTes").textContent = isSspect ? "SSPECT PLACEMENT TEST" : "TOEFL PREDICTION TEST";
+        document.getElementById("valNama").textContent = data.nama || data.nama_mahasiswa || "-";
+        document.getElementById("valNim").textContent = data.nim;
+        document.getElementById("valProdi").textContent = `${data.program_studi || data.prodi || "-"} (${data.jurusan || "-"})`;
+        document.getElementById("valNomorSurat").textContent = nomorSertifikat;
+        document.getElementById("valTanggalTes").textContent = tglTes;
+        document.getElementById("valHashSha256").textContent = expectedSha256;
+
+        const badgeMatch = document.getElementById("badgeHashMatch");
+        if (sigParam) {
+          badgeMatch.textContent = "QR SHA-256 VERIFIED";
+          badgeMatch.className = "px-2.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 text-[10px] font-extrabold";
+        } else {
+          badgeMatch.textContent = "VERIFIED VIA MANUAL NIM";
+          badgeMatch.className = "px-2.5 py-0.5 rounded-md bg-sky-500/20 text-sky-300 text-[10px] font-extrabold";
+        }
+
+        const gridSkor = document.getElementById("gridSkorValidasi");
+        if (isSspect) {
+          gridSkor.className = "grid grid-cols-3 gap-3";
+          gridSkor.innerHTML = `
+            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-center">
+              <p class="text-[11px] font-bold text-slate-400">Listening</p>
+              <p class="text-xl font-extrabold text-slate-800 mt-1">${data.sspect_listening ?? data.listening ?? "-"}</p>
+            </div>
+            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-center">
+              <p class="text-[11px] font-bold text-slate-400">Reading</p>
+              <p class="text-xl font-extrabold text-slate-800 mt-1">${data.sspect_reading ?? data.reading ?? "-"}</p>
+            </div>
+            <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-center">
+              <p class="text-[11px] font-extrabold text-[#169C53]">TOTAL SCORE</p>
+              <p class="text-2xl font-extrabold text-[#0E7A3F] mt-1">${totalSkor}</p>
+            </div>
+          `;
+        } else {
+          gridSkor.className = "grid grid-cols-2 sm:grid-cols-4 gap-3";
+          gridSkor.innerHTML = `
+            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-center">
+              <p class="text-[11px] font-bold text-slate-400">Listening</p>
+              <p class="text-xl font-extrabold text-slate-800 mt-1">${data.listening ?? "-"}</p>
+            </div>
+            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-center">
+              <p class="text-[11px] font-bold text-slate-400">Structure</p>
+              <p class="text-xl font-extrabold text-slate-800 mt-1">${data.structure ?? "-"}</p>
+            </div>
+            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-center">
+              <p class="text-[11px] font-bold text-slate-400">Reading</p>
+              <p class="text-xl font-extrabold text-slate-800 mt-1">${data.reading ?? "-"}</p>
+            </div>
+            <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-center">
+              <p class="text-[11px] font-extrabold text-[#169C53]">TOTAL SCORE</p>
+              <p class="text-2xl font-extrabold text-[#0E7A3F] mt-1">${totalSkor}</p>
+            </div>
+          `;
+        }
+      } catch (err) {
+        console.error("Error validasi sertifikat:", err);
+        tampilkanGagal("Terjadi Kesalahan Sistem", err.message);
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", jalankanValidasiSertifikat);
+  </script>
+</body>
+</html>
