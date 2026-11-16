@@ -1,7 +1,7 @@
 // ============================================================================
 // MODUL REKAPAN INDUK MAHASISWA & SERTIFIKAT RESMI (UPA BAHASA POLNES)
 // Terkoneksi ke: arsip_master_rekapan, Rekapan, HasilTes, dan Mahasiswa
-// Dinamis untuk seluruh angkatan (2020, 2021, 2022, 2023, 2024, dst.)
+// Dinamis untuk seluruh angkatan (2020, 2021, 2022, 2023, 2024, 2025, dst.)
 // ============================================================================
 
 const rekapanState = {
@@ -293,7 +293,6 @@ function ekstrakSkorDariRiwayatJson(riwayatRaw) {
 function saringPayloadSesuaiSkemaTabel(objRecord) {
   const kandidat = { ...objRecord };
 
-  // 1. Selaraskan nama mahasiswa ('nama_mahasiswa' -> 'nama')
   if (kandidat.nama_mahasiswa !== undefined) {
     if (kandidat.nama === undefined) {
       kandidat.nama = kandidat.nama_mahasiswa;
@@ -301,12 +300,10 @@ function saringPayloadSesuaiSkemaTabel(objRecord) {
     delete kandidat.nama_mahasiswa;
   }
   
-  // 2. Selaraskan prodi ('program_studi' -> 'prodi')
   if (kandidat.program_studi !== undefined && kandidat.prodi === undefined) {
     kandidat.prodi = kandidat.program_studi;
   }
   
-  // 3. Hapus 'angkatan', gunakan 'tahun_angkatan'
   if (kandidat.angkatan !== undefined) {
     if (kandidat.tahun_angkatan === undefined) {
       kandidat.tahun_angkatan = kandidat.angkatan;
@@ -314,7 +311,6 @@ function saringPayloadSesuaiSkemaTabel(objRecord) {
     delete kandidat.angkatan;
   }
 
-  // 4. Selaraskan kolom skor agar cocok mutlak dengan tabel Supabase (skor_latihan, skor_sspect, skor_toefl)
   if (kandidat.nilai_sspect !== undefined) {
     if (kandidat.skor_sspect === undefined) kandidat.skor_sspect = kandidat.nilai_sspect;
     delete kandidat.nilai_sspect;
@@ -632,7 +628,7 @@ async function perbaikiDataMasterDiDatabase(db, daftarMahasiswa) {
   }
 }
 
-// ==================== 2. IMPORT ARSIP CERDAS (DINAMIS UNTUK SEMUA ANGKATAN) ====================
+// ==================== 2. IMPORT ARSIP CERDAS (MENDUKUNG MULTI-HEADER D3/D4 UPA BAHASA & STANDARD EXCEL) ====================
 function bukaModalImportArsip() {
   const fileInput = document.getElementById("inputFileExcelArsip");
   if (fileInput) fileInput.value = "";
@@ -666,6 +662,146 @@ function parseSkorBulatExcel(valRaw) {
   return !isNaN(angka) && angka > 0 ? Math.round(angka) : null;
 }
 
+// Helper: Mengonversi seluruh sheet & blok tabel UPA Bahasa (No | Nama | Nim | Section 1-3 | TOTAL) menjadi daftar baris seragam
+function ekstrakSemuaBarisMahasiswaDariWorkbook(workbook) {
+  const hasilEkstraksi = [];
+  let totalBarisNonData = 0;
+
+  // Prioritaskan sheet utama atau sheet D3/D4 (abaikan sheet LAPORAN jika berisi rekap ringkasan saja)
+  const daftarSheet = workbook.SheetNames.filter(nama => !nama.toUpperCase().includes("LAPORAN"));
+  const targetSheets = daftarSheet.length > 0 ? daftarSheet : workbook.SheetNames;
+
+  // Deteksi apakah file memiliki format laporan multi-blok UPA Bahasa (ada baris header "Nim" / "Nama" di tengah sheet)
+  let terdeteksiFormatBlokUpa = false;
+
+  targetSheets.forEach(sheetName => {
+    const ws = workbook.Sheets[sheetName];
+    const matrix = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
+
+    let prodiAktifBlok = sheetName.toUpperCase().includes("D4")
+      ? "D4 - PROGRAM STUDI"
+      : sheetName.toUpperCase().includes("D3")
+        ? "D3 - PROGRAM STUDI"
+        : "-";
+
+    let colIdx = { nama: -1, nim: -1, sec1: -1, sec2: -1, sec3: -1, total: -1, prodi: -1, jurusan: -1, angkatan: -1, ttl: -1 };
+    let headerSudahDitemukan = false;
+
+    for (let r = 0; r < matrix.length; r++) {
+      const baris = matrix[r];
+      if (!Array.isArray(baris)) {
+        totalBarisNonData++;
+        continue;
+      }
+
+      const barisUpper = baris.map(c => String(c || "").trim().toUpperCase());
+      const teksGabunganBaris = barisUpper.filter(Boolean).join(" ");
+
+      if (!teksGabunganBaris) {
+        totalBarisNonData++;
+        continue;
+      }
+
+      // 1. Cek apakah baris ini adalah judul Prodi blok tabel (contoh: "DII - TEKNIK ALAT BERAT", "D3 - PERAWATAN DAN PERBAIKAN MESIN", "D4 - DESAIN PRODUK KAYU DAN SERAT")
+      const selNonKosong = barisUpper.filter(Boolean);
+      if (
+        selNonKosong.length <= 2 &&
+        (
+          /^(D[234]|DII|DIII|DIV)\s*[-–]/.test(selNonKosong[0]) ||
+          DAFTAR_JURUSAN_PRODI_POLNES.some(j =>
+            j.prodi.some(p => p.kataKunci.some(kw => selNonKosong[0].includes(kw)))
+          )
+        )
+      ) {
+        // Normalisasi DII -> D3 jika ada typo dokumen lama
+        prodiAktifBlok = selNonKosong[0].replace(/^DII\s*[-–]/, "D3 -").replace(/^DIII\s*[-–]/, "D3 -").replace(/^DIV\s*[-–]/, "D4 -");
+        totalBarisNonData++;
+        continue;
+      }
+
+      // 2. Cek apakah baris ini adalah baris Header Kolom ("Nama" dan "Nim")
+      const idxNimHeader = barisUpper.findIndex(c => c === "NIM" || c === "NO INDUK" || c === "NO. INDUK" || c === "NPM");
+      const idxNamaHeader = barisUpper.findIndex(c => c === "NAMA" || c === "NAMA MAHASISWA" || c === "NAMA LENGKAP" || c === "FULL NAME");
+
+      if (idxNimHeader !== -1 && idxNamaHeader !== -1) {
+        terdeteksiFormatBlokUpa = true;
+        headerSudahDitemukan = true;
+        colIdx = { nama: idxNamaHeader, nim: idxNimHeader, sec1: -1, sec2: -1, sec3: -1, total: -1, prodi: -1, jurusan: -1, angkatan: -1, ttl: -1 };
+
+        // Cari kolom Section 1, 2, 3, Total di baris ini ATAU baris tepat di bawahnya (karena "SCORE" sering di-merge di atas Section 1-3)
+        const barisSubHeader = (r + 1 < matrix.length && Array.isArray(matrix[r + 1]))
+          ? matrix[r + 1].map(c => String(c || "").trim().toUpperCase())
+          : [];
+
+        for (let c = 0; c < Math.max(barisUpper.length, barisSubHeader.length); c++) {
+          const h1 = barisUpper[c] || "";
+          const h2 = barisSubHeader[c] || "";
+          const gab = `${h1} ${h2}`.trim();
+
+          if (gab.includes("SECTION 1") || gab.includes("SECTION_1") || gab.includes("SEC 1") || gab.includes("LISTENING")) colIdx.sec1 = c;
+          else if (gab.includes("SECTION 2") || gab.includes("SECTION_2") || gab.includes("SEC 2") || gab.includes("STRUCTURE")) colIdx.sec2 = c;
+          else if (gab.includes("SECTION 3") || gab.includes("SECTION_3") || gab.includes("SEC 3") || gab.includes("READING")) colIdx.sec3 = c;
+          else if (gab.includes("TOTAL") || gab.includes("SKOR") || gab.includes("NILAI") || (gab.includes("SCORE") && !gab.includes("SECTION"))) colIdx.total = c;
+          else if (gab.includes("PRODI") || gab.includes("PROGRAM STUDI") || gab.includes("KELAS")) colIdx.prodi = c;
+          else if (gab.includes("JURUSAN")) colIdx.jurusan = c;
+          else if (gab.includes("ANGKATAN") || gab.includes("TAHUN")) colIdx.angkatan = c;
+          else if (gab.includes("TTL") || gab.includes("BIRTH") || gab.includes("LAHIR")) colIdx.ttl = c;
+        }
+
+        // Fallback posisi kolom standar tabel UPA Bahasa (Nim + 1 = Sec1, Nim + 2 = Sec2, Nim + 3 = Sec3, Nim + 4 = Total)
+        if (colIdx.sec1 === -1) colIdx.sec1 = idxNimHeader + 1;
+        if (colIdx.sec2 === -1) colIdx.sec2 = idxNimHeader + 2;
+        if (colIdx.sec3 === -1) colIdx.sec3 = idxNimHeader + 3;
+        if (colIdx.total === -1) colIdx.total = idxNimHeader + 4;
+
+        totalBarisNonData++;
+        continue;
+      }
+
+      // 3. Jika sudah melewati header, ekstrak baris data mahasiswa
+      if (headerSudahDitemukan) {
+        const nimVal = String(baris[colIdx.nim] || "").replace(/\s+/g, "").trim();
+        const namaVal = String(baris[colIdx.nama] || "").trim().toUpperCase();
+
+        // Lewati baris sub-header ("Section 1"), baris rata-rata hijau tanpa NIM, atau baris kosong
+        if (!nimVal || !/^\d{6,15}$/.test(nimVal) || !namaVal) {
+          totalBarisNonData++;
+          continue;
+        }
+
+        const prodiBaris = colIdx.prodi !== -1 && baris[colIdx.prodi] ? String(baris[colIdx.prodi]).trim() : prodiAktifBlok;
+        const jurusanBaris = colIdx.jurusan !== -1 && baris[colIdx.jurusan] ? String(baris[colIdx.jurusan]).trim() : "-";
+        const angkatanBaris = colIdx.angkatan !== -1 && baris[colIdx.angkatan] ? baris[colIdx.angkatan] : "";
+        const ttlBaris = colIdx.ttl !== -1 && baris[colIdx.ttl] ? String(baris[colIdx.ttl]).trim() : "";
+
+        hasilEkstraksi.push({
+          NIM: nimVal,
+          NAMA: namaVal,
+          "PROGRAM STUDI": prodiBaris,
+          JURUSAN: jurusanBaris,
+          ANGKATAN: angkatanBaris,
+          TTL: ttlBaris,
+          "SECTION 1": baris[colIdx.sec1] ?? "",
+          "SECTION 2": baris[colIdx.sec2] ?? "",
+          "SECTION 3": baris[colIdx.sec3] ?? "",
+          TOTAL: baris[colIdx.total] ?? ""
+        });
+      } else {
+        totalBarisNonData++;
+      }
+    }
+  });
+
+  // Fallback ke pembacaan sheet_to_json standar jika file Excel memakai format tabel biasa (baris 1 langsung header)
+  if (!terdeteksiFormatBlokUpa || hasilEkstraksi.length === 0) {
+    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rowsStandar = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
+    return { rows: rowsStandar, dilewatiAwal: 0 };
+  }
+
+  return { rows: hasilEkstraksi, dilewatiAwal: totalBarisNonData };
+}
+
 async function prosesImportArsipCerdas() {
   const db = getDbClientRekapan();
   if (!db) return;
@@ -686,8 +822,7 @@ async function prosesImportArsipCerdas() {
   try {
     const buffer = await file.arrayBuffer();
     const workbook = XLSX.read(buffer, { type: "array" });
-    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-    const rows = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
+    const { rows, dilewatiAwal } = ekstrakSemuaBarisMahasiswaDariWorkbook(workbook);
 
     if (!rows || rows.length === 0) {
       alert("File Excel kosong atau tidak terbaca.");
@@ -717,7 +852,7 @@ async function prosesImportArsipCerdas() {
     const mapPatchDbExisting = new Map();
     const mapInsertBaru = new Map();
     const setAngkatanTerdeteksi = new Set();
-    let jmlDilewati = 0;
+    let jmlDilewati = dilewatiAwal;
 
     rows.forEach(row => {
       const nimRaw = String(cariKolomBarisExcel(row, ["NIM", "NO INDUK", "NPM"]) || "").replace(/\s+/g, "").trim();
@@ -741,7 +876,7 @@ async function prosesImportArsipCerdas() {
       }
 
       const skorUtamaRaw = cariKolomBarisExcel(row, [
-        "TOTAL_SCORE", "TOTAL SCORE", "SKOR TOTAL", "SKOR AKHIR", "SKOR", "SCORE", "NILAI",
+        "TOTAL", "TOTAL_SCORE", "TOTAL SCORE", "SKOR TOTAL", "SKOR AKHIR", "SKOR", "SCORE", "NILAI",
         "SSPECT", "LATIHAN", "TOEFL", "REMEDIAL 1", "REMEDIAL 2", "REMEDIAL 3", "REMEDIAL"
       ]);
       const skorAngka = parseSkorBulatExcel(skorUtamaRaw);
