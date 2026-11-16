@@ -1,44 +1,44 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login User - UPA Bahasa POLNES</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet" />
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
-          fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+          fontFamily: { sans: ["Plus Jakarta Sans", "sans-serif"] },
           colors: {
             polnes: {
-              main: '#169C53',
-              dark: '#0E7A3F',
-              light: '#E8F8EF'
+              main: "#169C53",
+              dark: "#0E7A3F",
+              light: "#E8F8EF"
             }
           }
         }
       }
-    }
+    };
   </script>
 </head>
-<body class="bg-[#0E7A3F] font-sans text-slate-800 antialiased h-screen w-screen overflow-hidden flex items-center justify-center p-3 sm:p-6">
+<body class="bg-[#0E7A3F] font-sans text-slate-800 antialiased min-h-screen w-screen overflow-x-hidden flex items-center justify-center p-3 sm:p-6">
 
   <!-- Container Utama Model Kapsul -->
-  <div class="bg-white w-full max-w-6xl h-[92vh] rounded-[36px] shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 relative">
+  <div class="bg-white w-full max-w-6xl min-h-[88vh] lg:h-[92vh] rounded-[36px] shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 relative">
     
     <!-- Sisi Kiri: Ilustrasi & Identitas POLNES -->
     <div class="lg:col-span-7 bg-white relative flex flex-col justify-between p-8 sm:p-12 overflow-hidden">
       <div class="absolute inset-y-0 right-0 w-3/4 bg-emerald-50/70 rounded-l-[120px] pointer-events-none"></div>
 
       <div class="relative z-10 flex items-center gap-3">
-        <img src="./img/polnes.png" onerror="this.style.display='none'; document.getElementById('fallbackLogoLogin').classList.remove('hidden')" alt="Logo POLNES" class="w-12 h-12 object-contain">
+        <img src="./img/polnes.png" onerror="this.style.display='none'; document.getElementById('fallbackLogoLogin').classList.remove('hidden')" alt="Logo POLNES" class="w-12 h-12 object-contain" />
         <div id="fallbackLogoLogin" class="hidden w-12 h-12 rounded-xl bg-[#169C53] text-white flex items-center justify-center font-extrabold text-base shadow-sm">
           UP
         </div>
@@ -50,46 +50,93 @@
 
       <div class="relative z-10 my-auto py-6 space-y-4 max-w-md">
         <div class="inline-flex items-center gap-2 bg-emerald-100 text-[#169C53] px-3.5 py-1 rounded-full text-xs font-extrabold uppercase">
-          <i class="ri-shield-user-line"></i> Portal Manajemen Pengguna & Admin
+          <i class="ri-shield-user-line"></i> Portal Manajemen Pengguna &amp; Admin
         </div>
         <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-snug">
-          Sistem Pengelolaan Tes & Rekapan Akademik
+          Sistem Pengelolaan Tes &amp; Rekapan Akademik
         </h1>
         <p class="text-xs sm:text-sm text-slate-500 leading-relaxed">
-          Silakan masuk menggunakan akun pengguna yang terdaftar di database untuk mengelola penjadwalan ujian dan rekapan data mahasiswa.
+          Silakan masuk menggunakan akun pengguna atau akun Google terdaftar untuk mengelola penjadwalan ujian, penilaian otomatis, dan penerbitan sertifikat resmi.
         </p>
+
+        <!-- Lencana Keamanan Sistem -->
+        <div class="pt-2 flex flex-wrap items-center gap-3 text-[11px] font-bold text-slate-500">
+          <span class="inline-flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-xl">
+            <i class="ri-lock-password-line text-[#169C53]"></i> SHA-256 Encrypted
+          </span>
+          <span class="inline-flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-xl">
+            <i class="ri-google-fill text-[#169C53]"></i> OAuth 2.0 Verified
+          </span>
+        </div>
       </div>
 
-      <div class="relative z-10 text-[11px] text-slate-400 font-medium flex items-center justify-between">
+      <div class="relative z-10 text-[11px] text-slate-400 font-medium flex flex-wrap items-center justify-between gap-2">
         <span>© 2026 Politeknik Negeri Samarinda • UPA Bahasa</span>
-        <button onclick="window.location.href='index.html'" class="text-[#169C53] font-bold hover:underline flex items-center gap-1">
+        <button type="button" onclick="window.location.href='index.html'" class="text-[#169C53] font-bold hover:underline flex items-center gap-1">
           <i class="ri-arrow-left-line"></i> Kembali ke Beranda Utama
         </button>
       </div>
     </div>
 
     <!-- Sisi Kanan: Form Login -->
-    <div class="lg:col-span-5 bg-[#0E7A3F] text-white p-8 sm:p-12 flex flex-col justify-center relative overflow-hidden">
-      <div class="max-w-sm w-full mx-auto space-y-6 relative z-10">
+    <div class="lg:col-span-5 bg-[#0E7A3F] text-white p-7 sm:p-11 flex flex-col justify-center relative overflow-y-auto">
+      <div class="max-w-sm w-full mx-auto space-y-5 relative z-10">
         
         <div>
           <h2 class="text-3xl font-extrabold tracking-tight">Login User</h2>
-          <p class="text-xs text-emerald-100 mt-1">Masukkan username dan password Anda.</p>
+          <p class="text-xs text-emerald-100 mt-1">Masuk dengan akun staf atau akun Google terdaftar.</p>
         </div>
 
         <!-- Alert Pesan Error/Sukses -->
-        <div id="loginAlert" class="hidden p-3.5 rounded-xl text-xs font-semibold"></div>
+        <div id="loginAlert" class="hidden p-3.5 rounded-xl text-xs font-semibold leading-relaxed"></div>
 
-        <!-- Form Login -->
-        <form onsubmit="prosesLoginUser(event)" class="space-y-4">
+        <!-- Tombol Login dengan Google (OAuth) -->
+        <button type="button" id="btnLoginGoogle" onclick="prosesLoginGoogle()" class="w-full py-3 px-4 rounded-xl bg-white hover:bg-emerald-50 text-slate-800 font-extrabold text-xs sm:text-sm shadow-md transition-all flex items-center justify-center gap-2.5">
+          <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z"/>
+            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.29v3.14C3.26 21.3 7.31 24 12 24Z"/>
+            <path fill="#FBBC05" d="M5.28 14.24c-.24-.72-.38-1.49-.38-2.24s.14-1.52.38-2.24V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.99-3.14Z"/>
+            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.99 3.14c.95-2.85 3.6-4.96 6.72-4.96Z"/>
+          </svg>
+          <span>Lanjutkan dengan Google</span>
+        </button>
+
+        <!-- Divider -->
+        <div class="relative flex items-center py-0.5">
+          <div class="grow border-t border-emerald-700/70"></div>
+          <span class="shrink mx-3 text-[10px] font-extrabold uppercase tracking-widest text-emerald-200/80">atau akun sistem</span>
+          <div class="grow border-t border-emerald-700/70"></div>
+        </div>
+
+        <!-- Form Login Manual -->
+        <form onsubmit="prosesLoginUser(event)" class="space-y-3.5">
           <div class="space-y-1">
-            <label class="block text-xs font-bold uppercase tracking-wider text-emerald-100">Username</label>
-            <input type="text" id="loginUsername" placeholder="Enter your username" class="w-full px-4 py-3 bg-emerald-950/40 border border-emerald-700/60 rounded-xl text-sm text-white placeholder-emerald-300/50 focus:border-white focus:outline-none transition-all">
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-emerald-100">Username atau Email</label>
+            <div class="relative">
+              <input type="text" id="loginUsername" autocomplete="username" placeholder="Masukkan username atau email" class="w-full px-4 py-3 bg-emerald-950/40 border border-emerald-700/60 rounded-xl text-sm text-white placeholder-emerald-300/50 focus:border-white focus:outline-none transition-all" />
+            </div>
           </div>
 
           <div class="space-y-1">
-            <label class="block text-xs font-bold uppercase tracking-wider text-emerald-100">Password</label>
-            <input type="password" id="loginPassword" placeholder="Enter your password" class="w-full px-4 py-3 bg-emerald-950/40 border border-emerald-700/60 rounded-xl text-sm text-white placeholder-emerald-300/50 focus:border-white focus:outline-none transition-all">
+            <div class="flex items-center justify-between">
+              <label class="block text-[11px] font-bold uppercase tracking-wider text-emerald-100">Password</label>
+              <button type="button" onclick="bukaModalLupaPassword()" class="text-[11px] font-bold text-emerald-200 hover:text-white hover:underline">
+                Lupa Password?
+              </button>
+            </div>
+            <div class="relative">
+              <input type="password" id="loginPassword" autocomplete="current-password" placeholder="Masukkan password Anda" class="w-full pl-4 pr-11 py-3 bg-emerald-950/40 border border-emerald-700/60 rounded-xl text-sm text-white placeholder-emerald-300/50 focus:border-white focus:outline-none transition-all" />
+              <button type="button" onclick="toggleLihatSandi('loginPassword', 'iconEyeLogin')" class="absolute inset-y-0 right-0 px-3.5 flex items-center text-emerald-200 hover:text-white" title="Tampilkan/Sembunyikan Password">
+                <i id="iconEyeLogin" class="ri-eye-off-line text-base"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between text-xs text-emerald-100 pt-0.5">
+            <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+              <input type="checkbox" id="rememberMeCheck" checked class="w-3.5 h-3.5 rounded border-emerald-600 accent-white" />
+              <span>Ingat sesi login saya</span>
+            </label>
           </div>
 
           <button type="submit" id="btnLoginSubmit" class="w-full py-3.5 rounded-xl bg-white text-[#0E7A3F] hover:bg-emerald-50 font-extrabold text-sm shadow-lg transition-all flex items-center justify-center gap-2">
@@ -98,15 +145,15 @@
           </button>
         </form>
 
-        <div class="text-center pt-2 text-xs text-emerald-100">
-          Don't have an account? 
+        <div class="text-center pt-1 text-xs text-emerald-100">
+          Belum memiliki akun staf?
           <button type="button" onclick="bukaModalRegister()" class="font-extrabold text-white underline hover:text-emerald-200 ml-1">
             Register Now
           </button>
         </div>
 
-        <div class="pt-6 border-t border-emerald-800/60 flex items-center justify-between text-[11px] text-emerald-300">
-          <a href="#" class="hover:underline">Terms and Services</a>
+        <div class="pt-4 border-t border-emerald-800/60 flex items-center justify-between text-[11px] text-emerald-300">
+          <a href="#" onclick="bukaModalKebijakan(event)" class="hover:underline">Terms &amp; Security</a>
           <span>support@upabahasa.polnes.ac.id</span>
         </div>
 
@@ -117,170 +164,567 @@
 
   <!-- ==================== MODAL REGISTER USER ==================== -->
   <div id="modalRegister" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-5 relative">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-4 relative max-h-[92vh] overflow-y-auto">
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
         <div>
           <span class="text-[10px] font-extrabold uppercase tracking-wider text-[#169C53]">PENDAFTARAN PENGGUNA BARU</span>
           <h3 class="text-lg font-extrabold text-slate-900 mt-0.5">Register User UPA Bahasa</h3>
         </div>
-        <button onclick="tutupModalRegister()" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center">
+        <button type="button" onclick="tutupModalRegister()" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center">
           <i class="ri-close-line text-lg"></i>
         </button>
       </div>
 
-      <form onsubmit="prosesRegisterUser(event)" class="space-y-4">
+      <form onsubmit="prosesRegisterUser(event)" class="space-y-3.5">
         <div>
-          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Nama Lengkap & Gelar *</label>
-          <input type="text" id="regNama" required placeholder="Contoh: Lissa Anantha, S.Kom." class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-[#169C53] outline-none">
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Nama Lengkap &amp; Gelar *</label>
+          <input type="text" id="regNama" required placeholder="Contoh: Lissa Anantha, S.Kom." class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-[#169C53] outline-none" />
         </div>
 
-        <div>
-          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Username *</label>
-          <input type="text" id="regUsername" required placeholder="Username..." class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-mono focus:border-[#169C53] outline-none">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Username *</label>
+            <input type="text" id="regUsername" required pattern="^[a-zA-Z0-9._]{4,24}$" title="4-24 karakter huruf, angka, titik, atau underscore" placeholder="contoh: lissa.admin" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-mono focus:border-[#169C53] outline-none" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Email Aktif / Gmail *</label>
+            <input type="email" id="regEmail" required placeholder="nama@gmail.com" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-[#169C53] outline-none" />
+          </div>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Password *</label>
-            <input type="password" id="regPassword" required placeholder="••••••••" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-[#169C53] outline-none">
+            <div class="relative">
+              <input type="password" id="regPassword" required minlength="8" oninput="cekKekuatanPassword(this.value)" placeholder="Min. 8 karakter" class="w-full pl-3.5 pr-9 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-[#169C53] outline-none" />
+              <button type="button" onclick="toggleLihatSandi('regPassword', 'iconEyeReg1')" class="absolute inset-y-0 right-0 px-2.5 flex items-center text-slate-400 hover:text-slate-700">
+                <i id="iconEyeReg1" class="ri-eye-off-line text-sm"></i>
+              </button>
+            </div>
           </div>
           <div>
             <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Konfirmasi *</label>
-            <input type="password" id="regKonfirmasi" required placeholder="••••••••" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-[#169C53] outline-none">
+            <div class="relative">
+              <input type="password" id="regKonfirmasi" required minlength="8" placeholder="Ulangi password" class="w-full pl-3.5 pr-9 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-[#169C53] outline-none" />
+              <button type="button" onclick="toggleLihatSandi('regKonfirmasi', 'iconEyeReg2')" class="absolute inset-y-0 right-0 px-2.5 flex items-center text-slate-400 hover:text-slate-700">
+                <i id="iconEyeReg2" class="ri-eye-off-line text-sm"></i>
+              </button>
+            </div>
           </div>
         </div>
 
-        <button type="submit" class="w-full py-3 rounded-xl bg-[#169C53] hover:bg-[#0E7A3F] text-white font-bold text-sm shadow-sm transition-all flex items-center justify-center gap-2">
-          <i class="ri-user-add-line"></i> Daftar Akun User Sekarang
+        <!-- Indikator Kekuatan Password -->
+        <div class="space-y-1">
+          <div class="flex justify-between text-[10px] font-bold text-slate-400">
+            <span>Kekuatan Password</span>
+            <span id="labelStrengthPass">Belum diisi</span>
+          </div>
+          <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+            <div id="barStrengthPass" class="h-full w-0 bg-rose-500 transition-all duration-300"></div>
+          </div>
+          <p class="text-[10px] text-slate-400">Gunakan minimal 8 karakter dengan kombinasi huruf besar, huruf kecil, dan angka.</p>
+        </div>
+
+        <button type="submit" id="btnRegisterSubmit" class="w-full py-3 rounded-xl bg-[#169C53] hover:bg-[#0E7A3F] text-white font-bold text-sm shadow-sm transition-all flex items-center justify-center gap-2">
+          <i class="ri-user-add-line"></i>
+          <span>Daftar Akun User Sekarang</span>
         </button>
       </form>
     </div>
   </div>
 
-  <!-- ==================== SCRIPT SUPABASE & LOGIKA LOGIN/REGISTER ==================== -->
+  <!-- ==================== MODAL LUPA PASSWORD ==================== -->
+  <div id="modalLupaPassword" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-4 relative">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div>
+          <span class="text-[10px] font-extrabold uppercase tracking-wider text-[#169C53]">PEMULIHAN AKSES AKUN</span>
+          <h3 class="text-lg font-extrabold text-slate-900 mt-0.5">Reset Password Akun</h3>
+        </div>
+        <button type="button" onclick="tutupModalLupaPassword()" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center">
+          <i class="ri-close-line text-lg"></i>
+        </button>
+      </div>
+
+      <p class="text-xs text-slate-500 leading-relaxed">
+        Masukkan alamat <b>Email</b> yang terdaftar pada akun staf Anda. Sistem akan mengirimkan tautan pemulihan password resmi ke inbox email Anda.
+      </p>
+
+      <form onsubmit="prosesKirimResetPassword(event)" class="space-y-4">
+        <div>
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Email Terdaftar *</label>
+          <input type="email" id="resetEmailInput" required placeholder="contoh: admin@gmail.com" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-[#169C53] outline-none" />
+        </div>
+
+        <button type="submit" id="btnKirimReset" class="w-full py-3 rounded-xl bg-[#169C53] hover:bg-[#0E7A3F] text-white font-bold text-sm shadow-sm transition-all flex items-center justify-center gap-2">
+          <i class="ri-mail-send-line"></i>
+          <span>Kirim Tautan Reset Password</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL KEBIJAKAN KEAMANAN ==================== -->
+  <div id="modalKebijakan" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-slate-200 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="text-base font-extrabold text-slate-900">Standar Keamanan Portal UPA Bahasa</h3>
+        <button type="button" onclick="document.getElementById('modalKebijakan').classList.add('hidden')" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center">
+          <i class="ri-close-line text-lg"></i>
+        </button>
+      </div>
+      <ul class="text-xs text-slate-600 space-y-2 leading-relaxed list-disc pl-4">
+        <li>Seluruh kata sandi dienkripsi satu arah menggunakan <b>SHA-256 Cryptographic Hash</b> sebelum disimpan di database.</li>
+        <li>Autentikasi Google dilindungi protokol <b>OAuth 2.0</b> dan validasi daftar putih (<i>whitelist</i>) pengguna UPA Bahasa POLNES.</li>
+        <li>Percobaan masuk yang gagal berulang kali akan memicu penguncian sementara otomatis untuk mencegah serangan <i>brute-force</i>.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ==================== SCRIPT SUPABASE & LOGIKA KEAMANAN LOGIN ==================== -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./js/supabase-config.js"></script>
   <script>
-    function bukaModalRegister() {
-      document.getElementById('modalRegister').classList.remove('hidden');
-    }
-    function tutupModalRegister() {
-      document.getElementById('modalRegister').classList.add('hidden');
+    const SALT_KEAMANAN_UPA = "UPA-BAHASA-POLNES-2026-SECURE-AUTH";
+    const MAX_PERCOBAAN_LOGIN = 5;
+    const DURASI_KUNCI_DETIK = 60;
+
+    // 1. Helper Kriptografi SHA-256 Password
+    async function hashPasswordSha256(plainText) {
+      const gabungan = `${SALT_KEAMANAN_UPA}::${String(plainText)}`;
+      const encoder = new TextEncoder();
+      const data = encoder.encode(gabungan);
+      const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return "sha256$" + hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
     }
 
-    // Fungsi Registrasi ke Tabel 'user_app' Supabase
+    // 2. Helper UI: Alert, Toggle Eye, & Password Strength
+    function tampilkanAlertLogin(tipe, pesan) {
+      const alertBox = document.getElementById("loginAlert");
+      if (tipe === "sukses") {
+        alertBox.className = "p-3.5 rounded-xl text-xs font-semibold bg-emerald-500/20 border border-emerald-400 text-emerald-100";
+      } else if (tipe === "peringatan") {
+        alertBox.className = "p-3.5 rounded-xl text-xs font-semibold bg-amber-500/20 border border-amber-400 text-amber-100";
+      } else {
+        alertBox.className = "p-3.5 rounded-xl text-xs font-semibold bg-rose-500/20 border border-rose-400 text-rose-100";
+      }
+      alertBox.innerHTML = pesan;
+      alertBox.classList.remove("hidden");
+    }
+
+    function toggleLihatSandi(inputId, iconId) {
+      const inp = document.getElementById(inputId);
+      const ico = document.getElementById(iconId);
+      if (!inp) return;
+      if (inp.type === "password") {
+        inp.type = "text";
+        if (ico) ico.className = "ri-eye-line text-base";
+      } else {
+        inp.type = "password";
+        if (ico) ico.className = "ri-eye-off-line text-base";
+      }
+    }
+
+    function cekKekuatanPassword(val) {
+      const bar = document.getElementById("barStrengthPass");
+      const lbl = document.getElementById("labelStrengthPass");
+      if (!bar || !lbl) return;
+
+      let skor = 0;
+      if (val.length >= 8) skor++;
+      if (/[A-Z]/.test(val)) skor++;
+      if (/[0-9]/.test(val)) skor++;
+      if (/[^A-Za-z0-9]/.test(val)) skor++;
+
+      if (!val) {
+        bar.style.width = "0%";
+        lbl.textContent = "Belum diisi";
+        lbl.className = "text-slate-400";
+      } else if (skor <= 1) {
+        bar.style.width = "30%";
+        bar.className = "h-full bg-rose-500 transition-all duration-300";
+        lbl.textContent = "Lemah";
+        lbl.className = "text-rose-600";
+      } else if (skor === 2 || skor === 3) {
+        bar.style.width = "68%";
+        bar.className = "h-full bg-amber-500 transition-all duration-300";
+        lbl.textContent = "Sedang";
+        lbl.className = "text-amber-600";
+      } else {
+        bar.style.width = "100%";
+        bar.className = "h-full bg-[#169C53] transition-all duration-300";
+        lbl.textContent = "Kuat & Aman";
+        lbl.className = "text-[#169C53]";
+      }
+    }
+
+    function bukaModalRegister() {
+      document.getElementById("modalRegister").classList.remove("hidden");
+    }
+    function tutupModalRegister() {
+      document.getElementById("modalRegister").classList.add("hidden");
+    }
+    function bukaModalLupaPassword() {
+      document.getElementById("modalLupaPassword").classList.remove("hidden");
+    }
+    function tutupModalLupaPassword() {
+      document.getElementById("modalLupaPassword").classList.add("hidden");
+    }
+    function bukaModalKebijakan(e) {
+      e.preventDefault();
+      document.getElementById("modalKebijakan").classList.remove("hidden");
+    }
+
+    // 3. Rate Limiting Anti Brute-Force
+    function cekStatusKunciLogin() {
+      const lockUntil = Number(localStorage.getItem("upa_login_lock_until") || 0);
+      const sisaDetik = Math.ceil((lockUntil - Date.now()) / 1000);
+      if (sisaDetik > 0) {
+        tampilkanAlertLogin("peringatan", `Terlalu banyak percobaan gagal. Silakan tunggu <b>${sisaDetik} detik</b> sebelum mencoba lagi.`);
+        return true;
+      }
+      return false;
+    }
+
+    function catatKegagalanLogin() {
+      const gagal = Number(localStorage.getItem("upa_login_fail_count") || 0) + 1;
+      localStorage.setItem("upa_login_fail_count", String(gagal));
+      if (gagal >= MAX_PERCOBAAN_LOGIN) {
+        localStorage.setItem("upa_login_lock_until", String(Date.now() + DURASI_KUNCI_DETIK * 1000));
+        localStorage.setItem("upa_login_fail_count", "0");
+      }
+    }
+
+    function resetKegagalanLogin() {
+      localStorage.removeItem("upa_login_fail_count");
+      localStorage.removeItem("upa_login_lock_until");
+    }
+
+    // 4. Simpan Sesi Aktif Secara Konsisten (Kompatibel dengan Seluruh Halaman Admin)
+    function simpanSesiAktif(userRecord, rememberMe = true) {
+      const aktifUser = {
+        id: userRecord.id,
+        nama: userRecord.nama,
+        username: userRecord.username,
+        email: userRecord.email || "",
+        avatar_url: userRecord.avatar_url || "",
+        role: userRecord.role || "admin",
+        login_at: new Date().toISOString()
+      };
+      localStorage.setItem("upa_active_staff", JSON.stringify(aktifUser));
+      if (!rememberMe) {
+        sessionStorage.setItem("upa_session_only", "1");
+      } else {
+        sessionStorage.removeItem("upa_session_only");
+      }
+    }
+
+    // 5. Login dengan Google (Supabase Auth OAuth 2.0)
+    async function prosesLoginGoogle() {
+      if (!window.supabaseClient) {
+        tampilkanAlertLogin("error", "Koneksi Supabase belum terpasang.");
+        return;
+      }
+
+      const btn = document.getElementById("btnLoginGoogle");
+      btn.disabled = true;
+      btn.innerHTML = `<i class="ri-loader-4-line animate-spin text-base"></i><span>Menghubungkan ke Google...</span>`;
+
+      try {
+        const redirectUrl = new URL("./login.html", window.location.href).href;
+        const { error } = await window.supabaseClient.auth.signInWithOAuth({
+          provider: "google",
+          options: {
+            redirectTo: redirectUrl,
+            queryParams: { prompt: "select_account" }
+          }
+        });
+        if (error) throw error;
+      } catch (err) {
+        tampilkanAlertLogin("error", "Gagal memulai login Google: " + err.message);
+        btn.disabled = false;
+        btn.innerHTML = `<span>Lanjutkan dengan Google</span>`;
+      }
+    }
+
+    // Tangani Callback Setelah User Kembali dari Layar Login Google
+    async function tanganiCallbackGoogleOAuth() {
+      if (!window.supabaseClient) return;
+
+      const { data: sessionData } = await window.supabaseClient.auth.getSession();
+      const authUser = sessionData?.session?.user;
+      if (!authUser || !authUser.email) return;
+
+      const emailGoogle = authUser.email.trim().toLowerCase();
+      const namaGoogle = authUser.user_metadata?.full_name || authUser.user_metadata?.name || emailGoogle.split("@")[0];
+      const avatarGoogle = authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture || "";
+
+      tampilkanAlertLogin("sukses", `Memverifikasi akses akun Google <b>${emailGoogle}</b>...`);
+
+      // Cek apakah email Google terdaftar di tabel user_app (Whitelist Staf/Admin)
+      const { data: daftarUser, error } = await window.supabaseClient
+        .from("user_app")
+        .select("*")
+        .ilike("email", emailGoogle);
+
+      if (error) {
+        tampilkanAlertLogin("error", "Gagal memeriksa hak akses database: " + error.message);
+        return;
+      }
+
+      let staffData = daftarUser && daftarUser.length > 0 ? daftarUser[0] : null;
+
+      // Jika belum ada di user_app, periksa apakah tabel user_app masih kosong (admin pertama)
+      if (!staffData) {
+        const { count } = await window.supabaseClient
+          .from("user_app")
+          .select("*", { count: "exact", head: true });
+
+        if (count === 0) {
+          const usernameAuto = emailGoogle.split("@")[0].replace(/[^a-zA-Z0-9._]/g, "");
+          const { data: inserted } = await window.supabaseClient
+            .from("user_app")
+            .insert([{
+              nama: namaGoogle,
+              username: usernameAuto,
+              email: emailGoogle,
+              password: "OAUTH_GOOGLE_USER",
+              avatar_url: avatarGoogle,
+              google_linked: true,
+              role: "superadmin"
+            }])
+            .select()
+            .single();
+          staffData = inserted;
+        } else {
+          // Tolak akses jika email Google belum didaftarkan oleh staf UPA Bahasa
+          await window.supabaseClient.auth.signOut();
+          tampilkanAlertLogin(
+            "error",
+            `Akses ditolak: Email <b>${emailGoogle}</b> belum terdaftar di sistem UPA Bahasa. Silakan daftar akun terlebih dahulu dengan email tersebut atau hubungi Admin.`
+          );
+          return;
+        }
+      }
+
+      // Sinkronkan foto profil & status koneksi Google
+      await window.supabaseClient
+        .from("user_app")
+        .update({
+          avatar_url: staffData.avatar_url || avatarGoogle,
+          google_linked: true,
+          last_login: new Date().toISOString()
+        })
+        .eq("id", staffData.id);
+
+      staffData.avatar_url = staffData.avatar_url || avatarGoogle;
+      resetKegagalanLogin();
+      simpanSesiAktif(staffData, true);
+
+      tampilkanAlertLogin("sukses", `Verifikasi Google berhasil! Selamat datang, <b>${staffData.nama}</b>. Mengalihkan ke Dashboard...`);
+      setTimeout(() => {
+        window.location.href = "dashboard.html";
+      }, 900);
+    }
+
+    // 6. Registrasi Akun Baru (Password Terenkripsi SHA-256 + Integrasi Supabase Auth)
     async function prosesRegisterUser(e) {
       e.preventDefault();
-      const nama = document.getElementById('regNama').value.trim();
-      const user = document.getElementById('regUsername').value.trim();
-      const pass = document.getElementById('regPassword').value.trim();
-      const konf = document.getElementById('regKonfirmasi').value.trim();
+      const nama = document.getElementById("regNama").value.trim();
+      const username = document.getElementById("regUsername").value.trim().toLowerCase();
+      const email = document.getElementById("regEmail").value.trim().toLowerCase();
+      const pass = document.getElementById("regPassword").value;
+      const konf = document.getElementById("regKonfirmasi").value;
 
       if (pass !== konf) {
         alert("Password dan Konfirmasi Password tidak sama!");
         return;
       }
 
+      if (pass.length < 8) {
+        alert("Password minimal harus 8 karakter demi keamanan akun!");
+        return;
+      }
+
+      const btn = document.getElementById("btnRegisterSubmit");
+      btn.disabled = true;
+      btn.innerHTML = `<i class="ri-loader-4-line animate-spin"></i><span>Mengenkripsi &amp; Menyimpan...</span>`;
+
       try {
-        if (!window.supabaseClient) {
-          alert("Koneksi Supabase belum terpasang!");
+        if (!window.supabaseClient) throw new Error("Koneksi Supabase belum terpasang!");
+
+        // Cek duplikat username atau email
+        const { data: cekUser } = await window.supabaseClient
+          .from("user_app")
+          .select("id, username, email")
+          .or(`username.eq.${username},email.eq.${email}`);
+
+        if (cekUser && cekUser.length > 0) {
+          alert("Username atau Email tersebut sudah terdaftar di sistem!");
           return;
         }
 
-        // Cek apakah username sudah ada di tabel 'user_app'
-        const { data: existing } = await window.supabaseClient
-          .from('user_app')
-          .select('*')
-          .eq('username', user)
-          .maybeSingle();
+        // Hash password dengan SHA-256 sebelum disimpan ke tabel user_app
+        const hashedPassword = await hashPasswordSha256(pass);
 
-        if (existing) {
-          alert("Username sudah terdaftar di database!");
-          return;
-        }
+        // Daftarkan juga ke Supabase Auth agar fitur Reset Password via Email otomatis aktif
+        await window.supabaseClient.auth.signUp({
+          email: email,
+          password: pass,
+          options: { data: { full_name: nama, username: username } }
+        }).catch(() => {});
 
-        // Simpan ke database tabel 'user_app'
         const { error } = await window.supabaseClient
-          .from('user_app')
-          .insert([{ nama: nama, username: user, password: pass }]);
+          .from("user_app")
+          .insert([{
+            nama: nama,
+            username: username,
+            email: email,
+            password: hashedPassword,
+            role: "admin"
+          }]);
 
         if (error) throw error;
 
-        alert(`Registrasi berhasil untuk ${nama} (@${user})! Silakan Login.`);
+        alert(`Registrasi berhasil untuk ${nama} (@${username})! Silakan login menggunakan username/email atau akun Google Anda.`);
         tutupModalRegister();
-        document.getElementById('loginUsername').value = user;
-        document.getElementById('loginPassword').value = '';
-
+        document.getElementById("loginUsername").value = username;
+        document.getElementById("loginPassword").value = "";
       } catch (err) {
         alert("Gagal registrasi: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="ri-user-add-line"></i><span>Daftar Akun User Sekarang</span>`;
       }
     }
 
-    // Fungsi Login (Mengecek langsung ke tabel 'user_app' Supabase)
+    // 7. Login Manual (Username atau Email + Auto-Upgrade Hash Akun Lama)
     async function prosesLoginUser(e) {
       e.preventDefault();
-      const user = document.getElementById('loginUsername').value.trim();
-      const pass = document.getElementById('loginPassword').value.trim();
-      const alertBox = document.getElementById('loginAlert');
-      const btnLogin = document.getElementById('btnLoginSubmit');
+      if (cekStatusKunciLogin()) return;
 
-      alertBox.classList.add('hidden');
+      const identitas = document.getElementById("loginUsername").value.trim();
+      const pass = document.getElementById("loginPassword").value;
+      const rememberMe = document.getElementById("rememberMeCheck")?.checked ?? true;
+      const btnLogin = document.getElementById("btnLoginSubmit");
 
-      if (!user || !pass) {
-        alertBox.className = "p-3.5 rounded-xl text-xs font-semibold bg-rose-500/20 border border-rose-500 text-rose-200";
-        alertBox.innerText = "Peringatan: Kolom Username dan Password wajib diisi!";
-        alertBox.classList.remove('hidden');
+      if (!identitas || !pass) {
+        tampilkanAlertLogin("peringatan", "Kolom Username/Email dan Password wajib diisi!");
         return;
       }
 
       btnLogin.disabled = true;
-      btnLogin.innerHTML = `<i class="ri-loader-4-line animate-spin"></i> Memeriksa Database...`;
+      btnLogin.innerHTML = `<i class="ri-loader-4-line animate-spin"></i><span>Memverifikasi Keamanan...</span>`;
 
       try {
         if (!window.supabaseClient) throw new Error("Koneksi Supabase tidak ditemukan.");
 
-        // Query mencocokkan data dengan tabel 'user_app' di Supabase
-        const { data: userData, error } = await window.supabaseClient
-          .from('user_app')
-          .select('*')
-          .eq('username', user)
-          .maybeSingle();
+        // Cari user berdasarkan username ATAU email
+        const { data: daftarMatch, error } = await window.supabaseClient
+          .from("user_app")
+          .select("*")
+          .or(`username.eq.${identitas},email.ilike.${identitas}`);
 
         if (error) throw error;
 
-        if (userData && String(userData.password) === String(pass)) {
-          // Simpan sesi aktif ke localStorage agar dashboard mengenali nama user (misal: Lissa Anantha)
-          const aktifUser = {
-            id: userData.id,
-            nama: userData.nama,
-            username: userData.username
-          };
-          localStorage.setItem('upa_active_staff', JSON.stringify(aktifUser));
-
-          alertBox.className = "p-3.5 rounded-xl text-xs font-semibold bg-emerald-500/20 border border-emerald-400 text-emerald-200";
-          alertBox.innerText = `Login Sukses! Selamat datang, ${userData.nama}. Mengalihkan ke Dashboard...`;
-          alertBox.classList.remove('hidden');
-
-          setTimeout(() => {
-            window.location.href = "dashboard.html";
-          }, 1000);
-
-        } else {
-          alertBox.className = "p-3.5 rounded-xl text-xs font-semibold bg-rose-500/20 border border-rose-500 text-rose-200";
-          alertBox.innerText = "Gagal login / Username atau password salah!";
-          alertBox.classList.remove('hidden');
-          btnLogin.disabled = false;
-          btnLogin.innerHTML = `<span>Login to System</span><i class="ri-arrow-right-line"></i>`;
+        const userData = daftarMatch && daftarMatch.length > 0 ? daftarMatch[0] : null;
+        if (!userData) {
+          catatKegagalanLogin();
+          tampilkanAlertLogin("error", "Username/Email atau password salah!");
+          return;
         }
 
+        const storedPass = String(userData.password || "");
+        const inputHashed = await hashPasswordSha256(pass);
+
+        let valid = false;
+        let perluMigrasiHash = false;
+
+        if (storedPass.startsWith("sha256$")) {
+          valid = storedPass === inputHashed;
+        } else if (storedPass !== "OAUTH_GOOGLE_USER") {
+          // Kompatibilitas mundur untuk akun lama (plain-text) -> langsung di-upgrade ke SHA-256!
+          valid = storedPass === String(pass);
+          if (valid) perluMigrasiHash = true;
+        }
+
+        if (!valid) {
+          catatKegagalanLogin();
+          tampilkanAlertLogin("error", "Username/Email atau password salah!");
+          return;
+        }
+
+        // Update timestamp last_login & upgrade password lama ke SHA-256 otomatis
+        const updatePayload = { last_login: new Date().toISOString() };
+        if (perluMigrasiHash) {
+          updatePayload.password = inputHashed;
+        }
+        await window.supabaseClient
+          .from("user_app")
+          .update(updatePayload)
+          .eq("id", userData.id);
+
+        resetKegagalanLogin();
+        simpanSesiAktif(userData, rememberMe);
+
+        tampilkanAlertLogin("sukses", `Login Sukses! Selamat datang, <b>${userData.nama}</b>. Mengalihkan ke Dashboard...`);
+        setTimeout(() => {
+          window.location.href = "dashboard.html";
+        }, 900);
       } catch (err) {
-        alertBox.className = "p-3.5 rounded-xl text-xs font-semibold bg-rose-500/20 border border-rose-500 text-rose-200";
-        alertBox.innerText = "Terjadi kesalahan sistem: " + err.message;
-        alertBox.classList.add('hidden');
+        tampilkanAlertLogin("error", "Terjadi kesalahan sistem: " + err.message);
+      } finally {
         btnLogin.disabled = false;
         btnLogin.innerHTML = `<span>Login to System</span><i class="ri-arrow-right-line"></i>`;
       }
     }
+
+    // 8. Kirim Tautan Lupa Password
+    async function prosesKirimResetPassword(e) {
+      e.preventDefault();
+      const emailTarget = document.getElementById("resetEmailInput").value.trim().toLowerCase();
+      const btn = document.getElementById("btnKirimReset");
+
+      btn.disabled = true;
+      btn.innerHTML = `<i class="ri-loader-4-line animate-spin"></i><span>Mengirim Tautan...</span>`;
+
+      try {
+        if (!window.supabaseClient) throw new Error("Koneksi Supabase belum siap.");
+
+        const { data: userAda } = await window.supabaseClient
+          .from("user_app")
+          .select("id, nama, email")
+          .ilike("email", emailTarget)
+          .maybeSingle();
+
+        if (!userAda) {
+          alert("Email tersebut tidak ditemukan di database staf UPA Bahasa.");
+          return;
+        }
+
+        const redirectReset = new URL("./reset-password.html", window.location.href).href;
+        const { error } = await window.supabaseClient.auth.resetPasswordForEmail(emailTarget, {
+          redirectTo: redirectReset
+        });
+
+        if (error) throw error;
+
+        alert(`Tautan reset password telah dikirim ke ${emailTarget}. Silakan periksa kotak masuk (Inbox/Spam) email Anda.`);
+        tutupModalLupaPassword();
+      } catch (err) {
+        alert("Gagal mengirim email reset password: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="ri-mail-send-line"></i><span>Kirim Tautan Reset Password</span>`;
+      }
+    }
+
+    // Inisialisasi saat halaman dibuka
+    document.addEventListener("DOMContentLoaded", () => {
+      cekStatusKunciLogin();
+      tanganiCallbackGoogleOAuth();
+    });
   </script>
 </body>
 </html>
