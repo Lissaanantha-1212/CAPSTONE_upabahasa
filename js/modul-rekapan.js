@@ -727,16 +727,13 @@ function parseSkorBulatExcel(valRaw) {
   return !isNaN(angka) && angka > 0 ? Math.round(angka) : null;
 }
 
-// Helper: Mengonversi seluruh sheet & blok tabel UPA Bahasa (No | Nama | Nim | Section 1-3 | TOTAL) menjadi daftar baris seragam
 function ekstrakSemuaBarisMahasiswaDariWorkbook(workbook) {
   const hasilEkstraksi = [];
   let totalBarisNonData = 0;
 
-  // Prioritaskan sheet utama atau sheet D3/D4 (abaikan sheet LAPORAN jika berisi rekap ringkasan saja)
   const daftarSheet = workbook.SheetNames.filter(nama => !nama.toUpperCase().includes("LAPORAN"));
   const targetSheets = daftarSheet.length > 0 ? daftarSheet : workbook.SheetNames;
 
-  // Deteksi apakah file memiliki format laporan multi-blok UPA Bahasa (ada baris header "Nim" / "Nama" di tengah sheet)
   let terdeteksiFormatBlokUpa = false;
 
   targetSheets.forEach(sheetName => {
@@ -767,7 +764,6 @@ function ekstrakSemuaBarisMahasiswaDariWorkbook(workbook) {
         continue;
       }
 
-      // 1. Cek apakah baris ini adalah judul Prodi blok tabel (contoh: "DII - TEKNIK ALAT BERAT", "D3 - PERAWATAN DAN PERBAIKAN MESIN", "D4 - DESAIN PRODUK KAYU DAN SERAT")
       const selNonKosong = barisUpper.filter(Boolean);
       if (
         selNonKosong.length <= 2 &&
@@ -778,13 +774,11 @@ function ekstrakSemuaBarisMahasiswaDariWorkbook(workbook) {
           )
         )
       ) {
-        // Normalisasi DII -> D3 jika ada typo dokumen lama
         prodiAktifBlok = selNonKosong[0].replace(/^DII\s*[-–—]/, "D3 -").replace(/^DIII\s*[-–—]/, "D3 -").replace(/^DIV\s*[-–—]/, "D4 -");
         totalBarisNonData++;
         continue;
       }
 
-      // 2. Cek apakah baris ini adalah baris Header Kolom ("Nama" dan "Nim")
       const idxNimHeader = barisUpper.findIndex(c => c === "NIM" || c === "NO INDUK" || c === "NO. INDUK" || c === "NPM");
       const idxNamaHeader = barisUpper.findIndex(c => c === "NAMA" || c === "NAMA MAHASISWA" || c === "NAMA LENGKAP" || c === "FULL NAME");
 
@@ -793,7 +787,6 @@ function ekstrakSemuaBarisMahasiswaDariWorkbook(workbook) {
         headerSudahDitemukan = true;
         colIdx = { nama: idxNamaHeader, nim: idxNimHeader, sec1: -1, sec2: -1, sec3: -1, total: -1, prodi: -1, jurusan: -1, angkatan: -1, ttl: -1 };
 
-        // Cari kolom Section 1, 2, 3, Total di baris ini ATAU baris tepat di bawahnya (karena "SCORE" sering di-merge di atas Section 1-3)
         const barisSubHeader = (r + 1 < matrix.length && Array.isArray(matrix[r + 1]))
           ? matrix[r + 1].map(c => String(c || "").trim().toUpperCase())
           : [];
@@ -813,7 +806,6 @@ function ekstrakSemuaBarisMahasiswaDariWorkbook(workbook) {
           else if (gab.includes("TTL") || gab.includes("BIRTH") || gab.includes("LAHIR")) colIdx.ttl = c;
         }
 
-        // Fallback posisi kolom standar tabel UPA Bahasa (Nim + 1 = Sec1, Nim + 2 = Sec2, Nim + 3 = Sec3, Nim + 4 = Total)
         if (colIdx.sec1 === -1) colIdx.sec1 = idxNimHeader + 1;
         if (colIdx.sec2 === -1) colIdx.sec2 = idxNimHeader + 2;
         if (colIdx.sec3 === -1) colIdx.sec3 = idxNimHeader + 3;
@@ -823,12 +815,10 @@ function ekstrakSemuaBarisMahasiswaDariWorkbook(workbook) {
         continue;
       }
 
-      // 3. Jika sudah melewati header, ekstrak baris data mahasiswa
       if (headerSudahDitemukan) {
         const nimVal = String(baris[colIdx.nim] || "").replace(/\s+/g, "").trim();
         const namaVal = String(baris[colIdx.nama] || "").trim().toUpperCase();
 
-        // Lewati baris sub-header ("Section 1"), baris rata-rata hijau tanpa NIM, atau baris kosong
         if (!nimVal || !/^\d{6,15}$/.test(nimVal) || !namaVal) {
           totalBarisNonData++;
           continue;
@@ -857,7 +847,6 @@ function ekstrakSemuaBarisMahasiswaDariWorkbook(workbook) {
     }
   });
 
-  // Fallback ke pembacaan sheet_to_json standar jika file Excel memakai format tabel biasa (baris 1 langsung header)
   if (!terdeteksiFormatBlokUpa || hasilEkstraksi.length === 0) {
     const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
     const rowsStandar = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
@@ -894,7 +883,6 @@ async function prosesImportArsipCerdas() {
       return;
     }
 
-    // 1. Peta dinamis seluruh data yang SUDAH ADA di database
     const mapDbByNim = new Map();
     const mapDbByNamaAngkatan = new Map();
     const setAngkatanSudahAdaDiDb = new Set();
@@ -913,7 +901,6 @@ async function prosesImportArsipCerdas() {
       }
     });
 
-    // 2. Proses baris file Excel secara dinamis
     const mapPatchDbExisting = new Map();
     const mapInsertBaru = new Map();
     const setAngkatanTerdeteksi = new Set();
@@ -1581,7 +1568,7 @@ async function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
   const tglTes = m.tanggal_tes || "04 May 2026";
   const prodiCantik = formatProgramStudySertifikat(m.program_studi);
 
-  // Otomatis simpan nomor & tanggal sertifikat ke database jika belum tercatat agar sinkron dengan halaman validasi
+  // Otomatis simpan nomor & tanggal sertifikat ke database agar sinkron saat QR di-scan
   if (!m.nomor_sertifikat || !m.tanggal_tes) {
     m.nomor_sertifikat = nomor;
     m.tanggal_tes = tglTes;
@@ -1593,15 +1580,16 @@ async function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
   const sec3 = isSspect ? (m.sspect_reading ?? m.reading ?? "-") : (m.reading ?? "-");
   const totalSkor = isSspect ? (m.skor_sspect ?? "-") : (m.skor_toefl_akhir ?? "-");
 
-  // Generate Hash SHA-256 Keaslian Sertifikat
+  // SHA-256 bekerja di belakang layar (tidak ditampilkan di fisik sertifikat)
   const shaFull = await generateSha256Sertifikat(m, isSspect ? "SSPECT" : "TOEFL");
-  const shaShort = shaFull.substring(0, 16).match(/.{1,4}/g).join("-");
+  const shaParam = shaFull.substring(0, 12);
 
   const logoUrl = new URL("./img/polnes.png", window.location.href).href;
   const bgGedungUrl = new URL("./img/sertif.jpg", window.location.href).href;
 
+  // URL QR ringkas & bersih agar titik QR renggang dan sangat mudah di-scan
   const urlValidasi = new URL(
-    `./validasi-sertifikat.html?nim=${encodeURIComponent(m.nim)}&jenis=${encodeURIComponent(isSspect ? "SSPECT" : "TOEFL")}&sha=${encodeURIComponent(shaFull.substring(0, 16))}&no=${encodeURIComponent(nomor)}&tgl=${encodeURIComponent(tglTes)}`,
+    `./validasi-sertifikat.html?nim=${encodeURIComponent(m.nim)}&jenis=${isSspect ? "SSPECT" : "TOEFL"}&sha=${shaParam}`,
     window.location.href
   ).href;
 
@@ -1837,7 +1825,7 @@ async function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
           border-collapse: collapse;
           text-align: center;
           font-size: 10.5pt;
-          margin-bottom: 4.5mm;
+          margin-bottom: 4mm;
         }
         .score-grid th, .score-grid td {
           border: 1.2px solid #1e293b;
@@ -1871,25 +1859,17 @@ async function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
           flex-direction: column;
           align-items: center;
           text-align: center;
-          background: rgba(255, 255, 255, 0.9);
-          padding: 2mm 2.5mm;
+          background: #ffffff;
+          padding: 2.5mm;
           border-radius: 2mm;
-          border: 0.8px solid #cbd5e1;
+          border: 1px solid #cbd5e1;
         }
         .qr-verify-box span {
           font-family: Arial, sans-serif;
           font-size: 6.5pt;
           font-weight: bold;
           color: #1e293b;
-          margin-top: 1mm;
-        }
-        .qr-verify-box .sha-code {
-          font-family: 'Courier New', monospace;
-          font-size: 5.8pt;
-          font-weight: bold;
-          color: #0e7a3f;
-          margin-top: 0.5mm;
-          letter-spacing: 0.2px;
+          margin-top: 1.5mm;
         }
         .footer-kampus {
           position: absolute;
@@ -1984,7 +1964,6 @@ async function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
               <div class="qr-verify-box">
                 <div id="qrcodeContainer"></div>
                 <span>Scan to Verify Certificate</span>
-                <div class="sha-code">SHA-256: ${shaShort}</div>
               </div>
             </div>
           </div>
@@ -2000,11 +1979,11 @@ async function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
       <script>
         new QRCode(document.getElementById("qrcodeContainer"), {
           text: "${urlValidasi}",
-          width: 68,
-          height: 68,
-          colorDark: "#0f172a",
+          width: 86,
+          height: 86,
+          colorDark: "#000000",
           colorLight: "#ffffff",
-          correctLevel: QRCode.CorrectLevel.M
+          correctLevel: QRCode.CorrectLevel.L
         });
       </script>
     </body>

@@ -133,7 +133,16 @@
           return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("").toUpperCase();
         }
       } catch (_) {}
-      return "-";
+
+      let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+      for (let i = 0; i < payload.length; i++) {
+        const ch = payload.charCodeAt(i);
+        h1 = Math.imul(h1 ^ ch, 2654435761);
+        h2 = Math.imul(h2 ^ ch, 1597334677);
+      }
+      h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+      h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+      return ((h2 >>> 0).toString(16).padStart(8, "0") + (h1 >>> 0).toString(16).padStart(8, "0")).toUpperCase();
     }
 
     async function muatDanTampilkanValidasi(nimTarget, jenisTarget = "TOEFL", shaParam = "") {
@@ -239,10 +248,10 @@
           const th = ambilTeks(r, ["tahun_angkatan", "angkatan"], "");
           if (th) profil.angkatan = th;
 
-          const noSert = ambilTeks(r, ["nomor_sertifikat", "no_sertifikat"], "-");
+          const noSert = ambilTeks(r, ["nomor_sertifikat", "no_sertifikat", "nomor_surat"], "-");
           if (noSert !== "-") profil.nomor_sertifikat = noSert;
 
-          const tglSert = ambilTeks(r, ["tanggal_tes", "tgl_tes"], "-");
+          const tglSert = ambilTeks(r, ["tanggal_tes", "tgl_tes", "tanggal_terbit"], "-");
           if (tglSert !== "-") profil.tanggal_tes = tglSert;
 
           profil.sspect = ambilAngka(r, ["skor_sspect", "nilai_sspect", "sspect"]) ?? profil.sspect;
@@ -281,6 +290,18 @@
 
         const isSspect = String(jenisTarget).toUpperCase() === "SSPECT";
         const skorSertifikatIni = isSspect ? profil.sspect : skorToeflTertinggi;
+
+        // Fallback Nomor Sertifikat & Tanggal Terbit dari parameter QR atau standar sertifikat
+        const paramsUrl = new URLSearchParams(window.location.search);
+        if (profil.nomor_sertifikat === "-") {
+          profil.nomor_sertifikat =
+            paramsUrl.get("no") ||
+            `0355 / PL7.18 / UPA.BAHASA / ${isSspect ? "SSPECT" : "TOEFL-P"} / ${new Date().getFullYear()}`;
+        }
+        if (profil.tanggal_tes === "-") {
+          profil.tanggal_tes = paramsUrl.get("tgl") || "04 May 2026";
+        }
+
         const shaFull = await hitungSha256(profil.nim, profil.nama, isSspect ? "SSPECT" : "TOEFL", skorSertifikatIni);
         const shaShort = shaFull !== "-" ? shaFull.substring(0, 16).match(/.{1,4}/g).join("-") : "-";
         const shaCocok = !shaParam || (shaFull !== "-" && shaFull.startsWith(shaParam.toUpperCase()));
@@ -401,6 +422,8 @@
       urlBaru.searchParams.set("nim", nimVal);
       urlBaru.searchParams.set("jenis", jenisVal);
       urlBaru.searchParams.delete("sha");
+      urlBaru.searchParams.delete("no");
+      urlBaru.searchParams.delete("tgl");
       window.history.replaceState({}, "", urlBaru);
       muatDanTampilkanValidasi(nimVal, jenisVal, "");
     }
