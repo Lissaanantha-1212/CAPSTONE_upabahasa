@@ -18,14 +18,14 @@ function getDbClientRekapan() {
   return window.supabaseClient || window.supabase || null;
 }
 
-// ==================== PEMETAAN SENSITIF 10 JURUSAN & 26 PRODI POLNES ====================
+// ==================== PEMETAAN SENSITIF 10 JURUSAN & PRODI POLNES ====================
 const DAFTAR_JURUSAN_PRODI_POLNES = [
   {
     jurusan: "AKUNTANSI",
     prodi: [
       { nama: "D3 - AKUNTANSI", kataKunci: ["D3 - AKUNTANSI", "D3 AKUNTANSI"] },
       { nama: "D4 - AKUNTANSI MANAJERIAL", kataKunci: ["AKUNTANSI MANAJERIAL"] },
-      { nama: "D4 - KEUANGAN PERBANKAN", kataKunci: ["KEUANGAN PERBANKAN"] }
+      { nama: "D4 - KEUANGAN PERBANKAN", kataKunci: ["KEUANGAN PERBANKAN", "KEUANGAN DAN PERBANKAN"] }
     ]
   },
   {
@@ -118,7 +118,13 @@ const KOLOM_SKOR_INTEGER = new Set([
 ]);
 
 function deteksiJurusanDariProdiSensitif(prodiRaw, jurusanFallback = "-") {
-  const teks = String(prodiRaw || "").trim().toUpperCase().replace(/\s+/g, " ");
+  const teks = String(prodiRaw || "")
+    .trim()
+    .toUpperCase()
+    .replace(/[–—−]/g, "-")
+    .replace(/\s*-\s*/g, " - ")
+    .replace(/\s+/g, " ");
+
   if (!teks || teks === "-") {
     return {
       jurusan: String(jurusanFallback || "-").toUpperCase(),
@@ -207,9 +213,10 @@ function normalisasiNamaPencocokan(namaRaw) {
     .trim();
 }
 
+// ==================== BATAS KELULUSAN: D4 = 430, D3 = 400 ====================
 function getBatasLulusJenjang(prodi, jenjangRaw) {
   const gabungan = `${jenjangRaw || ""} ${prodi || ""}`.toUpperCase();
-  if (gabungan.includes("D4") || gabungan.includes("SARJANA TERAPAN")) return 450;
+  if (gabungan.includes("D4") || gabungan.includes("SARJANA TERAPAN")) return 430;
   return 400;
 }
 
@@ -235,6 +242,34 @@ function cekSiapSertifikatToefl(m) {
 
 function cekSiapSertifikatSspect(m) {
   return m.skor_sspect !== null && Number(m.skor_sspect) > 0;
+}
+
+// ==================== GENERATOR HASH SHA-256 SERTIFIKAT ====================
+async function generateSha256Sertifikat(m, jenisSertifikat) {
+  const isSspect = String(jenisSertifikat).toUpperCase() === "SSPECT";
+  const skorUtama = isSspect ? (m.skor_sspect ?? 0) : (m.skor_toefl_akhir ?? 0);
+  const payloadStr = `UPA-BAHASA-POLNES|${String(m.nim).trim()}|${String(m.nama_mahasiswa).trim().toUpperCase()}|${isSspect ? "SSPECT" : "TOEFL"}|${skorUtama}`;
+
+  try {
+    if (window.crypto && window.crypto.subtle) {
+      const encoder = new TextEncoder();
+      const dataBuffer = encoder.encode(payloadStr);
+      const hashBuffer = await window.crypto.subtle.digest("SHA-256", dataBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, "0")).join("").toUpperCase();
+    }
+  } catch (_) {}
+
+  // Fallback deterministik jika diakses non-HTTPS lokal
+  let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for (let i = 0; i < payloadStr.length; i++) {
+    const ch = payloadStr.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 2654435761);
+    h2 = Math.imul(h2 ^ ch, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return ((h2 >>> 0).toString(16).padStart(8, "0") + (h1 >>> 0).toString(16).padStart(8, "0")).toUpperCase();
 }
 
 async function fetchAllRowsSupabase(db, namaTabel, orderByCol = null) {
@@ -628,7 +663,7 @@ async function perbaikiDataMasterDiDatabase(db, daftarMahasiswa) {
   }
 }
 
-// ==================== 2. IMPORT ARSIP CERDAS (MENDUKUNG MULTI-HEADER D3/D4 UPA BAHASA & STANDARD EXCEL) ====================
+// ==================== 2. IMPORT ARSIP CERDAS (MULTI-HEADER D3/D4 UPA BAHASA & STANDARD EXCEL) ====================
 function bukaModalImportArsip() {
   const fileInput = document.getElementById("inputFileExcelArsip");
   if (fileInput) fileInput.value = "";
@@ -662,16 +697,13 @@ function parseSkorBulatExcel(valRaw) {
   return !isNaN(angka) && angka > 0 ? Math.round(angka) : null;
 }
 
-// Helper: Mengonversi seluruh sheet & blok tabel UPA Bahasa (No | Nama | Nim | Section 1-3 | TOTAL) menjadi daftar baris seragam
 function ekstrakSemuaBarisMahasiswaDariWorkbook(workbook) {
   const hasilEkstraksi = [];
   let totalBarisNonData = 0;
 
-  // Prioritaskan sheet utama atau sheet D3/D4 (abaikan sheet LAPORAN jika berisi rekap ringkasan saja)
   const daftarSheet = workbook.SheetNames.filter(nama => !nama.toUpperCase().includes("LAPORAN"));
   const targetSheets = daftarSheet.length > 0 ? daftarSheet : workbook.SheetNames;
 
-  // Deteksi apakah file memiliki format laporan multi-blok UPA Bahasa (ada baris header "Nim" / "Nama" di tengah sheet)
   let terdeteksiFormatBlokUpa = false;
 
   targetSheets.forEach(sheetName => {
@@ -702,24 +734,21 @@ function ekstrakSemuaBarisMahasiswaDariWorkbook(workbook) {
         continue;
       }
 
-      // 1. Cek apakah baris ini adalah judul Prodi blok tabel (contoh: "DII - TEKNIK ALAT BERAT", "D3 - PERAWATAN DAN PERBAIKAN MESIN", "D4 - DESAIN PRODUK KAYU DAN SERAT")
       const selNonKosong = barisUpper.filter(Boolean);
       if (
         selNonKosong.length <= 2 &&
         (
-          /^(D[234]|DII|DIII|DIV)\s*[-–]/.test(selNonKosong[0]) ||
+          /^(D[234]|DII|DIII|DIV)\s*[-–—]/.test(selNonKosong[0]) ||
           DAFTAR_JURUSAN_PRODI_POLNES.some(j =>
             j.prodi.some(p => p.kataKunci.some(kw => selNonKosong[0].includes(kw)))
           )
         )
       ) {
-        // Normalisasi DII -> D3 jika ada typo dokumen lama
-        prodiAktifBlok = selNonKosong[0].replace(/^DII\s*[-–]/, "D3 -").replace(/^DIII\s*[-–]/, "D3 -").replace(/^DIV\s*[-–]/, "D4 -");
+        prodiAktifBlok = selNonKosong[0].replace(/^DII\s*[-–—]/, "D3 -").replace(/^DIII\s*[-–—]/, "D3 -").replace(/^DIV\s*[-–—]/, "D4 -");
         totalBarisNonData++;
         continue;
       }
 
-      // 2. Cek apakah baris ini adalah baris Header Kolom ("Nama" dan "Nim")
       const idxNimHeader = barisUpper.findIndex(c => c === "NIM" || c === "NO INDUK" || c === "NO. INDUK" || c === "NPM");
       const idxNamaHeader = barisUpper.findIndex(c => c === "NAMA" || c === "NAMA MAHASISWA" || c === "NAMA LENGKAP" || c === "FULL NAME");
 
@@ -728,7 +757,6 @@ function ekstrakSemuaBarisMahasiswaDariWorkbook(workbook) {
         headerSudahDitemukan = true;
         colIdx = { nama: idxNamaHeader, nim: idxNimHeader, sec1: -1, sec2: -1, sec3: -1, total: -1, prodi: -1, jurusan: -1, angkatan: -1, ttl: -1 };
 
-        // Cari kolom Section 1, 2, 3, Total di baris ini ATAU baris tepat di bawahnya (karena "SCORE" sering di-merge di atas Section 1-3)
         const barisSubHeader = (r + 1 < matrix.length && Array.isArray(matrix[r + 1]))
           ? matrix[r + 1].map(c => String(c || "").trim().toUpperCase())
           : [];
@@ -748,7 +776,6 @@ function ekstrakSemuaBarisMahasiswaDariWorkbook(workbook) {
           else if (gab.includes("TTL") || gab.includes("BIRTH") || gab.includes("LAHIR")) colIdx.ttl = c;
         }
 
-        // Fallback posisi kolom standar tabel UPA Bahasa (Nim + 1 = Sec1, Nim + 2 = Sec2, Nim + 3 = Sec3, Nim + 4 = Total)
         if (colIdx.sec1 === -1) colIdx.sec1 = idxNimHeader + 1;
         if (colIdx.sec2 === -1) colIdx.sec2 = idxNimHeader + 2;
         if (colIdx.sec3 === -1) colIdx.sec3 = idxNimHeader + 3;
@@ -758,12 +785,10 @@ function ekstrakSemuaBarisMahasiswaDariWorkbook(workbook) {
         continue;
       }
 
-      // 3. Jika sudah melewati header, ekstrak baris data mahasiswa
       if (headerSudahDitemukan) {
         const nimVal = String(baris[colIdx.nim] || "").replace(/\s+/g, "").trim();
         const namaVal = String(baris[colIdx.nama] || "").trim().toUpperCase();
 
-        // Lewati baris sub-header ("Section 1"), baris rata-rata hijau tanpa NIM, atau baris kosong
         if (!nimVal || !/^\d{6,15}$/.test(nimVal) || !namaVal) {
           totalBarisNonData++;
           continue;
@@ -792,7 +817,6 @@ function ekstrakSemuaBarisMahasiswaDariWorkbook(workbook) {
     }
   });
 
-  // Fallback ke pembacaan sheet_to_json standar jika file Excel memakai format tabel biasa (baris 1 langsung header)
   if (!terdeteksiFormatBlokUpa || hasilEkstraksi.length === 0) {
     const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
     const rowsStandar = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
@@ -829,7 +853,6 @@ async function prosesImportArsipCerdas() {
       return;
     }
 
-    // 1. Peta dinamis seluruh data yang SUDAH ADA di database
     const mapDbByNim = new Map();
     const mapDbByNamaAngkatan = new Map();
     const setAngkatanSudahAdaDiDb = new Set();
@@ -848,7 +871,6 @@ async function prosesImportArsipCerdas() {
       }
     });
 
-    // 2. Proses baris file Excel secara dinamis
     const mapPatchDbExisting = new Map();
     const mapInsertBaru = new Map();
     const setAngkatanTerdeteksi = new Set();
@@ -1491,17 +1513,17 @@ function eksekusiUnduhExcelRekapan() {
   tutupModalUnduhExcel();
 }
 
-// ==================== 8. CETAK SERTIFIKAT RESMI (100% SAMA CONTOH + QR VERIFIKASI) ====================
-function unduhSertifikatByNim(nimTarget, jenisSertifikat) {
+// ==================== 8. CETAK SERTIFIKAT RESMI (100% SAMA CONTOH + SHA-256 + QR VERIFIKASI) ====================
+async function unduhSertifikatByNim(nimTarget, jenisSertifikat) {
   const m = rekapanState.semuaData.find(x => String(x.nim) === String(nimTarget));
   if (!m) return;
-  cetakHalamanSertifikatResmi(m, jenisSertifikat);
+  await cetakHalamanSertifikatResmi(m, jenisSertifikat);
 }
 
-function unduhSertifikatMahasiswaAktif(jenisSertifikat) {
+async function unduhSertifikatMahasiswaAktif(jenisSertifikat) {
   const m = rekapanState.mahasiswaDetailAktif;
   if (!m) return;
-  cetakHalamanSertifikatResmi(m, jenisSertifikat);
+  await cetakHalamanSertifikatResmi(m, jenisSertifikat);
 }
 
 function formatProgramStudySertifikat(prodiRaw) {
@@ -1514,7 +1536,7 @@ function formatProgramStudySertifikat(prodiRaw) {
     .replace(/\b\w/g, c => c.toUpperCase());
 }
 
-function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
+async function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
   const isSspect = String(jenisSertifikat).toUpperCase() === "SSPECT";
 
   const jenisTesText = isSspect ? "SSPECT Placement Test" : "Toefl Prediction Test";
@@ -1529,21 +1551,21 @@ function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
   const sec3 = isSspect ? (m.sspect_reading ?? m.reading ?? "-") : (m.reading ?? "-");
   const totalSkor = isSspect ? (m.skor_sspect ?? "-") : (m.skor_toefl_akhir ?? "-");
 
+  // Generate Hash SHA-256 Keaslian Sertifikat
+  const shaFull = await generateSha256Sertifikat(m, isSspect ? "SSPECT" : "TOEFL");
+  const shaShort = shaFull.substring(0, 16).match(/.{1,4}/g).join("-");
+
   const logoUrl = new URL("./img/polnes.png", window.location.href).href;
   const bgGedungUrl = new URL("./img/sertif.jpg", window.location.href).href;
 
   const urlValidasi = new URL(
-    `./validasi-sertifikat.html?nim=${encodeURIComponent(m.nim)}&jenis=${encodeURIComponent(isSspect ? "SSPECT" : "TOEFL")}`,
+    `./validasi-sertifikat.html?nim=${encodeURIComponent(m.nim)}&jenis=${encodeURIComponent(isSspect ? "SSPECT" : "TOEFL")}&sha=${encodeURIComponent(shaFull.substring(0, 16))}`,
     window.location.href
   ).href;
 
   let htmlTabelSkor = "";
   if (isSspect) {
     htmlTabelSkor = `
-      <!-- ========================================================================= -->
-      <!-- [PENANDA KHUSUS SERTIFIKAT SSPECT]                                         -->
-      <!-- Saat ini menampilkan 3 kolom: Listening, Reading, dan Total Score.        -->
-      <!-- ========================================================================= -->
       <table class="score-grid">
         <thead>
           <tr>
@@ -1560,11 +1582,9 @@ function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
           </tr>
         </tbody>
       </table>
-      <!-- ================= [AKHIR PENANDA KHUSUS SERTIFIKAT SSPECT] ================ -->
     `;
   } else {
     htmlTabelSkor = `
-      <!-- TABEL NILAI TOEFL (4 KOLOM STANDAR) -->
       <table class="score-grid">
         <thead>
           <tr>
@@ -1803,8 +1823,8 @@ function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
           flex-direction: column;
           align-items: center;
           text-align: center;
-          background: rgba(255, 255, 255, 0.85);
-          padding: 2mm;
+          background: rgba(255, 255, 255, 0.9);
+          padding: 2mm 2.5mm;
           border-radius: 2mm;
           border: 0.8px solid #cbd5e1;
         }
@@ -1814,6 +1834,14 @@ function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
           font-weight: bold;
           color: #1e293b;
           margin-top: 1mm;
+        }
+        .qr-verify-box .sha-code {
+          font-family: 'Courier New', monospace;
+          font-size: 5.8pt;
+          font-weight: bold;
+          color: #0e7a3f;
+          margin-top: 0.5mm;
+          letter-spacing: 0.2px;
         }
         .footer-kampus {
           position: absolute;
@@ -1908,6 +1936,7 @@ function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
               <div class="qr-verify-box">
                 <div id="qrcodeContainer"></div>
                 <span>Scan to Verify Certificate</span>
+                <div class="sha-code">SHA-256: ${shaShort}</div>
               </div>
             </div>
           </div>

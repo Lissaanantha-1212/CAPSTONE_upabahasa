@@ -3,327 +3,421 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Validasi Sertifikat Digital - UPA Bahasa POLNES</title>
-  <link rel="icon" type="image/png" href="./img/polnes.png" />
+  <title>Verifikasi &amp; Transparansi Skor Sertifikat - UPA Bahasa POLNES</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Sesuaikan path script konfigurasi Supabase Anda jika berbeda -->
+  <!-- Muat konfigurasi Supabase dari folder js/ maupun root -->
+  <script src="./js/supabase-config.js"></script>
   <script src="./supabase-config.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ["Plus Jakarta Sans", "sans-serif"] },
+          colors: { polnes: { main: "#169C53", dark: "#0E7A3F", light: "#E8F8EF" } }
+        }
+      }
+    };
+  </script>
 </head>
-<body class="min-h-screen bg-slate-100 text-slate-800 flex flex-col justify-between font-sans">
+<body class="bg-slate-50 font-sans text-slate-800 antialiased min-h-screen flex flex-col">
 
-  <!-- HEADER KAMPUS -->
-  <header class="bg-white border-b border-slate-200 shadow-2xs">
-    <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
-      <div class="flex items-center gap-3.5">
-        <img src="./img/polnes.png" alt="Logo POLNES" class="w-12 h-12 object-contain" />
-        <div>
-          <p class="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Kementerian Pendidikan, Tinggi, Sains, dan Teknologi</p>
-          <h1 class="text-sm sm:text-base font-extrabold text-slate-900 leading-tight">POLITEKNIK NEGERI SAMARINDA</h1>
-          <p class="text-xs font-extrabold text-[#169C53]">UNIT PENUNJANG AKADEMIK (UPA) BAHASA</p>
-        </div>
+  <!-- HEADER RESMI POLNES -->
+  <header class="bg-white border-b border-slate-200 px-4 sm:px-8 py-4 shadow-2xs">
+    <div class="max-w-3xl mx-auto flex items-center gap-3.5">
+      <img src="./img/polnes.png" alt="Logo POLNES" class="w-11 h-11 object-contain" />
+      <div>
+        <p class="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider">Kementerian Pendidikan, Tinggi, Sains, dan Teknologi</p>
+        <h1 class="text-sm sm:text-base font-extrabold text-slate-900">POLITEKNIK NEGERI SAMARINDA</h1>
+        <p class="text-xs font-extrabold text-polnes-main">UNIT PENUNJANG AKADEMIK (UPA) BAHASA</p>
       </div>
-      <span class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 text-xs font-bold">
-        <i class="ri-shield-check-fill text-[#169C53] text-sm"></i>
-        Sistem Verifikasi SHA-256
-      </span>
     </div>
   </header>
 
-  <!-- KONTEN UTAMA VALIDASI -->
-  <main class="max-w-3xl w-full mx-auto px-4 py-8 flex-1">
+  <!-- KONTEN UTAMA -->
+  <main class="flex-1 px-4 py-6 sm:py-10">
+    <div class="max-w-3xl mx-auto space-y-6">
 
-    <!-- STATE 1: LOADING -->
-    <div id="stateLoading" class="bg-white rounded-3xl border border-slate-200 p-10 text-center shadow-xs">
-      <i class="ri-loader-4-line animate-spin text-4xl text-[#169C53] inline-block mb-3"></i>
-      <h2 class="text-lg font-extrabold text-slate-800">Memverifikasi Keaslian Sertifikat...</h2>
-      <p class="text-xs text-slate-500 mt-1">Mencocokkan tanda tangan kriptografi SHA-256 dengan arsip resmi UPA Bahasa POLNES.</p>
-    </div>
-
-    <!-- STATE 2: VALID / TERVERIFIKASI -->
-    <div id="stateValid" class="hidden bg-white rounded-3xl border border-emerald-200 shadow-sm overflow-hidden">
-      <div class="bg-gradient-to-r from-[#0E7A3F] to-[#169C53] px-6 py-6 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div class="flex items-center gap-3.5">
-          <div class="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-xs flex items-center justify-center text-2xl shrink-0">
-            <i class="ri-verified-badge-fill"></i>
-          </div>
+      <!-- FORM PENCARIAN / CEK MANDIRI -->
+      <div class="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-2xs">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
           <div>
-            <span class="inline-block px-2.5 py-0.5 rounded-full bg-white/20 text-[10px] font-extrabold tracking-wider uppercase mb-1">
-              DOKUMEN RESMI &amp; TERVERIFIKASI
-            </span>
-            <h2 class="text-xl font-extrabold leading-tight">Sertifikat Asli UPA Bahasa POLNES</h2>
+            <span class="text-[11px] font-extrabold text-polnes-main uppercase tracking-wider">Portal Transparansi Skor &amp; Validasi</span>
+            <h2 class="text-base sm:text-lg font-extrabold text-slate-900">Cek Keaslian Sertifikat &amp; Riwayat Nilai</h2>
           </div>
         </div>
-        <div id="badgeJenisTes" class="px-3.5 py-1.5 rounded-xl bg-white text-[#0E7A3F] font-extrabold text-xs tracking-wide shadow-2xs">
-          TOEFL PREDICTION
-        </div>
-      </div>
-
-      <div class="p-6 sm:p-8 space-y-6">
-        <!-- BIODATA MAHASISWA -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-5 rounded-2xl border border-slate-200/80">
-          <div>
-            <p class="text-[11px] font-bold text-slate-400 uppercase">Nama Lengkap</p>
-            <p id="valNama" class="text-base font-extrabold text-slate-900 uppercase mt-0.5">-</p>
-          </div>
-          <div>
-            <p class="text-[11px] font-bold text-slate-400 uppercase">Nomor Induk Mahasiswa (NIM)</p>
-            <p id="valNim" class="text-base font-mono font-extrabold text-[#169C53] mt-0.5">-</p>
-          </div>
-          <div>
-            <p class="text-[11px] font-bold text-slate-400 uppercase">Program Studi / Jurusan</p>
-            <p id="valProdi" class="text-sm font-bold text-slate-800 mt-0.5">-</p>
-          </div>
-          <div>
-            <p class="text-[11px] font-bold text-slate-400 uppercase">Nomor Sertifikat Resmi</p>
-            <p id="valNomorSurat" class="text-sm font-mono font-bold text-slate-800 mt-0.5">-</p>
-          </div>
-          <div>
-            <p class="text-[11px] font-bold text-slate-400 uppercase">Tanggal Terbit Sertifikat</p>
-            <p id="valTanggalTes" class="text-sm font-bold text-slate-800 mt-0.5">-</p>
-          </div>
-          <div>
-            <p class="text-[11px] font-bold text-slate-400 uppercase">Penandatangan Sah</p>
-            <p class="text-sm font-bold text-slate-800 mt-0.5">Dwi Titi Maesaroh, S.Pd., M.Pd.</p>
-            <p class="text-[11px] text-slate-500">Kepala UPA Bahasa POLNES</p>
-          </div>
-        </div>
-
-        <!-- RINCIAN SKOR -->
-        <div>
-          <h3 class="text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-3">Rincian Hasil Tes Terverifikasi</h3>
-          <div id="gridSkorValidasi" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <!-- Diisi otomatis via JS -->
-          </div>
-        </div>
-
-        <!-- DIGITAL SIGNATURE SHA-256 -->
-        <div class="bg-slate-900 text-slate-200 rounded-2xl p-4 sm:p-5 space-y-2">
-          <div class="flex items-center justify-between">
-            <span class="text-[11px] font-extrabold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
-              <i class="ri-lock-2-fill"></i> SHA-256 Cryptographic Fingerprint
-            </span>
-            <span id="badgeHashMatch" class="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">
-              SIGNATURE MATCH
-            </span>
-          </div>
-          <p id="valHashSha256" class="font-mono text-[11px] sm:text-xs text-slate-300 break-all bg-slate-800/90 p-3 rounded-xl border border-slate-700">
-            -
-          </p>
-          <p class="text-[11px] text-slate-400">
-            Hash SHA-256 ini dihitung secara real-time dari data database server dan dicocokkan dengan kode terenkripsi pada QR Code sertifikat untuk menjamin tidak ada manipulasi nilai.
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <!-- STATE 3: INVALID / TIDAK DITEMUKAN / DIMANIPULASI -->
-    <div id="stateInvalid" class="hidden bg-white rounded-3xl border border-rose-200 p-8 sm:p-10 text-center shadow-sm">
-      <div class="w-16 h-16 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center text-3xl mx-auto mb-4">
-        <i class="ri-error-warning-fill"></i>
-      </div>
-      <span class="inline-block px-3 py-1 rounded-full bg-rose-50 text-rose-700 text-xs font-extrabold uppercase tracking-wider mb-2">
-        VERIFIKASI GAGAL / TIDAK VALID
-      </span>
-      <h2 id="judulInvalid" class="text-xl font-extrabold text-slate-900">Sertifikat Tidak Terdaftar</h2>
-      <p id="pesanInvalid" class="text-sm text-slate-600 max-w-lg mx-auto mt-2">
-        Data sertifikat tidak ditemukan di arsip UPA Bahasa Politeknik Negeri Samarinda atau tanda tangan SHA-256 pada QR Code telah dimodifikasi.
-      </p>
-
-      <!-- Form Cek Manual Jika Pengguna Membuka Halaman Tanpa Scan QR -->
-      <form onsubmit="cekManualDariForm(event)" class="max-w-md mx-auto mt-6 pt-6 border-t border-slate-100 text-left space-y-3">
-        <p class="text-xs font-extrabold text-slate-700">Cek Manual Berdasarkan NIM:</p>
-        <div class="flex gap-2">
-          <input type="text" id="inputManualNim" placeholder="Masukkan NIM (contoh: 226151001)" required
-            class="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:outline-none focus:border-[#169C53]" />
-          <select id="selectManualJenis" class="px-3 py-2.5 rounded-xl border border-slate-300 text-xs font-bold bg-white">
-            <option value="TOEFL">TOEFL</option>
-            <option value="SSPECT">SSPECT</option>
+        <form onsubmit="cariDariFormManual(event)" class="flex flex-col sm:flex-row gap-2.5">
+          <input
+            type="text"
+            id="inputNimCek"
+            required
+            placeholder="Masukkan NIM (contoh: 226151001)"
+            class="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono font-bold text-slate-800 focus:outline-none focus:border-polnes-main"
+          />
+          <select id="selectJenisCek" class="px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-extrabold text-slate-700 bg-slate-50 focus:outline-none focus:border-polnes-main">
+            <option value="TOEFL">Sertifikat TOEFL</option>
+            <option value="SSPECT">Sertifikat SSPECT</option>
           </select>
-          <button type="submit" class="px-4 py-2.5 rounded-xl bg-[#169C53] hover:bg-[#0E7A3F] text-white text-xs font-extrabold">
-            Cek
+          <button type="submit" class="px-5 py-2.5 rounded-xl bg-polnes-main hover:bg-polnes-dark text-white text-xs font-extrabold inline-flex items-center justify-center gap-1.5 transition-colors shadow-2xs">
+            <i class="ri-search-line"></i>
+            <span>Cek Data</span>
           </button>
-        </div>
-      </form>
-    </div>
+        </form>
+      </div>
 
+      <!-- AREA HASIL VERIFIKASI & TRANSPARANSI NILAI -->
+      <div id="areaHasilValidasi" class="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+        <div class="flex flex-col items-center justify-center py-10 text-center space-y-3">
+          <i class="ri-loader-4-line text-3xl text-polnes-main animate-spin"></i>
+          <p class="text-sm font-bold text-slate-600">Menghubungkan ke Database UPA Bahasa POLNES...</p>
+        </div>
+      </div>
+
+    </div>
   </main>
 
-  <!-- FOOTER -->
-  <footer class="bg-white border-t border-slate-200 py-5 px-4 text-center text-xs text-slate-500">
-    <p class="font-bold text-slate-700">UPA Bahasa &mdash; Politeknik Negeri Samarinda</p>
-    <p class="mt-0.5">Jl. Dr. Ciptomangunkusumo Kampus Gunung Panjang Samarinda 75131 • Surel: bahasa@polnes.ac.id</p>
+  <footer class="py-5 text-center text-xs text-slate-400 font-semibold">
+    UPA Bahasa &mdash; Politeknik Negeri Samarinda
   </footer>
 
   <script>
-    const SECRET_SALT_UPA_BAHASA_POLNES = "UPA-BAHASA-POLNES-2026-OFFICIAL-SIGN";
-
-    async function buatSignatureSha256Sertifikat(nim, jenis, nomorSertifikat, totalSkor) {
-      const payload = `${String(nim).trim()}|${String(jenis).toUpperCase()}|${String(nomorSertifikat).trim()}|${String(totalSkor).trim()}|${SECRET_SALT_UPA_BAHASA_POLNES}`;
-      const encoder = new TextEncoder();
-      const data = encoder.encode(payload);
-      const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+    // Pastikan klien Supabase terinisialisasi walau dibuka dari perangkat mana pun
+    function dapatkanSupabaseClient() {
+      if (window.supabaseClient) return window.supabaseClient;
+      if (window.SUPABASE_URL && window.SUPABASE_ANON_KEY && window.supabase?.createClient) {
+        window.supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+        return window.supabaseClient;
+      }
+      return null;
     }
 
-    function hitungSkorToeflTertinggi(m) {
-      const daftar = [m.remedial_3, m.remedial_2, m.remedial_1, m.skor_toefl]
-        .map(v => Number(v))
-        .filter(v => !isNaN(v) && v > 0);
-      return daftar.length > 0 ? Math.round(Math.max(...daftar)) : null;
+    function ambilAngka(obj, keys) {
+      if (!obj) return null;
+      for (const k of keys) {
+        if (obj[k] !== undefined && obj[k] !== null && String(obj[k]).trim() !== "" && String(obj[k]).toUpperCase() !== "NULL") {
+          const n = Number(String(obj[k]).replace(",", ".").trim());
+          if (!isNaN(n) && n > 0) return Math.round(n);
+        }
+      }
+      return null;
     }
 
-    function cekManualDariForm(e) {
-      e.preventDefault();
-      const nim = document.getElementById("inputManualNim").value.trim();
-      const jenis = document.getElementById("selectManualJenis").value;
-      if (!nim) return;
-      window.location.href = `?nim=${encodeURIComponent(nim)}&jenis=${encodeURIComponent(jenis)}`;
+    function ambilTeks(obj, keys, fallback = "-") {
+      if (!obj) return fallback;
+      for (const k of keys) {
+        if (obj[k] !== undefined && obj[k] !== null && String(obj[k]).trim() !== "" && String(obj[k]).toUpperCase() !== "NULL") {
+          return String(obj[k]).trim();
+        }
+      }
+      return fallback;
     }
 
-    function tampilkanGagal(judul, pesan) {
-      document.getElementById("stateLoading").classList.add("hidden");
-      document.getElementById("stateValid").classList.add("hidden");
-      document.getElementById("stateInvalid").classList.remove("hidden");
-      document.getElementById("judulInvalid").textContent = judul;
-      document.getElementById("pesanInvalid").textContent = pesan;
+    function ekstrakAngkatan(nimRaw, fallback = null) {
+      const clean = String(nimRaw || "").replace(/\D/g, "");
+      if (clean.length >= 2) {
+        const d = parseInt(clean.substring(0, 2), 10);
+        if (!isNaN(d)) return 2000 + d;
+      }
+      return fallback || "-";
     }
 
-    async function jalankanValidasiSertifikat() {
-      const params = new URLSearchParams(window.location.search);
-      const nimParam = (params.get("nim") || "").trim();
-      const jenisParam = (params.get("jenis") || "TOEFL").trim().toUpperCase();
-      const sigParam = (params.get("sig") || "").trim().toLowerCase();
+    async function hitungSha256(nim, nama, jenis, skorUtama) {
+      const payload = `UPA-BAHASA-POLNES|${String(nim).trim()}|${String(nama).trim().toUpperCase()}|${jenis}|${skorUtama ?? 0}`;
+      try {
+        if (window.crypto && window.crypto.subtle) {
+          const buf = await window.crypto.subtle.digest("SHA-256", new TextEncoder().encode(payload));
+          return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("").toUpperCase();
+        }
+      } catch (_) {}
+      return "-";
+    }
 
-      if (!nimParam) {
-        tampilkanGagal(
-          "Parameter QR Code Tidak Lengkap",
-          "Silakan pindai QR Code yang tertera pada sertifikat fisik/PDF UPA Bahasa POLNES atau masukkan NIM pada kolom di bawah."
-        );
+    async function muatDanTampilkanValidasi(nimTarget, jenisTarget = "TOEFL", shaParam = "") {
+      const container = document.getElementById("areaHasilValidasi");
+      const nimClean = String(nimTarget || "").trim();
+
+      if (!nimClean) {
+        container.innerHTML = `
+          <div class="text-center py-8 space-y-2">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-polnes-main flex items-center justify-center text-2xl mx-auto">
+              <i class="ri-qr-scan-2-line"></i>
+            </div>
+            <h3 class="text-base font-extrabold text-slate-800">Silakan Scan QR Sertifikat atau Masukkan NIM</h3>
+            <p class="text-xs text-slate-500">Data seluruh tes (SSPECT, Latihan, TOEFL, Remedial 1–3, dan rincian Section) akan ditampilkan secara transparan.</p>
+          </div>
+        `;
         return;
       }
 
-      const db = window.supabaseClient || window.supabase;
-      if (!db || typeof db.from !== "function") {
-        tampilkanGagal(
-          "Koneksi Database Belum Terinisialisasi",
-          "Pastikan file konfigurasi Supabase (supabase-config.js) telah dimuat dengan benar."
-        );
+      container.innerHTML = `
+        <div class="flex flex-col items-center justify-center py-10 text-center space-y-3">
+          <i class="ri-loader-4-line text-3xl text-polnes-main animate-spin"></i>
+          <p class="text-sm font-bold text-slate-600">Memverifikasi NIM <span class="font-mono text-polnes-main">${nimClean}</span> di database...</p>
+        </div>
+      `;
+
+      const db = dapatkanSupabaseClient();
+      if (!db) {
+        container.innerHTML = `
+          <div class="text-center py-8 space-y-2">
+            <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center text-2xl mx-auto">
+              <i class="ri-error-warning-fill"></i>
+            </div>
+            <h3 class="text-base font-extrabold text-slate-900">Koneksi Database Gagal Dimuat</h3>
+            <p class="text-xs text-slate-500">Pastikan file <code>js/supabase-config.js</code> dapat diakses publik di server.</p>
+          </div>
+        `;
         return;
       }
 
       try {
-        const { data, error } = await db
-          .from("arsip_master_rekapan")
-          .select("*")
-          .eq("nim", nimParam)
-          .maybeSingle();
+        // Tarik data NIM dari seluruh tabel terkait secara paralel
+        const [resMaster, resRekapan, resHasilTes, resMhs] = await Promise.all([
+          db.from("arsip_master_rekapan").select("*").eq("nim", nimClean),
+          db.from("Rekapan").select("*").eq("nim", nimClean),
+          db.from("HasilTes").select("*").eq("nim", nimClean),
+          db.from("Mahasiswa").select("*").eq("nim", nimClean)
+        ]);
 
-        if (error) throw error;
+        const rowsMaster = resMaster.data || [];
+        const rowsRekapan = resRekapan.data || [];
+        const rowsHasilTes = resHasilTes.data || [];
+        const rowsMhs = resMhs.data || [];
 
-        if (!data) {
-          tampilkanGagal(
-            "Data Mahasiswa Tidak Ditemukan",
-            `NIM ${nimParam} tidak tercatat dalam arsip sertifikat resmi UPA Bahasa Politeknik Negeri Samarinda.`
-          );
-          return;
-        }
-
-        const isSspect = jenisParam === "SSPECT";
-        const defaultKodeSurat = isSspect ? "SSPECT" : "TOEFL-P";
-        const nomorSertifikat = data.nomor_sertifikat || `0355 / PL7.18 / UPA.BAHASA / ${defaultKodeSurat} / ${new Date().getFullYear()}`;
-        const tglTes = data.tanggal_tes || "04 May 2026";
-        const totalSkor = isSspect ? (data.skor_sspect ?? "-") : (hitungSkorToeflTertinggi(data) ?? "-");
-
-        if (totalSkor === "-" || totalSkor === null) {
-          tampilkanGagal(
-            `Sertifikat ${jenisParam} Belum Tersedia`,
-            `Mahasiswa dengan NIM ${nimParam} belum memiliki skor sah untuk kategori ${jenisParam}.`
-          );
-          return;
-        }
-
-        // Hitung ulang SHA-256 dari data asli database
-        const expectedSha256 = await buatSignatureSha256Sertifikat(data.nim, jenisParam, nomorSertifikat, totalSkor);
-
-        // Jika QR code membawa parameter sig, wajib cocok 100%
-        if (sigParam && sigParam !== expectedSha256) {
-          tampilkanGagal(
-            "Peringatan: Tanda Tangan SHA-256 Tidak Cocok!",
-            "Hash kriptografi pada QR Code tidak sesuai dengan data asli di server. Dokumen ini terindikasi telah diubah atau tidak sah."
-          );
-          return;
-        }
-
-        // Tampilkan hasil validasi resmi
-        document.getElementById("stateLoading").classList.add("hidden");
-        document.getElementById("stateInvalid").classList.add("hidden");
-        document.getElementById("stateValid").classList.remove("hidden");
-
-        document.getElementById("badgeJenisTes").textContent = isSspect ? "SSPECT PLACEMENT TEST" : "TOEFL PREDICTION TEST";
-        document.getElementById("valNama").textContent = data.nama || data.nama_mahasiswa || "-";
-        document.getElementById("valNim").textContent = data.nim;
-        document.getElementById("valProdi").textContent = `${data.program_studi || data.prodi || "-"} (${data.jurusan || "-"})`;
-        document.getElementById("valNomorSurat").textContent = nomorSertifikat;
-        document.getElementById("valTanggalTes").textContent = tglTes;
-        document.getElementById("valHashSha256").textContent = expectedSha256;
-
-        const badgeMatch = document.getElementById("badgeHashMatch");
-        if (sigParam) {
-          badgeMatch.textContent = "QR SHA-256 VERIFIED";
-          badgeMatch.className = "px-2.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 text-[10px] font-extrabold";
-        } else {
-          badgeMatch.textContent = "VERIFIED VIA MANUAL NIM";
-          badgeMatch.className = "px-2.5 py-0.5 rounded-md bg-sky-500/20 text-sky-300 text-[10px] font-extrabold";
-        }
-
-        const gridSkor = document.getElementById("gridSkorValidasi");
-        if (isSspect) {
-          gridSkor.className = "grid grid-cols-3 gap-3";
-          gridSkor.innerHTML = `
-            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-center">
-              <p class="text-[11px] font-bold text-slate-400">Listening</p>
-              <p class="text-xl font-extrabold text-slate-800 mt-1">${data.sspect_listening ?? data.listening ?? "-"}</p>
-            </div>
-            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-center">
-              <p class="text-[11px] font-bold text-slate-400">Reading</p>
-              <p class="text-xl font-extrabold text-slate-800 mt-1">${data.sspect_reading ?? data.reading ?? "-"}</p>
-            </div>
-            <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-center">
-              <p class="text-[11px] font-extrabold text-[#169C53]">TOTAL SCORE</p>
-              <p class="text-2xl font-extrabold text-[#0E7A3F] mt-1">${totalSkor}</p>
+        if (rowsMaster.length === 0 && rowsRekapan.length === 0 && rowsHasilTes.length === 0 && rowsMhs.length === 0) {
+          container.innerHTML = `
+            <div class="text-center py-8 space-y-3">
+              <div class="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center text-3xl mx-auto">
+                <i class="ri-close-circle-fill"></i>
+              </div>
+              <span class="inline-block px-3 py-1 rounded-full bg-rose-50 text-rose-600 text-[11px] font-extrabold uppercase">Data Tidak Ditemukan</span>
+              <h3 class="text-lg font-extrabold text-slate-900">NIM ${nimClean} Tidak Terdaftar</h3>
+              <p class="text-xs text-slate-500 max-w-md mx-auto">Pastikan nomor NIM yang dimasukkan benar atau hubungi admin UPA Bahasa Politeknik Negeri Samarinda.</p>
             </div>
           `;
-        } else {
-          gridSkor.className = "grid grid-cols-2 sm:grid-cols-4 gap-3";
-          gridSkor.innerHTML = `
-            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-center">
-              <p class="text-[11px] font-bold text-slate-400">Listening</p>
-              <p class="text-xl font-extrabold text-slate-800 mt-1">${data.listening ?? "-"}</p>
-            </div>
-            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-center">
-              <p class="text-[11px] font-bold text-slate-400">Structure</p>
-              <p class="text-xl font-extrabold text-slate-800 mt-1">${data.structure ?? "-"}</p>
-            </div>
-            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-center">
-              <p class="text-[11px] font-bold text-slate-400">Reading</p>
-              <p class="text-xl font-extrabold text-slate-800 mt-1">${data.reading ?? "-"}</p>
-            </div>
-            <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-center">
-              <p class="text-[11px] font-extrabold text-[#169C53]">TOTAL SCORE</p>
-              <p class="text-2xl font-extrabold text-[#0E7A3F] mt-1">${totalSkor}</p>
-            </div>
-          `;
+          return;
         }
+
+        // Gabungkan seluruh data mahasiswa
+        const profil = {
+          nim: nimClean,
+          nama: "-",
+          jurusan: "-",
+          prodi: "-",
+          angkatan: ekstrakAngkatan(nimClean),
+          sspect: null,
+          latihan: null,
+          toefl: null,
+          rem1: null,
+          rem2: null,
+          rem3: null,
+          listening: null,
+          structure: null,
+          reading: null,
+          sspect_listening: null,
+          sspect_structure: null,
+          sspect_reading: null,
+          nomor_sertifikat: "-",
+          tanggal_tes: "-"
+        };
+
+        const gabungBaris = [...rowsMhs, ...rowsMaster, ...rowsRekapan, ...rowsHasilTes];
+        gabungBaris.forEach(r => {
+          const nm = ambilTeks(r, ["nama", "nama_mahasiswa", "nama_lengkap"], "-");
+          if (nm !== "-") profil.nama = nm.toUpperCase();
+
+          const pr = ambilTeks(r, ["program_studi", "prodi", "kelas"], "-");
+          if (pr !== "-") profil.prodi = pr.toUpperCase();
+
+          const jr = ambilTeks(r, ["jurusan"], "-");
+          if (jr !== "-") profil.jurusan = jr.toUpperCase();
+
+          const th = ambilTeks(r, ["tahun_angkatan", "angkatan"], "");
+          if (th) profil.angkatan = th;
+
+          const noSert = ambilTeks(r, ["nomor_sertifikat", "no_sertifikat"], "-");
+          if (noSert !== "-") profil.nomor_sertifikat = noSert;
+
+          const tglSert = ambilTeks(r, ["tanggal_tes", "tgl_tes"], "-");
+          if (tglSert !== "-") profil.tanggal_tes = tglSert;
+
+          profil.sspect = ambilAngka(r, ["skor_sspect", "nilai_sspect", "sspect"]) ?? profil.sspect;
+          profil.latihan = ambilAngka(r, ["skor_latihan", "nilai_latihan", "latihan"]) ?? profil.latihan;
+          profil.toefl = ambilAngka(r, ["skor_toefl", "nilai_toefl", "toefl"]) ?? profil.toefl;
+          profil.rem1 = ambilAngka(r, ["remedial_1", "rem_1"]) ?? profil.rem1;
+          profil.rem2 = ambilAngka(r, ["remedial_2", "rem_2"]) ?? profil.rem2;
+          profil.rem3 = ambilAngka(r, ["remedial_3", "rem_3"]) ?? profil.rem3;
+
+          profil.listening = ambilAngka(r, ["listening", "section_1"]) ?? profil.listening;
+          profil.structure = ambilAngka(r, ["structure", "section_2"]) ?? profil.structure;
+          profil.reading = ambilAngka(r, ["reading", "section_3"]) ?? profil.reading;
+          profil.sspect_listening = ambilAngka(r, ["sspect_listening"]) ?? profil.sspect_listening;
+          profil.sspect_structure = ambilAngka(r, ["sspect_structure"]) ?? profil.sspect_structure;
+          profil.sspect_reading = ambilAngka(r, ["sspect_reading"]) ?? profil.sspect_reading;
+
+          // Jika berasal dari tabel HasilTes per kategori
+          const kat = ambilTeks(r, ["kategori_tes", "jenis_tes"], "").toUpperCase();
+          const tot = ambilAngka(r, ["skor_total", "total_skor", "nilai"]);
+          if (tot) {
+            if (kat.includes("SSPECT")) profil.sspect = tot;
+            else if (kat.includes("LATIHAN")) profil.latihan = tot;
+            else if (kat.includes("REM") && kat.includes("3")) profil.rem3 = tot;
+            else if (kat.includes("REM") && kat.includes("2")) profil.rem2 = tot;
+            else if (kat.includes("REM")) profil.rem1 = tot;
+            else if (kat.includes("TOEFL")) profil.toefl = tot;
+          }
+        });
+
+        // Hitung skor tertinggi & batas kelulusan (D4 = 430, D3 = 400)
+        const jenjang = profil.prodi.includes("D4") ? "D4" : "D3";
+        const batasLulus = jenjang === "D4" ? 430 : 400;
+        const daftarToefl = [profil.rem3, profil.rem2, profil.rem1, profil.toefl].filter(v => v !== null && v > 0);
+        const skorToeflTertinggi = daftarToefl.length > 0 ? Math.max(...daftarToefl) : null;
+        const isLulus = skorToeflTertinggi !== null && skorToeflTertinggi >= batasLulus;
+
+        const isSspect = String(jenisTarget).toUpperCase() === "SSPECT";
+        const skorSertifikatIni = isSspect ? profil.sspect : skorToeflTertinggi;
+        const shaFull = await hitungSha256(profil.nim, profil.nama, isSspect ? "SSPECT" : "TOEFL", skorSertifikatIni);
+        const shaShort = shaFull !== "-" ? shaFull.substring(0, 16).match(/.{1,4}/g).join("-") : "-";
+        const shaCocok = !shaParam || (shaFull !== "-" && shaFull.startsWith(shaParam.toUpperCase()));
+
+        const badgeLulusHtml = isLulus
+          ? `<span class="px-3 py-1 rounded-full bg-emerald-50 text-polnes-main border border-emerald-200 text-xs font-extrabold">LULUS TOEFL (≥ ${batasLulus})</span>`
+          : `<span class="px-3 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-xs font-extrabold">BELUM LULUS (Target ${jenjang}: ${batasLulus})</span>`;
+
+        const sec1 = isSspect ? (profil.sspect_listening ?? profil.listening ?? "-") : (profil.listening ?? "-");
+        const sec2 = isSspect ? (profil.sspect_structure ?? profil.structure ?? "-") : (profil.structure ?? "-");
+        const sec3 = isSspect ? (profil.sspect_reading ?? profil.reading ?? "-") : (profil.reading ?? "-");
+
+        container.innerHTML = `
+          <div class="space-y-6">
+            <!-- BANNER STATUS VALIDASI -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-slate-100">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl ${shaCocok ? "bg-emerald-50 text-polnes-main" : "bg-amber-50 text-amber-600"} flex items-center justify-center text-2xl shrink-0">
+                  <i class="${shaCocok ? "ri-verified-badge-fill" : "ri-alert-fill"}"></i>
+                </div>
+                <div>
+                  <span class="text-[10px] font-extrabold uppercase tracking-wider ${shaCocok ? "text-polnes-main" : "text-amber-600"}">
+                    ${shaCocok ? "DOKUMEN TERVERIFIKASI ASLI • DATABASE UPA BAHASA" : "PERINGATAN: HASH SERTIFIKAT BERBEDA DENGAN DATABASE"}
+                  </span>
+                  <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 uppercase mt-0.5">${profil.nama}</h2>
+                  <p class="text-xs font-semibold text-slate-500">
+                    NIM: <b class="font-mono text-slate-800">${profil.nim}</b> &bull; Angkatan ${profil.angkatan} &bull; ${profil.prodi} (${profil.jurusan})
+                  </p>
+                </div>
+              </div>
+              <div class="shrink-0">
+                ${badgeLulusHtml}
+              </div>
+            </div>
+
+            <!-- 6 CARDS SKOR TRANSPARAN (PERSIS SEPERTI MODAL DETAIL REKAPAN) -->
+            <div>
+              <p class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-3">Rekapitulasi Seluruh Skor Ujian Mahasiswa</p>
+              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                <div class="p-3.5 rounded-2xl bg-sky-50/70 border border-sky-200/80 text-center">
+                  <p class="text-[10px] font-extrabold text-sky-700 uppercase">SSPECT</p>
+                  <p class="text-xl font-extrabold text-slate-900 mt-1">${profil.sspect ?? "-"}</p>
+                </div>
+                <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 text-center">
+                  <p class="text-[10px] font-extrabold text-slate-500 uppercase">LAT. ${jenjang}</p>
+                  <p class="text-xl font-extrabold text-slate-900 mt-1">${profil.latihan ?? "-"}</p>
+                </div>
+                <div class="p-3.5 rounded-2xl bg-emerald-50/80 border border-emerald-200 text-center">
+                  <p class="text-[10px] font-extrabold text-polnes-main uppercase">TOEFL ${jenjang}</p>
+                  <p class="text-xl font-extrabold text-polnes-dark mt-1">${profil.toefl ?? "-"}</p>
+                </div>
+                <div class="p-3.5 rounded-2xl bg-amber-50/60 border border-amber-200/80 text-center">
+                  <p class="text-[10px] font-extrabold text-amber-700 uppercase">REMEDIAL 1</p>
+                  <p class="text-xl font-extrabold text-slate-900 mt-1">${profil.rem1 ?? "-"}</p>
+                </div>
+                <div class="p-3.5 rounded-2xl bg-amber-50/60 border border-amber-200/80 text-center">
+                  <p class="text-[10px] font-extrabold text-amber-700 uppercase">REMEDIAL 2</p>
+                  <p class="text-xl font-extrabold text-slate-900 mt-1">${profil.rem2 ?? "-"}</p>
+                </div>
+                <div class="p-3.5 rounded-2xl bg-amber-50/60 border border-amber-200/80 text-center">
+                  <p class="text-[10px] font-extrabold text-amber-700 uppercase">REMEDIAL 3</p>
+                  <p class="text-xl font-extrabold text-slate-900 mt-1">${profil.rem3 ?? "-"}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- RINCIAN NILAI PER SECTION -->
+            <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200/80">
+              <p class="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-3">Rincian Section (${isSspect ? "SSPECT Placement Test" : "TOEFL Prediction Test"})</p>
+              <div class="grid grid-cols-3 gap-3 text-center">
+                <div class="bg-white p-3 rounded-xl border border-slate-200/70">
+                  <p class="text-[10px] font-bold text-slate-400 uppercase">Listening</p>
+                  <p class="text-base font-extrabold text-slate-800 mt-0.5">${sec1}</p>
+                </div>
+                <div class="bg-white p-3 rounded-xl border border-slate-200/70">
+                  <p class="text-[10px] font-bold text-slate-400 uppercase">Structure</p>
+                  <p class="text-base font-extrabold text-slate-800 mt-0.5">${sec2}</p>
+                </div>
+                <div class="bg-white p-3 rounded-xl border border-slate-200/70">
+                  <p class="text-[10px] font-bold text-slate-400 uppercase">Reading</p>
+                  <p class="text-base font-extrabold text-slate-800 mt-0.5">${sec3}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- METADATA LEGALITAS SERTIFIKAT & SHA-256 -->
+            <div class="bg-slate-900 text-slate-200 rounded-2xl p-4 text-xs space-y-1.5">
+              <div class="flex flex-wrap justify-between gap-2">
+                <span class="text-slate-400">Nomor Sertifikat:</span>
+                <span class="font-bold text-white">${profil.nomor_sertifikat}</span>
+              </div>
+              <div class="flex flex-wrap justify-between gap-2">
+                <span class="text-slate-400">Tanggal Terbit:</span>
+                <span class="font-bold text-white">${profil.tanggal_tes}</span>
+              </div>
+              <div class="flex flex-wrap justify-between gap-2 pt-1.5 border-t border-slate-800">
+                <span class="text-slate-400">Digital Signature (SHA-256):</span>
+                <span class="font-mono font-bold text-emerald-400">${shaShort}</span>
+              </div>
+            </div>
+          </div>
+        `;
       } catch (err) {
-        console.error("Error validasi sertifikat:", err);
-        tampilkanGagal("Terjadi Kesalahan Sistem", err.message);
+        container.innerHTML = `
+          <div class="text-center py-8 space-y-2">
+            <h3 class="text-base font-extrabold text-rose-600">Terjadi Kesalahan Saat Mengambil Data</h3>
+            <p class="text-xs text-slate-500">${err.message}</p>
+          </div>
+        `;
       }
     }
 
-    document.addEventListener("DOMContentLoaded", jalankanValidasiSertifikat);
+    function cariDariFormManual(e) {
+      e.preventDefault();
+      const nimVal = document.getElementById("inputNimCek").value.trim();
+      const jenisVal = document.getElementById("selectJenisCek").value;
+      const urlBaru = new URL(window.location.href);
+      urlBaru.searchParams.set("nim", nimVal);
+      urlBaru.searchParams.set("jenis", jenisVal);
+      urlBaru.searchParams.delete("sha");
+      window.history.replaceState({}, "", urlBaru);
+      muatDanTampilkanValidasi(nimVal, jenisVal, "");
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const params = new URLSearchParams(window.location.search);
+      const nimParam = params.get("nim") || "";
+      const jenisParam = (params.get("jenis") || "TOEFL").toUpperCase();
+      const shaParam = params.get("sha") || "";
+
+      if (nimParam) document.getElementById("inputNimCek").value = nimParam;
+      if (jenisParam === "SSPECT" || jenisParam === "TOEFL") {
+        document.getElementById("selectJenisCek").value = jenisParam;
+      }
+
+      muatDanTampilkanValidasi(nimParam, jenisParam, shaParam);
+    });
   </script>
 </body>
 </html>
