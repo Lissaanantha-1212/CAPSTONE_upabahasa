@@ -18,7 +18,7 @@ function getDbClientRekapan() {
   return window.supabaseClient || window.supabase || null;
 }
 
-// ==================== PEMETAAN SENSITIF 10 JURUSAN & PRODI POLNES ====================
+// ==================== PEMETAAN SENSITIF 10 JURUSAN & 26 PRODI POLNES ====================
 const DAFTAR_JURUSAN_PRODI_POLNES = [
   {
     jurusan: "AKUNTANSI",
@@ -272,6 +272,29 @@ async function generateSha256Sertifikat(m, jenisSertifikat) {
   return ((h2 >>> 0).toString(16).padStart(8, "0") + (h1 >>> 0).toString(16).padStart(8, "0")).toUpperCase();
 }
 
+// ==================== SIMPAN METADATA NOMOR & TANGGAL SERTIFIKAT KE DB ====================
+async function simpanMetadataSertifikatKeDb(db, nim, nomorSertifikat, tanggalTerbit) {
+  if (!db || !nim) return;
+  const kolomValid = rekapanState.kolomTabelMaster;
+  const payload = {};
+
+  if (!kolomValid || kolomValid.size === 0) {
+    payload.nomor_sertifikat = nomorSertifikat;
+    payload.tanggal_tes = tanggalTerbit;
+  } else {
+    if (kolomValid.has("nomor_sertifikat")) payload.nomor_sertifikat = nomorSertifikat;
+    if (kolomValid.has("no_sertifikat")) payload.no_sertifikat = nomorSertifikat;
+    if (kolomValid.has("nomor_surat")) payload.nomor_surat = nomorSertifikat;
+    if (kolomValid.has("tanggal_tes")) payload.tanggal_tes = tanggalTerbit;
+    if (kolomValid.has("tgl_tes")) payload.tgl_tes = tanggalTerbit;
+    if (kolomValid.has("tanggal_terbit")) payload.tanggal_terbit = tanggalTerbit;
+  }
+
+  if (Object.keys(payload).length > 0) {
+    await db.from("arsip_master_rekapan").update(payload).eq("nim", String(nim).trim());
+  }
+}
+
 async function fetchAllRowsSupabase(db, namaTabel, orderByCol = null) {
   const pageSize = 1000;
   let from = 0;
@@ -334,11 +357,11 @@ function saringPayloadSesuaiSkemaTabel(objRecord) {
     }
     delete kandidat.nama_mahasiswa;
   }
-  
+
   if (kandidat.program_studi !== undefined && kandidat.prodi === undefined) {
     kandidat.prodi = kandidat.program_studi;
   }
-  
+
   if (kandidat.angkatan !== undefined) {
     if (kandidat.tahun_angkatan === undefined) {
       kandidat.tahun_angkatan = kandidat.angkatan;
@@ -357,6 +380,13 @@ function saringPayloadSesuaiSkemaTabel(objRecord) {
   if (kandidat.nilai_toefl !== undefined) {
     if (kandidat.skor_toefl === undefined) kandidat.skor_toefl = kandidat.nilai_toefl;
     delete kandidat.nilai_toefl;
+  }
+
+  if (kandidat.nomor_sertifikat !== undefined && kandidat.no_sertifikat === undefined) {
+    kandidat.no_sertifikat = kandidat.nomor_sertifikat;
+  }
+  if (kandidat.tanggal_tes !== undefined && kandidat.tgl_tes === undefined) {
+    kandidat.tgl_tes = kandidat.tanggal_tes;
   }
 
   const kolomValid = rekapanState.kolomTabelMaster;
@@ -483,8 +513,8 @@ async function sinkronkanDatabaseRekapan(tampilkanNotif = false) {
       if (dariJson.rem3) rec.remedial_3 = dariJson.rem3;
 
       rec.tempat_tanggal_lahir = ambilNilaiKolom(row, ["tempat_tanggal_lahir", "tempat_tgl_lahir", "ttl"], rec.tempat_tanggal_lahir);
-      rec.tanggal_tes = ambilNilaiKolom(row, ["tanggal_tes", "tgl_tes"], rec.tanggal_tes);
-      rec.nomor_sertifikat = ambilNilaiKolom(row, ["nomor_sertifikat", "no_sertifikat"], rec.nomor_sertifikat);
+      rec.tanggal_tes = ambilNilaiKolom(row, ["tanggal_tes", "tgl_tes", "tanggal_terbit"], rec.tanggal_tes);
+      rec.nomor_sertifikat = ambilNilaiKolom(row, ["nomor_sertifikat", "no_sertifikat", "nomor_surat"], rec.nomor_sertifikat);
     });
 
     // B. Mahasiswa
@@ -663,7 +693,7 @@ async function perbaikiDataMasterDiDatabase(db, daftarMahasiswa) {
   }
 }
 
-// ==================== 2. IMPORT ARSIP CERDAS (MULTI-HEADER D3/D4 UPA BAHASA & STANDARD EXCEL) ====================
+// ==================== 2. IMPORT ARSIP CERDAS (MENDUKUNG MULTI-HEADER D3/D4 UPA BAHASA & STANDARD EXCEL) ====================
 function bukaModalImportArsip() {
   const fileInput = document.getElementById("inputFileExcelArsip");
   if (fileInput) fileInput.value = "";
@@ -697,13 +727,16 @@ function parseSkorBulatExcel(valRaw) {
   return !isNaN(angka) && angka > 0 ? Math.round(angka) : null;
 }
 
+// Helper: Mengonversi seluruh sheet & blok tabel UPA Bahasa (No | Nama | Nim | Section 1-3 | TOTAL) menjadi daftar baris seragam
 function ekstrakSemuaBarisMahasiswaDariWorkbook(workbook) {
   const hasilEkstraksi = [];
   let totalBarisNonData = 0;
 
+  // Prioritaskan sheet utama atau sheet D3/D4 (abaikan sheet LAPORAN jika berisi rekap ringkasan saja)
   const daftarSheet = workbook.SheetNames.filter(nama => !nama.toUpperCase().includes("LAPORAN"));
   const targetSheets = daftarSheet.length > 0 ? daftarSheet : workbook.SheetNames;
 
+  // Deteksi apakah file memiliki format laporan multi-blok UPA Bahasa (ada baris header "Nim" / "Nama" di tengah sheet)
   let terdeteksiFormatBlokUpa = false;
 
   targetSheets.forEach(sheetName => {
@@ -734,6 +767,7 @@ function ekstrakSemuaBarisMahasiswaDariWorkbook(workbook) {
         continue;
       }
 
+      // 1. Cek apakah baris ini adalah judul Prodi blok tabel (contoh: "DII - TEKNIK ALAT BERAT", "D3 - PERAWATAN DAN PERBAIKAN MESIN", "D4 - DESAIN PRODUK KAYU DAN SERAT")
       const selNonKosong = barisUpper.filter(Boolean);
       if (
         selNonKosong.length <= 2 &&
@@ -744,11 +778,13 @@ function ekstrakSemuaBarisMahasiswaDariWorkbook(workbook) {
           )
         )
       ) {
+        // Normalisasi DII -> D3 jika ada typo dokumen lama
         prodiAktifBlok = selNonKosong[0].replace(/^DII\s*[-–—]/, "D3 -").replace(/^DIII\s*[-–—]/, "D3 -").replace(/^DIV\s*[-–—]/, "D4 -");
         totalBarisNonData++;
         continue;
       }
 
+      // 2. Cek apakah baris ini adalah baris Header Kolom ("Nama" dan "Nim")
       const idxNimHeader = barisUpper.findIndex(c => c === "NIM" || c === "NO INDUK" || c === "NO. INDUK" || c === "NPM");
       const idxNamaHeader = barisUpper.findIndex(c => c === "NAMA" || c === "NAMA MAHASISWA" || c === "NAMA LENGKAP" || c === "FULL NAME");
 
@@ -757,6 +793,7 @@ function ekstrakSemuaBarisMahasiswaDariWorkbook(workbook) {
         headerSudahDitemukan = true;
         colIdx = { nama: idxNamaHeader, nim: idxNimHeader, sec1: -1, sec2: -1, sec3: -1, total: -1, prodi: -1, jurusan: -1, angkatan: -1, ttl: -1 };
 
+        // Cari kolom Section 1, 2, 3, Total di baris ini ATAU baris tepat di bawahnya (karena "SCORE" sering di-merge di atas Section 1-3)
         const barisSubHeader = (r + 1 < matrix.length && Array.isArray(matrix[r + 1]))
           ? matrix[r + 1].map(c => String(c || "").trim().toUpperCase())
           : [];
@@ -776,6 +813,7 @@ function ekstrakSemuaBarisMahasiswaDariWorkbook(workbook) {
           else if (gab.includes("TTL") || gab.includes("BIRTH") || gab.includes("LAHIR")) colIdx.ttl = c;
         }
 
+        // Fallback posisi kolom standar tabel UPA Bahasa (Nim + 1 = Sec1, Nim + 2 = Sec2, Nim + 3 = Sec3, Nim + 4 = Total)
         if (colIdx.sec1 === -1) colIdx.sec1 = idxNimHeader + 1;
         if (colIdx.sec2 === -1) colIdx.sec2 = idxNimHeader + 2;
         if (colIdx.sec3 === -1) colIdx.sec3 = idxNimHeader + 3;
@@ -785,10 +823,12 @@ function ekstrakSemuaBarisMahasiswaDariWorkbook(workbook) {
         continue;
       }
 
+      // 3. Jika sudah melewati header, ekstrak baris data mahasiswa
       if (headerSudahDitemukan) {
         const nimVal = String(baris[colIdx.nim] || "").replace(/\s+/g, "").trim();
         const namaVal = String(baris[colIdx.nama] || "").trim().toUpperCase();
 
+        // Lewati baris sub-header ("Section 1"), baris rata-rata hijau tanpa NIM, atau baris kosong
         if (!nimVal || !/^\d{6,15}$/.test(nimVal) || !namaVal) {
           totalBarisNonData++;
           continue;
@@ -817,6 +857,7 @@ function ekstrakSemuaBarisMahasiswaDariWorkbook(workbook) {
     }
   });
 
+  // Fallback ke pembacaan sheet_to_json standar jika file Excel memakai format tabel biasa (baris 1 langsung header)
   if (!terdeteksiFormatBlokUpa || hasilEkstraksi.length === 0) {
     const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
     const rowsStandar = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
@@ -853,6 +894,7 @@ async function prosesImportArsipCerdas() {
       return;
     }
 
+    // 1. Peta dinamis seluruh data yang SUDAH ADA di database
     const mapDbByNim = new Map();
     const mapDbByNamaAngkatan = new Map();
     const setAngkatanSudahAdaDiDb = new Set();
@@ -871,6 +913,7 @@ async function prosesImportArsipCerdas() {
       }
     });
 
+    // 2. Proses baris file Excel secara dinamis
     const mapPatchDbExisting = new Map();
     const mapInsertBaru = new Map();
     const setAngkatanTerdeteksi = new Set();
@@ -1386,7 +1429,7 @@ async function eksekusiBatchNomorSertifikat() {
   btn.disabled = true;
 
   try {
-    const chunkSize = 200;
+    const chunkSize = 150;
     for (let i = 0; i < daftarTarget.length; i += chunkSize) {
       const slice = daftarTarget.slice(i, i + chunkSize);
       const promises = slice.map((m, offsetLocal) => {
@@ -1395,21 +1438,13 @@ async function eksekusiBatchNomorSertifikat() {
         const nomorLengkap = suffix ? `${kodeUrut} ${suffix}` : kodeUrut;
         m.nomor_sertifikat = nomorLengkap;
         m.tanggal_tes = tanggalTerbitFormatted;
-        return db
-          .from("arsip_master_rekapan")
-          .update(
-            saringPayloadSesuaiSkemaTabel({
-              nomor_sertifikat: nomorLengkap,
-              tanggal_tes: tanggalTerbitFormatted
-            })
-          )
-          .eq("nim", m.nim);
+        return simpanMetadataSertifikatKeDb(db, m.nim, nomorLengkap, tanggalTerbitFormatted);
       });
       await Promise.all(promises);
     }
 
     tutupModalBatchNomor();
-    alert(`Berhasil! Nomor sertifikat (${kodeAwal} dst.) dan tanggal terbit (${tanggalTerbitFormatted}) telah diterapkan ke ${daftarTarget.length} mahasiswa Angkatan ${targetAngkatan}.`);
+    alert(`Berhasil! Nomor sertifikat (${kodeAwal} dst.) dan tanggal terbit (${tanggalTerbitFormatted}) telah disimpan ke database untuk ${daftarTarget.length} mahasiswa Angkatan ${targetAngkatan}.`);
   } catch (err) {
     alert("Gagal menyimpan pengaturan sertifikat massal: " + err.message);
   } finally {
@@ -1546,6 +1581,13 @@ async function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
   const tglTes = m.tanggal_tes || "04 May 2026";
   const prodiCantik = formatProgramStudySertifikat(m.program_studi);
 
+  // Otomatis simpan nomor & tanggal sertifikat ke database jika belum tercatat agar sinkron dengan halaman validasi
+  if (!m.nomor_sertifikat || !m.tanggal_tes) {
+    m.nomor_sertifikat = nomor;
+    m.tanggal_tes = tglTes;
+    simpanMetadataSertifikatKeDb(getDbClientRekapan(), m.nim, nomor, tglTes).catch(() => {});
+  }
+
   const sec1 = isSspect ? (m.sspect_listening ?? m.listening ?? "-") : (m.listening ?? "-");
   const sec2 = isSspect ? (m.sspect_structure ?? m.structure ?? "-") : (m.structure ?? "-");
   const sec3 = isSspect ? (m.sspect_reading ?? m.reading ?? "-") : (m.reading ?? "-");
@@ -1559,13 +1601,17 @@ async function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
   const bgGedungUrl = new URL("./img/sertif.jpg", window.location.href).href;
 
   const urlValidasi = new URL(
-    `./validasi-sertifikat.html?nim=${encodeURIComponent(m.nim)}&jenis=${encodeURIComponent(isSspect ? "SSPECT" : "TOEFL")}&sha=${encodeURIComponent(shaFull.substring(0, 16))}`,
+    `./validasi-sertifikat.html?nim=${encodeURIComponent(m.nim)}&jenis=${encodeURIComponent(isSspect ? "SSPECT" : "TOEFL")}&sha=${encodeURIComponent(shaFull.substring(0, 16))}&no=${encodeURIComponent(nomor)}&tgl=${encodeURIComponent(tglTes)}`,
     window.location.href
   ).href;
 
   let htmlTabelSkor = "";
   if (isSspect) {
     htmlTabelSkor = `
+      <!-- ========================================================================= -->
+      <!-- [PENANDA KHUSUS SERTIFIKAT SSPECT]                                         -->
+      <!-- Saat ini menampilkan 3 kolom: Listening, Reading, dan Total Score.        -->
+      <!-- ========================================================================= -->
       <table class="score-grid">
         <thead>
           <tr>
@@ -1582,9 +1628,11 @@ async function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
           </tr>
         </tbody>
       </table>
+      <!-- ================= [AKHIR PENANDA KHUSUS SERTIFIKAT SSPECT] ================ -->
     `;
   } else {
     htmlTabelSkor = `
+      <!-- TABEL NILAI TOEFL (4 KOLOM STANDAR) -->
       <table class="score-grid">
         <thead>
           <tr>
