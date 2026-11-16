@@ -176,20 +176,26 @@
       </div>
 
       <form onsubmit="prosesRegisterUser(event)" class="space-y-3.5">
-        <div>
-          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Nama Lengkap &amp; Gelar *</label>
-          <input type="text" id="regNama" required placeholder="Contoh: Lissa Anantha, S.Kom." class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-[#169C53] outline-none" />
-        </div>
-
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Username *</label>
             <input type="text" id="regUsername" required pattern="^[a-zA-Z0-9._]{4,24}$" title="4-24 karakter huruf, angka, titik, atau underscore" placeholder="contoh: lissa.admin" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-mono focus:border-[#169C53] outline-none" />
           </div>
           <div>
-            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Email Aktif / Gmail *</label>
-            <input type="email" id="regEmail" required placeholder="nama@gmail.com" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-[#169C53] outline-none" />
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Jabatan / Role *</label>
+            <div class="relative">
+              <select id="regRole" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 bg-white focus:border-[#169C53] outline-none appearance-none pr-9">
+                <option value="staff">Staff UPA Bahasa</option>
+                <option value="kepala">Kepala UPA Bahasa</option>
+              </select>
+              <i class="ri-arrow-down-s-line absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-lg"></i>
+            </div>
           </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Email Aktif / Gmail *</label>
+          <input type="email" id="regEmail" required placeholder="nama@gmail.com" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-[#169C53] outline-none" />
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -409,7 +415,7 @@
         username: userRecord.username,
         email: userRecord.email || "",
         avatar_url: userRecord.avatar_url || "",
-        role: userRecord.role || "admin",
+        role: userRecord.role || "staff",
         login_at: new Date().toISOString()
       };
       localStorage.setItem("upa_active_staff", JSON.stringify(aktifUser));
@@ -462,7 +468,7 @@
 
       tampilkanAlertLogin("sukses", `Memverifikasi akses akun Google <b>${emailGoogle}</b>...`);
 
-      // Cek apakah email Google terdaftar di tabel user_app (Whitelist Staf/Admin)
+      // Cek apakah email Google terdaftar di tabel user_app (Whitelist Staf/Kepala)
       const { data: daftarUser, error } = await window.supabaseClient
         .from("user_app")
         .select("*")
@@ -475,7 +481,7 @@
 
       let staffData = daftarUser && daftarUser.length > 0 ? daftarUser[0] : null;
 
-      // Jika belum ada di user_app, periksa apakah tabel user_app masih kosong (admin pertama)
+      // Jika tabel user_app masih kosong (pengguna pertama), otomatis daftarkan
       if (!staffData) {
         const { count } = await window.supabaseClient
           .from("user_app")
@@ -492,13 +498,13 @@
               password: "OAUTH_GOOGLE_USER",
               avatar_url: avatarGoogle,
               google_linked: true,
-              role: "superadmin"
+              role: "kepala"
             }])
             .select()
             .single();
           staffData = inserted;
         } else {
-          // Tolak akses jika email Google belum didaftarkan oleh staf UPA Bahasa
+          // Tolak akses jika email Google belum didaftarkan oleh staf/kepala UPA Bahasa
           await window.supabaseClient.auth.signOut();
           tampilkanAlertLogin(
             "error",
@@ -528,11 +534,11 @@
       }, 900);
     }
 
-    // 6. Registrasi Akun Baru (Password Terenkripsi SHA-256 + Integrasi Supabase Auth)
+    // 6. Registrasi Akun Baru (Username + Role Staff/Kepala + Email + SHA-256)
     async function prosesRegisterUser(e) {
       e.preventDefault();
-      const nama = document.getElementById("regNama").value.trim();
       const username = document.getElementById("regUsername").value.trim().toLowerCase();
+      const role = document.getElementById("regRole").value;
       const email = document.getElementById("regEmail").value.trim().toLowerCase();
       const pass = document.getElementById("regPassword").value;
       const konf = document.getElementById("regKonfirmasi").value;
@@ -567,27 +573,28 @@
 
         // Hash password dengan SHA-256 sebelum disimpan ke tabel user_app
         const hashedPassword = await hashPasswordSha256(pass);
+        const labelRole = role === "kepala" ? "Kepala UPA Bahasa" : "Staff UPA Bahasa";
 
         // Daftarkan juga ke Supabase Auth agar fitur Reset Password via Email otomatis aktif
         await window.supabaseClient.auth.signUp({
           email: email,
           password: pass,
-          options: { data: { full_name: nama, username: username } }
+          options: { data: { full_name: username, username: username, role: role } }
         }).catch(() => {});
 
         const { error } = await window.supabaseClient
           .from("user_app")
           .insert([{
-            nama: nama,
+            nama: username,
             username: username,
             email: email,
             password: hashedPassword,
-            role: "admin"
+            role: role
           }]);
 
         if (error) throw error;
 
-        alert(`Registrasi berhasil untuk ${nama} (@${username})! Silakan login menggunakan username/email atau akun Google Anda.`);
+        alert(`Registrasi berhasil untuk @${username} (${labelRole})! Silakan login menggunakan username/email atau akun Google Anda.`);
         tutupModalRegister();
         document.getElementById("loginUsername").value = username;
         document.getElementById("loginPassword").value = "";
