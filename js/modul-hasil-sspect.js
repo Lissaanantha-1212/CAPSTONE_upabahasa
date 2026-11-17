@@ -1,7 +1,7 @@
 /**
- * MODUL HASIL TEST SSPECT - UPA BAHASA POLNES (FULL VERSION UTUH + PRODI)
- * Menangani 1 file Excel SSPECT, auto-mapping peserta, bind NIM siswa susulan,
- * simpan permanen ke tabel HasilTes, dan auto-delete jadwal log setelah selesai.
+ * MODUL HASIL TEST SSPECT - UPA BAHASA POLNES (FULL VERSION UTUH + PRODI + SKOR x5 + REKAPAN MASTER)
+ * Menangani 1 file Excel SSPECT, auto-mapping peserta, skor dikali 5, bind NIM siswa susulan,
+ * simpan permanen ke tabel HasilTes & arsip_master_rekapan (slot sspect), dan auto-delete jadwal log setelah selesai.
  */
 
 let parsedSspectData = null;
@@ -200,45 +200,48 @@ async function jalankanSspectAutoMappingEngine(lab, sesi) {
   let idx = 1;
   globalSyncedSspectResults = [];
 
-  // MAPPING PESERTA UTAMA
+  // MAPPING PESERTA UTAMA (SKOR DIKALIKAN 5)
   dbPesertaList.forEach(p => {
     const matchedRow = excelRows.find(x => x.id_meja === p.id_meja) || { skor: 0 };
+    const skorKaliLima = (Number(matchedRow.skor) || 0) * 5;
 
     globalSyncedSspectResults.push({
       no: idx++,
       idJadwal: activeJadwal.id,
       nim: p.nim,
       nama: p.nama,
-      program_studi: p.program_studi || '-', // MENGAMBIL PRODI DARI DATABASE PESERTA UJIAN
+      program_studi: p.program_studi || '-',
       id_meja: p.id_meja,
       jenisTes: 'SSPECT',
-      sec1Listening: matchedRow.skor,
+      sec1Listening: skorKaliLima,
       sec2Structure: 0,
       sec3Reading: 0,
-      totalSkor: matchedRow.skor,
+      totalSkor: skorKaliLima,
       status: 'MAPPED',
       tanggalUjian: activeJadwal.tanggal,
       nama_kelas: p.nama_kelas
     });
   });
 
-  // MAPPING PESERTA SUSULAN
+  // MAPPING PESERTA SUSULAN (SKOR DIKALIKAN 5)
   const dbIdMejas = new Set(dbPesertaList.map(p => p.id_meja));
   const susulanRows = excelRows.filter(x => !dbIdMejas.has(x.id_meja));
 
   susulanRows.forEach(sus => {
+    const skorKaliLima = (Number(sus.skor) || 0) * 5;
+
     globalSyncedSspectResults.push({
       no: idx++,
       idJadwal: activeJadwal.id,
       nim: '',
       nama: '',
-      program_studi: '', // KOSONG SEMENTARA SEBELUM DI-BIND
+      program_studi: '',
       id_meja: sus.id_meja,
       jenisTes: 'SSPECT',
-      sec1Listening: sus.skor,
+      sec1Listening: skorKaliLima,
       sec2Structure: 0,
       sec3Reading: 0,
-      totalSkor: sus.skor,
+      totalSkor: skorKaliLima,
       status: 'UNMAPPED',
       tanggalUjian: activeJadwal.tanggal,
       nama_kelas: 'Susulan / Pindahan'
@@ -249,7 +252,7 @@ async function jalankanSspectAutoMappingEngine(lab, sesi) {
 
   const statusSync = document.getElementById('infoStatusSync');
   if (statusSync) {
-    statusSync.innerHTML = `<span class="text-polnes-main font-bold">Sinkronisasi SSPECT Berhasil!</span> ${dbPesertaList.length} peserta sesuai jadwal. <b class="text-rose-500">${susulanRows.length > 0 ? susulanRows.length + ' Siswa Susulan terdeteksi.' : 'Semua data pas dan valid.'}</b>`;
+    statusSync.innerHTML = `<span class="text-polnes-main font-bold">Sinkronisasi SSPECT Berhasil!</span> ${dbPesertaList.length} peserta sesuai jadwal (Skor otomatis dikali 5). <b class="text-rose-500">${susulanRows.length > 0 ? susulanRows.length + ' Siswa Susulan terdeteksi.' : 'Semua data pas dan valid.'}</b>`;
   }
 }
 
@@ -289,7 +292,7 @@ async function prosesBindNimSspect(idMeja) {
       rowTarget.nim = dbMhs[0].nim;
       rowTarget.nama = dbMhs[0].nama;
       rowTarget.nama_kelas = dbMhs[0].nama_kelas;
-      rowTarget.program_studi = dbMhs[0].program_studi || '-'; // BIND PRODI DARI DATABASE
+      rowTarget.program_studi = dbMhs[0].program_studi || '-';
       rowTarget.status = 'MAPPED';
       alert(`Berhasil Bind! Mahasiswa a.n ${rowTarget.nama}`);
     } else {
@@ -298,7 +301,7 @@ async function prosesBindNimSspect(idMeja) {
         rowTarget.nim = inputNIM;
         rowTarget.nama = inputManualNama.toUpperCase();
         rowTarget.nama_kelas = 'Susulan Manual';
-        rowTarget.program_studi = 'Input Manual'; // BIND MANUAL PRODI
+        rowTarget.program_studi = 'Input Manual';
         rowTarget.status = 'MAPPED';
         alert("Berhasil Bind dengan nama manual!");
       } else {
@@ -347,7 +350,6 @@ function renderTabelPratinjauSspect() {
       `;
     }
 
-    // KOLOM PROGRAM STUDI DITAMBAHKAN PADA TABEL SSPECT
     const prodiHtml = `<td class="px-4 py-3 text-[11px] font-semibold text-sky-700 uppercase">${item.program_studi}</td>`;
 
     return `
@@ -364,6 +366,20 @@ function renderTabelPratinjauSspect() {
   }).join('');
 }
 
+function deteksiJurusanDariProdiSspect(prodiStr) {
+  const p = String(prodiStr || "").toUpperCase();
+  if (p.includes("MESIN") || p.includes("ALAT BERAT")) return "TEKNIK MESIN";
+  if (p.includes("INFORMATIKA") || p.includes("KOMPUTER") || p.includes("MULTIMEDIA")) return "TEKNOLOGI INFORMASI";
+  if (p.includes("AKUNTANSI") || p.includes("KEUANGAN")) return "AKUNTANSI";
+  if (p.includes("ADMINISTRASI") || p.includes("PERJALANAN") || p.includes("PEMASARAN")) return "ADMINISTRASI BISNIS";
+  if (p.includes("ELEKTRO") || p.includes("LISTRIK")) return "TEKNIK ELEKTRO";
+  if (p.includes("SIPIL") || p.includes("JALAN") || p.includes("JEMBATAN")) return "TEKNIK SIPIL";
+  if (p.includes("KIMIA") || p.includes("PETRO")) return "TEKNIK KIMIA";
+  if (p.includes("MARITIM") || p.includes("NAUTIKA") || p.includes("TEKNIKA")) return "KEMARITIMAN";
+  if (p.includes("DESAIN") || p.includes("ARSITEK")) return "DESAIN";
+  return "TEKNOLOGI INFORMASI";
+}
+
 async function simpanPermanenSspectKeDatabase() {
   if (!globalSyncedSspectResults || globalSyncedSspectResults.length === 0) {
     alert("Belum ada data nilai SSPECT yang tersinkronisasi.");
@@ -376,12 +392,12 @@ async function simpanPermanenSspectKeDatabase() {
     return;
   }
 
-  if (!confirm('Yakin ingin menyimpan data hasil test SSPECT ini secara permanen ke database tabel HasilTes? Histori jadwal sesi ini juga akan dibersihkan otomatis.')) return;
+  if (!confirm('Yakin ingin menyimpan data hasil test SSPECT ini secara permanen ke database & Rekapan Master (SSPECT)? Histori jadwal sesi ini juga akan dibersihkan otomatis.')) return;
 
   try {
     const activeIdJadwal = globalSyncedSspectResults[0].idJadwal;
 
-    // 1. Simpan payload ke tabel "HasilTes" (DITAMBAH PRODI)
+    // 1. Simpan payload ke tabel "HasilTes"
     const payload = globalSyncedSspectResults.map(item => ({
       idJadwal: item.idJadwal,
       nim: item.nim,
@@ -390,7 +406,7 @@ async function simpanPermanenSspectKeDatabase() {
       sec2Structure: 0,
       sec3Reading: 0,
       totalSkor: item.totalSkor,
-      program_studi: item.program_studi // PAYLOAD PROGRAM STUDI
+      program_studi: item.program_studi
     }));
 
     const { error: insertErr } = await window.supabaseClient
@@ -399,13 +415,113 @@ async function simpanPermanenSspectKeDatabase() {
 
     if (insertErr) throw insertErr;
 
-    // 2. Hapus data peserta ujian terkait jadwal ini agar bersih
+    // 2. Simpan & gabungkan nilai SSPECT (hasil kali 5) ke tabel "arsip_master_rekapan" agar muncul di halaman Rekapan
+    const nimList = globalSyncedSspectResults.map(item => String(item.nim).trim());
+    const { data: existingAll, error: errFetch } = await window.supabaseClient
+      .from('arsip_master_rekapan')
+      .select('*')
+      .in('nim', nimList);
+
+    if (errFetch) throw errFetch;
+
+    const rowsToInsert = [];
+    const duplicateIdsToDelete = [];
+
+    for (const item of globalSyncedSspectResults) {
+      const nimClean = String(item.nim).trim();
+      const matchedRows = (existingAll || []).filter(r => String(r.nim || "").trim() === nimClean);
+
+      const mergedRiwayat = {
+        sspect: '-',
+        latihanD3: '-',
+        latihanD4: '-',
+        toeflD3: '-',
+        toeflD4: '-',
+        remedial1: '-',
+        remedial2: '-',
+        remedial3: '-'
+      };
+
+      if (matchedRows.length > 0) {
+        for (const oldRow of matchedRows) {
+          if (oldRow.riwayat_json) {
+            try {
+              const parsedOld = typeof oldRow.riwayat_json === 'string'
+                ? JSON.parse(oldRow.riwayat_json)
+                : oldRow.riwayat_json;
+
+              for (const k of Object.keys(mergedRiwayat)) {
+                if (parsedOld[k] !== undefined && parsedOld[k] !== null && String(parsedOld[k]).trim() !== '' && String(parsedOld[k]).trim() !== '-') {
+                  mergedRiwayat[k] = parsedOld[k];
+                }
+              }
+            } catch (_) {}
+          }
+        }
+
+        // Masukkan nilai SSPECT (hasil kali 5) ke slot sspect
+        mergedRiwayat.sspect = item.totalSkor;
+
+        const primaryRow = matchedRows[0];
+        const { error: errUpdate } = await window.supabaseClient
+          .from('arsip_master_rekapan')
+          .update({
+            nama: primaryRow.nama || item.nama,
+            prodi: primaryRow.prodi || item.program_studi,
+            jurusan: primaryRow.jurusan || deteksiJurusanDariProdiSspect(item.program_studi),
+            kategori_tes: 'SSPECT',
+            skor_total: String(item.totalSkor),
+            riwayat_json: JSON.stringify(mergedRiwayat)
+          })
+          .eq('id', primaryRow.id);
+
+        if (errUpdate) throw errUpdate;
+
+        if (matchedRows.length > 1) {
+          for (let d = 1; d < matchedRows.length; d++) {
+            if (matchedRows[d].id !== undefined && matchedRows[d].id !== null) {
+              duplicateIdsToDelete.push(matchedRows[d].id);
+            }
+          }
+        }
+      } else {
+        mergedRiwayat.sspect = item.totalSkor;
+        const angkatan = /^\d{2}/.test(nimClean) ? `20${nimClean.substring(0, 2)}` : "2024";
+
+        rowsToInsert.push({
+          nim: nimClean,
+          nama: item.nama,
+          jurusan: deteksiJurusanDariProdiSspect(item.program_studi),
+          prodi: item.program_studi,
+          tahun_angkatan: angkatan,
+          kategori_tes: 'SSPECT',
+          skor_total: String(item.totalSkor),
+          riwayat_json: JSON.stringify(mergedRiwayat)
+        });
+      }
+    }
+
+    if (rowsToInsert.length > 0) {
+      const { error: errInsertRekapan } = await window.supabaseClient
+        .from('arsip_master_rekapan')
+        .insert(rowsToInsert);
+      if (errInsertRekapan) throw errInsertRekapan;
+    }
+
+    if (duplicateIdsToDelete.length > 0) {
+      await window.supabaseClient
+        .from('arsip_master_rekapan')
+        .delete()
+        .in('id', duplicateIdsToDelete);
+    }
+
+    // 3. Hapus data peserta ujian terkait jadwal ini agar bersih
     await window.supabaseClient
       .from('peserta_ujian')
       .delete()
       .eq('jadwal_id', activeIdJadwal);
 
-    // 3. Hapus data histori jadwal log agar bersih otomatis dari daftar sesi
+    // 4. Hapus data histori jadwal log agar bersih otomatis dari daftar sesi
     const { error: deleteJadwalErr } = await window.supabaseClient
       .from('jadwal_log')
       .delete()
@@ -413,7 +529,7 @@ async function simpanPermanenSspectKeDatabase() {
 
     if (deleteJadwalErr) throw deleteJadwalErr;
 
-    alert("Berhasil! Data nilai SSPECT tersimpan permanen ke HasilTes dan histori jadwal sesi ini telah dibersihkan otomatis.");
+    alert("Berhasil! Data nilai SSPECT (skor × 5) tersimpan permanen ke HasilTes & Rekapan Master, dan histori jadwal sesi ini telah dibersihkan otomatis.");
     window.location.reload();
 
   } catch (err) {
