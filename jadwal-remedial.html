@@ -395,5 +395,13 @@
   <script src="./js/supabase-config.js"></script>
   <script src="./js/modul-remedial.js"></script>
   <script src="./js/admin-profil-global.js"></script>
+
+  <!-- PENGAMAN LINK SUBMENU HASIL TEST -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      document.querySelectorAll('a[href="hasil-toefl.html"]').forEach(a => a.setAttribute("href", "toefl.html"));
+      document.querySelectorAll('a[href="hasil-sspect.html"]').forEach(a => a.setAttribute("href", "sspect.html"));
+    });
+  </script>
 </body>
 </html>
