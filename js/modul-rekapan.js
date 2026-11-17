@@ -26,7 +26,7 @@ const DAFTAR_JURUSAN_PRODI_POLNES = [
   {
     jurusan: "AKUNTANSI",
     prodi: [
-      { nama: "D3 - AKUNTANSI", kataKunci: ["D3 - AKUNTANSI", "D3 AKUNTANSI"] },
+      { nama: "D3 - AKUNTANSI", kataKunci: ["D3 - AKUNTANSI", "D3 AKUNTANSI", "D3- AKUNTANSI"] },
       { nama: "D4 - AKUNTANSI MANAJERIAL", kataKunci: ["AKUNTANSI MANAJERIAL"] },
       { nama: "D4 - KEUANGAN PERBANKAN", kataKunci: ["KEUANGAN PERBANKAN", "KEUANGAN DAN PERBANKAN"] }
     ]
@@ -50,7 +50,7 @@ const DAFTAR_JURUSAN_PRODI_POLNES = [
   {
     jurusan: "PARIWISATA",
     prodi: [
-      { nama: "D3 - PARIWISATA", kataKunci: ["D3 - PARIWISATA", "D3 PARIWISATA"] },
+      { nama: "D3 - PARIWISATA", kataKunci: ["D3 - PARIWISATA", "D3 PARIWISATA", "D3- PARIWISATA"] },
       { nama: "D4 - USAHA PERJALANAN WISATA", kataKunci: ["USAHA PERJALANAN WISATA", "UPW"] },
       { nama: "D4 - PENGELOLAAN PERHOTELAN", kataKunci: ["PERHOTELAN"] }
     ]
@@ -58,9 +58,9 @@ const DAFTAR_JURUSAN_PRODI_POLNES = [
   {
     jurusan: "TEKNOLOGI INFORMASI",
     prodi: [
-      { nama: "D3 - TEKNIK INFORMATIKA", kataKunci: ["D3 - TEKNIK INFORMATIKA", "D3 TEKNIK INFORMATIKA"] },
-      { nama: "D3 - TEKNIK KOMPUTER", kataKunci: ["D3 - TEKNIK KOMPUTER", "D3 TEKNIK KOMPUTER"] },
       { nama: "D4 - TEKNIK INFORMATIKA MULTIMEDIA", kataKunci: ["INFORMATIKA MULTIMEDIA", "TIM"] },
+      { nama: "D3 - TEKNIK INFORMATIKA", kataKunci: ["D3 - TEKNIK INFORMATIKA", "D3 TEKNIK INFORMATIKA", "D3- TEKNIK INFORMATIKA"] },
+      { nama: "D3 - TEKNIK KOMPUTER", kataKunci: ["D3 - TEKNIK KOMPUTER", "D3 TEKNIK KOMPUTER", "D3- TEKNIK KOMPUTER"] },
       { nama: "D4 - TEKNOLOGI REKAYASA KOMPUTER", kataKunci: ["TEKNOLOGI REKAYASA KOMPUTER", "TRK"] }
     ]
   },
@@ -81,7 +81,7 @@ const DAFTAR_JURUSAN_PRODI_POLNES = [
   {
     jurusan: "TEKNIK SIPIL",
     prodi: [
-      { nama: "D4 - TEKNOLOGI REKAYASA KONSTRUKSI BANGUNAN GEDUNG", kataKunci: ["REKAYASA KONSTRUKSI BANGUNAN GEDUNG", "TRKBG"] },
+      { nama: "D4 - TEKNOLOGI REKAYASA KONSTRUKSI BANGUNAN GEDUNG", kataKunci: ["REKAYASA KONSTRUKSI BANGUNAN GEDUNG", "KONSTRUKSI BANGUNAN GEDUNG", "TRKBG"] },
       { nama: "D4 - REKAYASA JALAN DAN JEMBATAN", kataKunci: ["REKAYASA JALAN DAN JEMBATAN", "JALAN DAN JEMBATAN"] },
       { nama: "D4 - REKAYASA KONSTRUKSI BANGUNAN AIR", kataKunci: ["REKAYASA KONSTRUKSI BANGUNAN AIR", "BANGUNAN AIR"] },
       { nama: "D3 - TEKNIK SIPIL", kataKunci: ["TEKNIK SIPIL"] }
@@ -90,7 +90,7 @@ const DAFTAR_JURUSAN_PRODI_POLNES = [
   {
     jurusan: "TEKNIK MESIN",
     prodi: [
-      { nama: "D3 - PERAWATAN DAN PERBAIKAN MESIN", kataKunci: ["PERAWATAN DAN PERBAIKAN MESIN"] },
+      { nama: "D3 - PERAWATAN DAN PERBAIKAN MESIN", kataKunci: ["PERAWATAN DAN PERBAIKAN MESIN", "PERAWATAN DAN PERBAIKAN"] },
       { nama: "D3 - TEKNIK ALAT BERAT", kataKunci: ["TEKNIK ALAT BERAT", "ALAT BERAT"] },
       { nama: "D4 - TEKNIK MESIN PRODUKSI DAN PERAWATAN", kataKunci: ["TEKNIK MESIN PRODUKSI", "PRODUKSI DAN PERAWATAN"] }
     ]
@@ -98,8 +98,8 @@ const DAFTAR_JURUSAN_PRODI_POLNES = [
   {
     jurusan: "TEKNIK ELEKTRO",
     prodi: [
-      { nama: "D3 - TEKNIK LISTRIK", kataKunci: ["D3 - TEKNIK LISTRIK", "D3 TEKNIK LISTRIK", "D3 - TEKNIK ELEKTRO", "D3 TEKNIK ELEKTRO"] },
-      { nama: "D4 - TEKNIK LISTRIK", kataKunci: ["D4 - TEKNIK LISTRIK", "D4 TEKNIK LISTRIK", "D4 - TEKNI LISTRIK", "D4 - TEKNIK ELEKTRO"] }
+      { nama: "D3 - TEKNIK LISTRIK", kataKunci: ["D3 - TEKNIK LISTRIK", "D3 TEKNIK LISTRIK", "D3- TEKNIK LISTRIK", "D3 - TEKNIK ELEKTRO", "D3 TEKNIK ELEKTRO"] },
+      { nama: "D4 - TEKNIK LISTRIK", kataKunci: ["D4 - TEKNIK LISTRIK", "D4 TEKNIK LISTRIK", "D4- TEKNIK LISTRIK", "D4 - TEKNI LISTRIK", "D4 - TEKNIK ELEKTRO"] }
     ]
   }
 ];
@@ -120,15 +120,23 @@ const KOLOM_SKOR_INTEGER = new Set([
   "sspect_reading"
 ]);
 
-function deteksiJurusanDariProdiSensitif(prodiRaw, jurusanFallback = "-") {
-  const teks = String(prodiRaw || "")
+function normalisasiTeksProdi(raw) {
+  return String(raw || "")
     .trim()
     .toUpperCase()
     .replace(/[–—−]/g, "-")
+    .replace(/\bDII\b/g, "D3")
+    .replace(/\bDIII\b/g, "D3")
+    .replace(/\bDIV\b/g, "D4")
     .replace(/\s*-\s*/g, " - ")
-    .replace(/\s+/g, " ");
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
-  if (!teks || teks === "-") {
+function deteksiJurusanDariProdiSensitif(prodiRaw, jurusanFallback = "-") {
+  const teks = normalisasiTeksProdi(prodiRaw);
+
+  if (!teks || teks === "-" || teks === "NULL" || teks === "UNDEFINED") {
     return {
       jurusan: String(jurusanFallback || "-").toUpperCase(),
       prodi: "-",
@@ -136,10 +144,12 @@ function deteksiJurusanDariProdiSensitif(prodiRaw, jurusanFallback = "-") {
     };
   }
 
+  // 1. Pencocokan kata kunci spesifik (termasuk jenjang D3/D4 agar Teknik Listrik D3 vs D4 akurat)
   for (const kelompok of DAFTAR_JURUSAN_PRODI_POLNES) {
     for (const item of kelompok.prodi) {
       for (const kw of item.kataKunci) {
-        if (teks.includes(kw)) {
+        const kwNorm = normalisasiTeksProdi(kw);
+        if (teks.includes(kwNorm)) {
           const jenjang = item.nama.startsWith("D4") || teks.includes("D4") ? "D4" : "D3";
           return {
             jurusan: kelompok.jurusan,
@@ -151,22 +161,41 @@ function deteksiJurusanDariProdiSensitif(prodiRaw, jurusanFallback = "-") {
     }
   }
 
+  // 2. Pencocokan nama inti prodi tanpa prefix D3/D4 (jika jenjang ditulis terpisah atau terpotong)
   for (const kelompok of DAFTAR_JURUSAN_PRODI_POLNES) {
     for (const item of kelompok.prodi) {
       const namaTanpaJenjang = item.nama.replace(/^D[34]\s*-\s*/, "");
       if (teks.includes(namaTanpaJenjang)) {
-        const jenjang = item.nama.startsWith("D4") || teks.includes("D4") ? "D4" : "D3";
+        const isD4 = teks.includes("D4") || item.nama.startsWith("D4");
+        const prodiFinal = isD4
+          ? item.nama.replace(/^D3\s*-/, "D4 -")
+          : item.nama;
         return {
           jurusan: kelompok.jurusan,
-          prodi: item.nama,
-          jenjang
+          prodi: prodiFinal,
+          jenjang: isD4 ? "D4" : "D3"
         };
       }
     }
   }
 
+  // 3. Fallback kata kunci jurusan umum jika prodi ditulis disingkat
+  let jurusanTerdeteksi = String(jurusanFallback || "-").toUpperCase();
+  if (jurusanTerdeteksi === "-" || !jurusanTerdeteksi) {
+    if (teks.includes("AKUNTANSI") || teks.includes("KEUANGAN")) jurusanTerdeteksi = "AKUNTANSI";
+    else if (teks.includes("PEMASARAN") || teks.includes("BISNIS")) jurusanTerdeteksi = "ADMINISTRASI BISNIS";
+    else if (teks.includes("NAUTIKA") || teks.includes("TEKNIKA") || teks.includes("PELAYARAN") || teks.includes("KPNK")) jurusanTerdeteksi = "KEMARITIMAN";
+    else if (teks.includes("PARIWISATA") || teks.includes("WISATA") || teks.includes("HOTEL")) jurusanTerdeteksi = "PARIWISATA";
+    else if (teks.includes("INFORMATIKA") || teks.includes("KOMPUTER") || teks.includes("MULTIMEDIA")) jurusanTerdeteksi = "TEKNOLOGI INFORMASI";
+    else if (teks.includes("DESAIN") || teks.includes("ARSITEKTUR")) jurusanTerdeteksi = "DESAIN";
+    else if (teks.includes("KIMIA") || teks.includes("PETRO")) jurusanTerdeteksi = "TEKNIK KIMIA";
+    else if (teks.includes("SIPIL") || teks.includes("JALAN") || teks.includes("KONSTRUKSI")) jurusanTerdeteksi = "TEKNIK SIPIL";
+    else if (teks.includes("MESIN") || teks.includes("ALAT BERAT")) jurusanTerdeteksi = "TEKNIK MESIN";
+    else if (teks.includes("LISTRIK") || teks.includes("ELEKTRO")) jurusanTerdeteksi = "TEKNIK ELEKTRO";
+  }
+
   return {
-    jurusan: String(jurusanFallback || "-").toUpperCase(),
+    jurusan: jurusanTerdeteksi,
     prodi: teks,
     jenjang: teks.includes("D4") ? "D4" : "D3"
   };
@@ -534,8 +563,8 @@ async function sinkronkanDatabaseRekapan(tampilkanNotif = false) {
       const prodiRaw = ambilNilaiKolom(mhs, ["program_studi", "prodi", "kelas"], "-");
       if (prodiRaw !== "-") {
         const infoProdi = deteksiJurusanDariProdiSensitif(prodiRaw, rec.jurusan);
-        rec.program_studi = infoProdi.prodi;
-        rec.jurusan = infoProdi.jurusan;
+        if (rec.program_studi === "-" || !rec.program_studi) rec.program_studi = infoProdi.prodi;
+        if (rec.jurusan === "-" || !rec.jurusan) rec.jurusan = infoProdi.jurusan;
         rec.jenjang = infoProdi.jenjang;
       }
       rec.tempat_tanggal_lahir = ambilNilaiKolom(mhs, ["tempat_tanggal_lahir", "tempat_tgl_lahir", "ttl"], rec.tempat_tanggal_lahir);
@@ -557,8 +586,8 @@ async function sinkronkanDatabaseRekapan(tampilkanNotif = false) {
       const prodiRaw = ambilNilaiKolom(item, ["program_studi", "prodi", "kelas"], "-");
       if (prodiRaw !== "-") {
         const infoProdi = deteksiJurusanDariProdiSensitif(prodiRaw, rec.jurusan);
-        rec.program_studi = infoProdi.prodi;
-        rec.jurusan = infoProdi.jurusan;
+        if (rec.program_studi === "-" || !rec.program_studi) rec.program_studi = infoProdi.prodi;
+        if (rec.jurusan === "-" || !rec.jurusan) rec.jurusan = infoProdi.jurusan;
         rec.jenjang = infoProdi.jenjang;
       }
 
@@ -730,6 +759,29 @@ function parseSkorBulatExcel(valRaw) {
   return !isNaN(angka) && angka > 0 ? Math.round(angka) : null;
 }
 
+function deteksiJudulBlokProdiExcel(selNonKosong) {
+  if (!Array.isArray(selNonKosong) || selNonKosong.length === 0) return null;
+
+  for (const rawCell of selNonKosong) {
+    const cellNorm = normalisasiTeksProdi(rawCell);
+    if (!cellNorm || cellNorm.length < 4) continue;
+
+    // Abaikan baris header tabel atau baris data NIM
+    if (cellNorm === "NIM" || cellNorm === "NAMA" || cellNorm === "NO" || /^\d{6,15}$/.test(cellNorm)) {
+      continue;
+    }
+
+    // Jika diawali D3 - / D4 - atau cocok langsung dengan salah satu prodi/jurusan di kamus POLNES
+    const diawaliJenjang = /^D[234]\s*-/.test(cellNorm);
+    const hasilDeteksi = deteksiJurusanDariProdiSensitif(cellNorm, "-");
+
+    if (diawaliJenjang || hasilDeteksi.jurusan !== "-") {
+      return hasilDeteksi.prodi !== "-" ? hasilDeteksi.prodi : cellNorm;
+    }
+  }
+  return null;
+}
+
 function ekstrakSemuaBarisMahasiswaDariWorkbook(workbook) {
   const hasilEkstraksi = [];
   let totalBarisNonData = 0;
@@ -743,11 +795,11 @@ function ekstrakSemuaBarisMahasiswaDariWorkbook(workbook) {
     const ws = workbook.Sheets[sheetName];
     const matrix = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
 
-    let prodiAktifBlok = sheetName.toUpperCase().includes("D4")
-      ? "D4 - PROGRAM STUDI"
-      : sheetName.toUpperCase().includes("D3")
-        ? "D3 - PROGRAM STUDI"
-        : "-";
+    // Cek apakah nama sheet itu sendiri memuat nama prodi/jenjang
+    const deteksiSheet = deteksiJurusanDariProdiSensitif(sheetName, "-");
+    let prodiAktifBlok = deteksiSheet.jurusan !== "-"
+      ? deteksiSheet.prodi
+      : "-";
 
     let colIdx = { nama: -1, nim: -1, sec1: -1, sec2: -1, sec3: -1, total: -1, prodi: -1, jurusan: -1, angkatan: -1, ttl: -1 };
     let headerSudahDitemukan = false;
@@ -760,30 +812,25 @@ function ekstrakSemuaBarisMahasiswaDariWorkbook(workbook) {
       }
 
       const barisUpper = baris.map(c => String(c || "").trim().toUpperCase());
-      const teksGabunganBaris = barisUpper.filter(Boolean).join(" ");
-
-      if (!teksGabunganBaris) {
-        totalBarisNonData++;
-        continue;
-      }
-
       const selNonKosong = barisUpper.filter(Boolean);
-      if (
-        selNonKosong.length <= 2 &&
-        (
-          /^(D[234]|DII|DIII|DIV)\s*[-–—]/.test(selNonKosong[0]) ||
-          DAFTAR_JURUSAN_PRODI_POLNES.some(j =>
-            j.prodi.some(p => p.kataKunci.some(kw => selNonKosong[0].includes(kw)))
-          )
-        )
-      ) {
-        prodiAktifBlok = selNonKosong[0].replace(/^DII\s*[-–—]/, "D3 -").replace(/^DIII\s*[-–—]/, "D3 -").replace(/^DIV\s*[-–—]/, "D4 -");
+
+      if (selNonKosong.length === 0) {
         totalBarisNonData++;
         continue;
       }
 
       const idxNimHeader = barisUpper.findIndex(c => c === "NIM" || c === "NO INDUK" || c === "NO. INDUK" || c === "NPM");
       const idxNamaHeader = barisUpper.findIndex(c => c === "NAMA" || c === "NAMA MAHASISWA" || c === "NAMA LENGKAP" || c === "FULL NAME");
+
+      // Deteksi baris judul prodi di atas tabel (misal: "D3- Akuntansi", "D3- KPNK", "D3- Perawatan dan Perbaikan Mesin")
+      if (idxNimHeader === -1 && idxNamaHeader === -1 && selNonKosong.length <= 3) {
+        const judulProdi = deteksiJudulBlokProdiExcel(selNonKosong);
+        if (judulProdi) {
+          prodiAktifBlok = judulProdi;
+          totalBarisNonData++;
+          continue;
+        }
+      }
 
       if (idxNimHeader !== -1 && idxNamaHeader !== -1) {
         terdeteksiFormatBlokUpa = true;
@@ -827,16 +874,17 @@ function ekstrakSemuaBarisMahasiswaDariWorkbook(workbook) {
           continue;
         }
 
-        const prodiBaris = colIdx.prodi !== -1 && baris[colIdx.prodi] ? String(baris[colIdx.prodi]).trim() : prodiAktifBlok;
-        const jurusanBaris = colIdx.jurusan !== -1 && baris[colIdx.jurusan] ? String(baris[colIdx.jurusan]).trim() : "-";
+        const prodiBarisRaw = colIdx.prodi !== -1 && baris[colIdx.prodi] ? String(baris[colIdx.prodi]).trim() : prodiAktifBlok;
+        const jurusanBarisRaw = colIdx.jurusan !== -1 && baris[colIdx.jurusan] ? String(baris[colIdx.jurusan]).trim() : "-";
+        const infoProdi = deteksiJurusanDariProdiSensitif(prodiBarisRaw, jurusanBarisRaw);
         const angkatanBaris = colIdx.angkatan !== -1 && baris[colIdx.angkatan] ? baris[colIdx.angkatan] : "";
         const ttlBaris = colIdx.ttl !== -1 && baris[colIdx.ttl] ? String(baris[colIdx.ttl]).trim() : "";
 
         hasilEkstraksi.push({
           NIM: nimVal,
           NAMA: namaVal,
-          "PROGRAM STUDI": prodiBaris,
-          JURUSAN: jurusanBaris,
+          "PROGRAM STUDI": infoProdi.prodi,
+          JURUSAN: infoProdi.jurusan,
           ANGKATAN: angkatanBaris,
           TTL: ttlBaris,
           "SECTION 1": baris[colIdx.sec1] ?? "",
@@ -930,6 +978,10 @@ async function prosesImportArsipCerdas() {
         existingDb = mapDbByNamaAngkatan.get(keyNama) || null;
       }
 
+      const prodiRaw = cariKolomBarisExcel(row, ["PROGRAM STUDI", "PROGRAM_STUDI", "PRODI", "KELAS"]) || "-";
+      const jurusanRaw = cariKolomBarisExcel(row, ["JURUSAN"]) || "-";
+      const infoProdi = deteksiJurusanDariProdiSensitif(prodiRaw, jurusanRaw);
+
       const skorUtamaRaw = cariKolomBarisExcel(row, [
         "TOTAL", "TOTAL_SCORE", "TOTAL SCORE", "SKOR TOTAL", "SKOR AKHIR", "SKOR", "SCORE", "NILAI",
         "SSPECT", "LATIHAN", "TOEFL", "REMEDIAL 1", "REMEDIAL 2", "REMEDIAL 3", "REMEDIAL"
@@ -995,7 +1047,20 @@ async function prosesImportArsipCerdas() {
       if (existingDb) {
         const patch = mapPatchDbExisting.get(existingDb.nim) || { nim: existingDb.nim };
         const adaSkor = terapkanSkorKeObjek(patch);
-        if (adaSkor) {
+
+        // Lengkapi prodi & jurusan dari file Excel jika tersedia atau jika di DB sebelumnya masih kosong/'-'
+        let adaPerbaikanProdi = false;
+        if (infoProdi.prodi !== "-" && (existingDb.program_studi === "-" || !existingDb.program_studi || existingDb.program_studi !== infoProdi.prodi)) {
+          patch.prodi = infoProdi.prodi;
+          patch.program_studi = infoProdi.prodi;
+          adaPerbaikanProdi = true;
+        }
+        if (infoProdi.jurusan !== "-" && (existingDb.jurusan === "-" || !existingDb.jurusan || existingDb.jurusan !== infoProdi.jurusan)) {
+          patch.jurusan = infoProdi.jurusan;
+          adaPerbaikanProdi = true;
+        }
+
+        if (adaSkor || adaPerbaikanProdi) {
           mapPatchDbExisting.set(existingDb.nim, patch);
         } else {
           jmlDilewati++;
@@ -1006,9 +1071,6 @@ async function prosesImportArsipCerdas() {
           return;
         }
 
-        const prodiRaw = cariKolomBarisExcel(row, ["PROGRAM STUDI", "PROGRAM_STUDI", "PRODI", "KELAS"]) || "-";
-        const jurusanRaw = cariKolomBarisExcel(row, ["JURUSAN"]) || "-";
-        const infoProdi = deteksiJurusanDariProdiSensitif(prodiRaw, jurusanRaw);
         const namaFinal = namaRaw || "-";
 
         const recBaru = mapInsertBaru.get(nimRaw) || {
@@ -1063,7 +1125,7 @@ async function prosesImportArsipCerdas() {
 
     alert(
       `Import Kategori ${kategoriImport} (Angkatan: ${daftarAngkatanStr}) Selesai!\n` +
-      `• Skor digabung ke data mahasiswa lama: ${daftarUpdateExisting.length} mahasiswa (tanpa duplikat)\n` +
+      `• Skor & prodi digabung ke data mahasiswa lama: ${daftarUpdateExisting.length} mahasiswa (tanpa duplikat)\n` +
       `• Data mahasiswa baru diterima: ${daftarInsertBaru.length} mahasiswa\n` +
       `• Baris kosong/tanpa skor dilewati: ${jmlDilewati}`
     );
