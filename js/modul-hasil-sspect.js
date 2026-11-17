@@ -32,20 +32,37 @@ function resetSspectFileInput() {
 }
 
 function parseFileInfoSspect(filename) {
-  const dateMatch = filename.match(/(\d{2}-\d{2}-\d{4})/);
-  const timeMatch = filename.match(/(\d{2}-\d{2}-\d{2})(?=\.\w+$)/);
-
-  let dateStr = dateMatch ? dateMatch[0] : null;
-  let timeStr = timeMatch ? timeMatch[0] : null;
-
-  let hour = null;
-  if (timeStr) hour = parseInt(timeStr.split('-')[0]);
-
+  let dateStr = null;
   let dbDate = null;
-  if (dateStr) {
+
+  // 1. Cek pola YYYY-DD-MM atau YYYY-MM-DD (contoh: 2026-18-11 atau 2026-11-18)
+  const ymdMatch = filename.match(/(\d{4})-(\d{2})-(\d{2})/);
+  // 2. Cek pola DD-MM-YYYY (contoh: 18-11-2026)
+  const dmyMatch = filename.match(/(\d{2})-(\d{2})-(\d{4})/);
+
+  if (ymdMatch) {
+    dateStr = ymdMatch[0];
+    const year = ymdMatch[1];
+    const part2 = parseInt(ymdMatch[2], 10);
+    const part3 = parseInt(ymdMatch[3], 10);
+
+    // Jika angka tengah > 12 (misal 2026-18-11), berarti formatnya YYYY-DD-MM -> konversi ke YYYY-MM-DD
+    if (part2 > 12 && part3 <= 12) {
+      dbDate = `${year}-${String(part3).padStart(2, '0')}-${String(part2).padStart(2, '0')}`;
+    } else {
+      dbDate = `${year}-${String(part2).padStart(2, '0')}-${String(part3).padStart(2, '0')}`;
+    }
+  } else if (dmyMatch) {
+    dateStr = dmyMatch[0];
     const parts = dateStr.split('-');
     dbDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
   }
+
+  const timeMatch = filename.match(/(\d{2}-\d{2}-\d{2})(?=\.\w+$)/);
+  let timeStr = timeMatch ? timeMatch[0] : null;
+
+  let hour = null;
+  if (timeStr) hour = parseInt(timeStr.split('-')[0], 10);
 
   return { dateStr, dbDate, timeStr, hour };
 }
@@ -83,6 +100,29 @@ async function handleFileSspectUpload(event) {
       const workbook = XLSX.read(data, { type: 'array' });
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
       const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
+
+      // Cadangan: jika tanggal tidak ada di nama file, baca dari stempel tanggal di isi Excel
+      if (!fileInfo.dbDate) {
+        for (let r = 0; r < Math.min(5, rows.length); r++) {
+          for (let c = 0; c < (rows[r] || []).length; c++) {
+            const cellStr = String(rows[r][c] || "").trim();
+            const mYmd = cellStr.match(/(\d{4})[\/\-](\d{2})[\/\-](\d{2})/);
+            const mDmy = cellStr.match(/(\d{2})[\/\-](\d{2})[\/\-](\d{4})/);
+            if (mYmd) {
+              const p2 = parseInt(mYmd[2], 10);
+              const p3 = parseInt(mYmd[3], 10);
+              fileInfo.dbDate = (p2 > 12 && p3 <= 12)
+                ? `${mYmd[1]}-${String(p3).padStart(2, '0')}-${String(p2).padStart(2, '0')}`
+                : `${mYmd[1]}-${String(p2).padStart(2, '0')}-${String(p3).padStart(2, '0')}`;
+              break;
+            } else if (mDmy) {
+              fileInfo.dbDate = `${mDmy[3]}-${mDmy[2]}-${mDmy[1]}`;
+              break;
+            }
+          }
+          if (fileInfo.dbDate) break;
+        }
+      }
 
       const parsedRows = parseExcelNilaiSspect(rows);
       parsedSspectData = { file: file, rows: parsedRows, name: file.name, info: fileInfo };
