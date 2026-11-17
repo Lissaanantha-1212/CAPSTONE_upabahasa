@@ -26,7 +26,7 @@ const DAFTAR_JURUSAN_PRODI_POLNES = [
   {
     jurusan: "AKUNTANSI",
     prodi: [
-      { nama: "D3 - AKUNTANSI", kataKunci: ["D3 - AKUNTANSI", "D3 AKUNTANSI", "D3- AKUNTANSI"] },
+      { nama: "D3 - AKUNTANSI", kataKunci: ["D3 - AKUNTANSI", "D3 AKUNTANSI", "D3- AKUNTANSI", "PRODI AKUNTANSI"] },
       { nama: "D4 - AKUNTANSI MANAJERIAL", kataKunci: ["AKUNTANSI MANAJERIAL"] },
       { nama: "D4 - KEUANGAN PERBANKAN", kataKunci: ["KEUANGAN PERBANKAN", "KEUANGAN DAN PERBANKAN"] }
     ]
@@ -125,9 +125,11 @@ function normalisasiTeksProdi(raw) {
     .trim()
     .toUpperCase()
     .replace(/[–—−]/g, "-")
-    .replace(/\bDII\b/g, "D3")
-    .replace(/\bDIII\b/g, "D3")
-    .replace(/\bDIV\b/g, "D4")
+    .replace(/\bD\s*\.?\s*II\b/g, "D3")
+    .replace(/\bD\s*\.?\s*III\b/g, "D3")
+    .replace(/\bD\s*\.?\s*IV\b/g, "D4")
+    .replace(/\bD\s*\.?\s*3\b/g, "D3")
+    .replace(/\bD\s*\.?\s*4\b/g, "D4")
     .replace(/\s*-\s*/g, " - ")
     .replace(/\s+/g, " ")
     .trim();
@@ -135,10 +137,12 @@ function normalisasiTeksProdi(raw) {
 
 function deteksiJurusanDariProdiSensitif(prodiRaw, jurusanFallback = "-") {
   const teks = normalisasiTeksProdi(prodiRaw);
+  const jurNorm = normalisasiTeksProdi(jurusanFallback);
+  const gabungan = `${teks} ${jurNorm}`.trim();
 
-  if (!teks || teks === "-" || teks === "NULL" || teks === "UNDEFINED") {
+  if ((!teks || teks === "-" || teks === "NULL" || teks === "UNDEFINED") && (!jurNorm || jurNorm === "-" || jurNorm === "NULL")) {
     return {
-      jurusan: String(jurusanFallback || "-").toUpperCase(),
+      jurusan: "-",
       prodi: "-",
       jenjang: "D3"
     };
@@ -149,8 +153,8 @@ function deteksiJurusanDariProdiSensitif(prodiRaw, jurusanFallback = "-") {
     for (const item of kelompok.prodi) {
       for (const kw of item.kataKunci) {
         const kwNorm = normalisasiTeksProdi(kw);
-        if (teks.includes(kwNorm)) {
-          const jenjang = item.nama.startsWith("D4") || teks.includes("D4") ? "D4" : "D3";
+        if (gabungan.includes(kwNorm)) {
+          const jenjang = item.nama.startsWith("D4") || gabungan.includes("D4") ? "D4" : "D3";
           return {
             jurusan: kelompok.jurusan,
             prodi: item.nama,
@@ -161,12 +165,12 @@ function deteksiJurusanDariProdiSensitif(prodiRaw, jurusanFallback = "-") {
     }
   }
 
-  // 2. Pencocokan nama inti prodi tanpa prefix D3/D4 (jika jenjang ditulis terpisah atau terpotong)
+  // 2. Pencocokan nama inti prodi tanpa prefix D3/D4 (jika jenjang ditulis terpisah atau di kolom lain)
   for (const kelompok of DAFTAR_JURUSAN_PRODI_POLNES) {
     for (const item of kelompok.prodi) {
       const namaTanpaJenjang = item.nama.replace(/^D[34]\s*-\s*/, "");
-      if (teks.includes(namaTanpaJenjang)) {
-        const isD4 = teks.includes("D4") || item.nama.startsWith("D4");
+      if (gabungan.includes(namaTanpaJenjang)) {
+        const isD4 = gabungan.includes("D4") || gabungan.includes("SARJANA TERAPAN") || item.nama.startsWith("D4");
         const prodiFinal = isD4
           ? item.nama.replace(/^D3\s*-/, "D4 -")
           : item.nama;
@@ -179,25 +183,27 @@ function deteksiJurusanDariProdiSensitif(prodiRaw, jurusanFallback = "-") {
     }
   }
 
-  // 3. Fallback kata kunci jurusan umum jika prodi ditulis disingkat
-  let jurusanTerdeteksi = String(jurusanFallback || "-").toUpperCase();
-  if (jurusanTerdeteksi === "-" || !jurusanTerdeteksi) {
-    if (teks.includes("AKUNTANSI") || teks.includes("KEUANGAN")) jurusanTerdeteksi = "AKUNTANSI";
-    else if (teks.includes("PEMASARAN") || teks.includes("BISNIS")) jurusanTerdeteksi = "ADMINISTRASI BISNIS";
-    else if (teks.includes("NAUTIKA") || teks.includes("TEKNIKA") || teks.includes("PELAYARAN") || teks.includes("KPNK")) jurusanTerdeteksi = "KEMARITIMAN";
-    else if (teks.includes("PARIWISATA") || teks.includes("WISATA") || teks.includes("HOTEL")) jurusanTerdeteksi = "PARIWISATA";
-    else if (teks.includes("INFORMATIKA") || teks.includes("KOMPUTER") || teks.includes("MULTIMEDIA")) jurusanTerdeteksi = "TEKNOLOGI INFORMASI";
-    else if (teks.includes("DESAIN") || teks.includes("ARSITEKTUR")) jurusanTerdeteksi = "DESAIN";
-    else if (teks.includes("KIMIA") || teks.includes("PETRO")) jurusanTerdeteksi = "TEKNIK KIMIA";
-    else if (teks.includes("SIPIL") || teks.includes("JALAN") || teks.includes("KONSTRUKSI")) jurusanTerdeteksi = "TEKNIK SIPIL";
-    else if (teks.includes("MESIN") || teks.includes("ALAT BERAT")) jurusanTerdeteksi = "TEKNIK MESIN";
-    else if (teks.includes("LISTRIK") || teks.includes("ELEKTRO")) jurusanTerdeteksi = "TEKNIK ELEKTRO";
+  // 3. Fallback kata kunci jurusan umum jika prodi/jurusan ditulis disingkat
+  let jurusanTerdeteksi = jurNorm && jurNorm !== "-" && jurNorm !== "NULL" ? jurNorm : "-";
+  if (jurusanTerdeteksi === "-") {
+    if (gabungan.includes("AKUNTANSI") || gabungan.includes("KEUANGAN")) jurusanTerdeteksi = "AKUNTANSI";
+    else if (gabungan.includes("PEMASARAN") || gabungan.includes("BISNIS")) jurusanTerdeteksi = "ADMINISTRASI BISNIS";
+    else if (gabungan.includes("NAUTIKA") || gabungan.includes("TEKNIKA") || gabungan.includes("PELAYARAN") || gabungan.includes("KPNK") || gabungan.includes("MARITIM")) jurusanTerdeteksi = "KEMARITIMAN";
+    else if (gabungan.includes("PARIWISATA") || gabungan.includes("WISATA") || gabungan.includes("HOTEL")) jurusanTerdeteksi = "PARIWISATA";
+    else if (gabungan.includes("INFORMATIKA") || gabungan.includes("KOMPUTER") || gabungan.includes("MULTIMEDIA")) jurusanTerdeteksi = "TEKNOLOGI INFORMASI";
+    else if (gabungan.includes("DESAIN") || gabungan.includes("ARSITEKTUR")) jurusanTerdeteksi = "DESAIN";
+    else if (gabungan.includes("KIMIA") || gabungan.includes("PETRO")) jurusanTerdeteksi = "TEKNIK KIMIA";
+    else if (gabungan.includes("SIPIL") || gabungan.includes("JALAN") || gabungan.includes("KONSTRUKSI")) jurusanTerdeteksi = "TEKNIK SIPIL";
+    else if (gabungan.includes("MESIN") || gabungan.includes("ALAT BERAT")) jurusanTerdeteksi = "TEKNIK MESIN";
+    else if (gabungan.includes("LISTRIK") || gabungan.includes("ELEKTRO")) jurusanTerdeteksi = "TEKNIK ELEKTRO";
   }
+
+  const prodiBersih = teks && teks !== "-" && teks !== "NULL" ? teks : "-";
 
   return {
     jurusan: jurusanTerdeteksi,
-    prodi: teks,
-    jenjang: teks.includes("D4") ? "D4" : "D3"
+    prodi: prodiBersih,
+    jenjang: gabungan.includes("D4") ? "D4" : "D3"
   };
 }
 
@@ -292,7 +298,6 @@ async function generateSha256Sertifikat(m, jenisSertifikat) {
     }
   } catch (_) {}
 
-  // Fallback deterministik jika diakses non-HTTPS lokal
   let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
   for (let i = 0; i < payloadStr.length; i++) {
     const ch = payloadStr.charCodeAt(i);
@@ -561,8 +566,9 @@ async function sinkronkanDatabaseRekapan(tampilkanNotif = false) {
       }
 
       const prodiRaw = ambilNilaiKolom(mhs, ["program_studi", "prodi", "kelas"], "-");
-      if (prodiRaw !== "-") {
-        const infoProdi = deteksiJurusanDariProdiSensitif(prodiRaw, rec.jurusan);
+      const jurRaw = ambilNilaiKolom(mhs, ["jurusan"], rec.jurusan);
+      if (prodiRaw !== "-" || jurRaw !== "-") {
+        const infoProdi = deteksiJurusanDariProdiSensitif(prodiRaw, jurRaw);
         if (rec.program_studi === "-" || !rec.program_studi) rec.program_studi = infoProdi.prodi;
         if (rec.jurusan === "-" || !rec.jurusan) rec.jurusan = infoProdi.jurusan;
         rec.jenjang = infoProdi.jenjang;
@@ -584,8 +590,9 @@ async function sinkronkanDatabaseRekapan(tampilkanNotif = false) {
       }
 
       const prodiRaw = ambilNilaiKolom(item, ["program_studi", "prodi", "kelas"], "-");
-      if (prodiRaw !== "-") {
-        const infoProdi = deteksiJurusanDariProdiSensitif(prodiRaw, rec.jurusan);
+      const jurRaw = ambilNilaiKolom(item, ["jurusan"], rec.jurusan);
+      if (prodiRaw !== "-" || jurRaw !== "-") {
+        const infoProdi = deteksiJurusanDariProdiSensitif(prodiRaw, jurRaw);
         if (rec.program_studi === "-" || !rec.program_studi) rec.program_studi = infoProdi.prodi;
         if (rec.jurusan === "-" || !rec.jurusan) rec.jurusan = infoProdi.jurusan;
         rec.jenjang = infoProdi.jenjang;
@@ -725,7 +732,7 @@ async function perbaikiDataMasterDiDatabase(db, daftarMahasiswa) {
   }
 }
 
-// ==================== 2. IMPORT ARSIP CERDAS (MENDUKUNG MULTI-HEADER D3/D4 UPA BAHASA & STANDARD EXCEL) ====================
+// ==================== 2. IMPORT ARSIP CERDAS (MENDUKUNG SEMUA FORMAT EXCEL 2020-2026) ====================
 function bukaModalImportArsip() {
   const fileInput = document.getElementById("inputFileExcelArsip");
   if (fileInput) fileInput.value = "";
@@ -759,25 +766,55 @@ function parseSkorBulatExcel(valRaw) {
   return !isNaN(angka) && angka > 0 ? Math.round(angka) : null;
 }
 
-function deteksiJudulBlokProdiExcel(selNonKosong) {
+// Memindai seluruh sel dalam 1 baris non-mahasiswa (termasuk sel gabungan / kop atas) untuk menangkap Prodi & Jurusan
+function deteksiMetadataBlokDariBarisExcel(selNonKosong) {
   if (!Array.isArray(selNonKosong) || selNonKosong.length === 0) return null;
 
+  // Abaikan jika baris berisi NIM 6-15 digit (berarti baris data mahasiswa, bukan judul blok)
+  const adaNimDiBaris = selNonKosong.some(c => /^\d{6,15}$/.test(String(c).replace(/\s+/g, "")));
+  if (adaNimDiBaris) return null;
+
+  let prodiDitemukan = "-";
+  let jurusanDitemukan = "-";
+
+  // Cek per sel terlebih dahulu
   for (const rawCell of selNonKosong) {
     const cellNorm = normalisasiTeksProdi(rawCell);
-    if (!cellNorm || cellNorm.length < 4) continue;
+    if (!cellNorm || cellNorm.length < 3) continue;
 
-    // Abaikan baris header tabel atau baris data NIM
-    if (cellNorm === "NIM" || cellNorm === "NAMA" || cellNorm === "NO" || /^\d{6,15}$/.test(cellNorm)) {
-      continue;
+    // Bersihkan awalan label umum di file lama seperti "PROGRAM STUDI :", "PRODI :", "JURUSAN :", "KELAS :"
+    const tanpaLabel = cellNorm
+      .replace(/^(PROGRAM\s*STUDI|PRODI|JURUSAN|KELAS)\s*[:=-]?\s*/i, "")
+      .trim();
+
+    if (!tanpaLabel || tanpaLabel === "NIM" || tanpaLabel === "NAMA" || tanpaLabel === "NO") continue;
+
+    const hasil = deteksiJurusanDariProdiSensitif(tanpaLabel, "-");
+    if (hasil.prodi !== "-" && prodiDitemukan === "-") {
+      prodiDitemukan = hasil.prodi;
     }
-
-    // Jika diawali D3 - / D4 - atau cocok langsung dengan salah satu prodi/jurusan di kamus POLNES
-    const diawaliJenjang = /^D[234]\s*-/.test(cellNorm);
-    const hasilDeteksi = deteksiJurusanDariProdiSensitif(cellNorm, "-");
-
-    if (diawaliJenjang || hasilDeteksi.jurusan !== "-") {
-      return hasilDeteksi.prodi !== "-" ? hasilDeteksi.prodi : cellNorm;
+    if (hasil.jurusan !== "-" && jurusanDitemukan === "-") {
+      jurusanDitemukan = hasil.jurusan;
     }
+  }
+
+  // Jika belum ketemu per sel, gabungkan seluruh sel baris tersebut (antisipasi "PRODI" di kol A, ":" di kol B, "D3 TEKNIK LISTRIK" di kol C)
+  if (prodiDitemukan === "-" && jurusanDitemukan === "-") {
+    const gabunganBaris = normalisasiTeksProdi(selNonKosong.join(" "));
+    if (
+      gabunganBaris.includes("PRODI") ||
+      gabunganBaris.includes("PROGRAM STUDI") ||
+      gabunganBaris.includes("JURUSAN") ||
+      /\bD[234]\s*-/.test(gabunganBaris)
+    ) {
+      const hasilGab = deteksiJurusanDariProdiSensitif(gabunganBaris, "-");
+      if (hasilGab.prodi !== "-") prodiDitemukan = hasilGab.prodi;
+      if (hasilGab.jurusan !== "-") jurusanDitemukan = hasilGab.jurusan;
+    }
+  }
+
+  if (prodiDitemukan !== "-" || jurusanDitemukan !== "-") {
+    return { prodi: prodiDitemukan, jurusan: jurusanDitemukan };
   }
   return null;
 }
@@ -789,17 +826,16 @@ function ekstrakSemuaBarisMahasiswaDariWorkbook(workbook) {
   const daftarSheet = workbook.SheetNames.filter(nama => !nama.toUpperCase().includes("LAPORAN"));
   const targetSheets = daftarSheet.length > 0 ? daftarSheet : workbook.SheetNames;
 
-  let terdeteksiFormatBlokUpa = false;
+  let terdeteksiFormatTabel = false;
 
   targetSheets.forEach(sheetName => {
     const ws = workbook.Sheets[sheetName];
     const matrix = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
 
-    // Cek apakah nama sheet itu sendiri memuat nama prodi/jenjang
+    // Cek apakah nama sheet memuat prodi atau jurusan (misal sheet "D3 Akuntansi" atau "Teknik Elektro")
     const deteksiSheet = deteksiJurusanDariProdiSensitif(sheetName, "-");
-    let prodiAktifBlok = deteksiSheet.jurusan !== "-"
-      ? deteksiSheet.prodi
-      : "-";
+    let prodiAktifBlok = deteksiSheet.prodi !== "-" ? deteksiSheet.prodi : "-";
+    let jurusanAktifBlok = deteksiSheet.jurusan !== "-" ? deteksiSheet.jurusan : "-";
 
     let colIdx = { nama: -1, nim: -1, sec1: -1, sec2: -1, sec3: -1, total: -1, prodi: -1, jurusan: -1, angkatan: -1, ttl: -1 };
     let headerSudahDitemukan = false;
@@ -819,21 +855,22 @@ function ekstrakSemuaBarisMahasiswaDariWorkbook(workbook) {
         continue;
       }
 
-      const idxNimHeader = barisUpper.findIndex(c => c === "NIM" || c === "NO INDUK" || c === "NO. INDUK" || c === "NPM");
+      const idxNimHeader = barisUpper.findIndex(c => c === "NIM" || c === "NO INDUK" || c === "NO. INDUK" || c === "NPM" || c === "NIM MAHASISWA");
       const idxNamaHeader = barisUpper.findIndex(c => c === "NAMA" || c === "NAMA MAHASISWA" || c === "NAMA LENGKAP" || c === "FULL NAME");
 
-      // Deteksi baris judul prodi di atas tabel (misal: "D3- Akuntansi", "D3- KPNK", "D3- Perawatan dan Perbaikan Mesin")
-      if (idxNimHeader === -1 && idxNamaHeader === -1 && selNonKosong.length <= 3) {
-        const judulProdi = deteksiJudulBlokProdiExcel(selNonKosong);
-        if (judulProdi) {
-          prodiAktifBlok = judulProdi;
+      // Jika bukan baris header tabel, cek apakah baris ini adalah judul blok Prodi / Jurusan di atas tabel
+      if (idxNimHeader === -1 && idxNamaHeader === -1) {
+        const metaBlok = deteksiMetadataBlokDariBarisExcel(selNonKosong);
+        if (metaBlok) {
+          if (metaBlok.prodi !== "-") prodiAktifBlok = metaBlok.prodi;
+          if (metaBlok.jurusan !== "-") jurusanAktifBlok = metaBlok.jurusan;
           totalBarisNonData++;
           continue;
         }
       }
 
       if (idxNimHeader !== -1 && idxNamaHeader !== -1) {
-        terdeteksiFormatBlokUpa = true;
+        terdeteksiFormatTabel = true;
         headerSudahDitemukan = true;
         colIdx = { nama: idxNamaHeader, nim: idxNimHeader, sec1: -1, sec2: -1, sec3: -1, total: -1, prodi: -1, jurusan: -1, angkatan: -1, ttl: -1 };
 
@@ -850,8 +887,8 @@ function ekstrakSemuaBarisMahasiswaDariWorkbook(workbook) {
           else if (gab.includes("SECTION 2") || gab.includes("SECTION_2") || gab.includes("SEC 2") || gab.includes("STRUCTURE")) colIdx.sec2 = c;
           else if (gab.includes("SECTION 3") || gab.includes("SECTION_3") || gab.includes("SEC 3") || gab.includes("READING")) colIdx.sec3 = c;
           else if (gab.includes("TOTAL") || gab.includes("SKOR") || gab.includes("NILAI") || (gab.includes("SCORE") && !gab.includes("SECTION"))) colIdx.total = c;
-          else if (gab.includes("PRODI") || gab.includes("PROGRAM STUDI") || gab.includes("KELAS")) colIdx.prodi = c;
-          else if (gab.includes("JURUSAN")) colIdx.jurusan = c;
+          else if (gab.includes("PRODI") || gab.includes("PROGRAM STUDI") || gab.includes("KELAS") || gab.includes("STUDY PROGRAM")) colIdx.prodi = c;
+          else if (gab.includes("JURUSAN") || gab.includes("DEPARTMENT")) colIdx.jurusan = c;
           else if (gab.includes("ANGKATAN") || gab.includes("TAHUN")) colIdx.angkatan = c;
           else if (gab.includes("TTL") || gab.includes("BIRTH") || gab.includes("LAHIR")) colIdx.ttl = c;
         }
@@ -874,8 +911,12 @@ function ekstrakSemuaBarisMahasiswaDariWorkbook(workbook) {
           continue;
         }
 
-        const prodiBarisRaw = colIdx.prodi !== -1 && baris[colIdx.prodi] ? String(baris[colIdx.prodi]).trim() : prodiAktifBlok;
-        const jurusanBarisRaw = colIdx.jurusan !== -1 && baris[colIdx.jurusan] ? String(baris[colIdx.jurusan]).trim() : "-";
+        const prodiSel = colIdx.prodi !== -1 && baris[colIdx.prodi] ? String(baris[colIdx.prodi]).trim() : "";
+        const jurusanSel = colIdx.jurusan !== -1 && baris[colIdx.jurusan] ? String(baris[colIdx.jurusan]).trim() : "";
+
+        const prodiBarisRaw = prodiSel && prodiSel !== "-" ? prodiSel : prodiAktifBlok;
+        const jurusanBarisRaw = jurusanSel && jurusanSel !== "-" ? jurusanSel : jurusanAktifBlok;
+
         const infoProdi = deteksiJurusanDariProdiSensitif(prodiBarisRaw, jurusanBarisRaw);
         const angkatanBaris = colIdx.angkatan !== -1 && baris[colIdx.angkatan] ? baris[colIdx.angkatan] : "";
         const ttlBaris = colIdx.ttl !== -1 && baris[colIdx.ttl] ? String(baris[colIdx.ttl]).trim() : "";
@@ -898,7 +939,7 @@ function ekstrakSemuaBarisMahasiswaDariWorkbook(workbook) {
     }
   });
 
-  if (!terdeteksiFormatBlokUpa || hasilEkstraksi.length === 0) {
+  if (!terdeteksiFormatTabel || hasilEkstraksi.length === 0) {
     const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
     const rowsStandar = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
     return { rows: rowsStandar, dilewatiAwal: 0 };
@@ -933,6 +974,9 @@ async function prosesImportArsipCerdas() {
       alert("File Excel kosong atau tidak terbaca.");
       return;
     }
+
+    // Cek juga nama file jika mengandung info prodi/jurusan sebagai cadangan terakhir
+    const infoNamaFile = deteksiJurusanDariProdiSensitif(file.name.replace(/\.[^.]+$/, ""), "-");
 
     const mapDbByNim = new Map();
     const mapDbByNamaAngkatan = new Map();
@@ -980,7 +1024,13 @@ async function prosesImportArsipCerdas() {
 
       const prodiRaw = cariKolomBarisExcel(row, ["PROGRAM STUDI", "PROGRAM_STUDI", "PRODI", "KELAS"]) || "-";
       const jurusanRaw = cariKolomBarisExcel(row, ["JURUSAN"]) || "-";
-      const infoProdi = deteksiJurusanDariProdiSensitif(prodiRaw, jurusanRaw);
+      let infoProdi = deteksiJurusanDariProdiSensitif(prodiRaw, jurusanRaw);
+
+      if (infoProdi.prodi === "-" && infoNamaFile.prodi !== "-") {
+        infoProdi = { ...infoProdi, prodi: infoNamaFile.prodi, jurusan: infoNamaFile.jurusan };
+      } else if (infoProdi.jurusan === "-" && infoNamaFile.jurusan !== "-") {
+        infoProdi = { ...infoProdi, jurusan: infoNamaFile.jurusan };
+      }
 
       const skorUtamaRaw = cariKolomBarisExcel(row, [
         "TOTAL", "TOTAL_SCORE", "TOTAL SCORE", "SKOR TOTAL", "SKOR AKHIR", "SKOR", "SCORE", "NILAI",
@@ -1048,7 +1098,7 @@ async function prosesImportArsipCerdas() {
         const patch = mapPatchDbExisting.get(existingDb.nim) || { nim: existingDb.nim };
         const adaSkor = terapkanSkorKeObjek(patch);
 
-        // Lengkapi prodi & jurusan dari file Excel jika tersedia atau jika di DB sebelumnya masih kosong/'-'
+        // Selalu perbarui prodi & jurusan dari file jika ditemukan di Excel (terutama untuk data 2020/2021 yang sebelumnya '-')
         let adaPerbaikanProdi = false;
         if (infoProdi.prodi !== "-" && (existingDb.program_studi === "-" || !existingDb.program_studi || existingDb.program_studi !== infoProdi.prodi)) {
           patch.prodi = infoProdi.prodi;
@@ -1081,6 +1131,14 @@ async function prosesImportArsipCerdas() {
           program_studi: infoProdi.prodi,
           tahun_angkatan: String(angkatanNim)
         };
+
+        if (infoProdi.prodi !== "-") {
+          recBaru.prodi = infoProdi.prodi;
+          recBaru.program_studi = infoProdi.prodi;
+        }
+        if (infoProdi.jurusan !== "-") {
+          recBaru.jurusan = infoProdi.jurusan;
+        }
 
         terapkanSkorKeObjek(recBaru);
         mapInsertBaru.set(nimRaw, recBaru);
@@ -1125,7 +1183,7 @@ async function prosesImportArsipCerdas() {
 
     alert(
       `Import Kategori ${kategoriImport} (Angkatan: ${daftarAngkatanStr}) Selesai!\n` +
-      `• Skor & prodi digabung ke data mahasiswa lama: ${daftarUpdateExisting.length} mahasiswa (tanpa duplikat)\n` +
+      `• Skor & prodi/jurusan digabung ke data mahasiswa lama: ${daftarUpdateExisting.length} mahasiswa (tanpa duplikat)\n` +
       `• Data mahasiswa baru diterima: ${daftarInsertBaru.length} mahasiswa\n` +
       `• Baris kosong/tanpa skor dilewati: ${jmlDilewati}`
     );
@@ -1801,7 +1859,6 @@ async function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
   const tglTes = m.tanggal_tes || "04 May 2026";
   const prodiCantik = formatProgramStudySertifikat(m.program_studi);
 
-  // Otomatis simpan nomor & tanggal sertifikat ke database agar sinkron saat QR di-scan
   if (!m.nomor_sertifikat || !m.tanggal_tes) {
     m.nomor_sertifikat = nomor;
     m.tanggal_tes = tglTes;
@@ -1813,15 +1870,12 @@ async function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
   const sec3 = isSspect ? (m.sspect_reading ?? m.reading ?? "-") : (m.reading ?? "-");
   const totalSkor = isSspect ? (m.skor_sspect ?? "-") : (m.skor_toefl_akhir ?? "-");
 
-  // SHA-256 bekerja di belakang layar (tidak ditampilkan di fisik sertifikat)
   const shaFull = await generateSha256Sertifikat(m, isSspect ? "SSPECT" : "TOEFL");
   const shaParam = shaFull.substring(0, 12);
 
-  // Logo selalu ambil dari folder img/polnes.png (dengan fallback ../img/polnes.png)
   const logoUrl = new URL("img/polnes.png", window.location.href).href;
   const logoFallbackUrl = new URL("../img/polnes.png", window.location.href).href;
 
-  // Latar belakang: prioritaskan hasil upload tersimpan di localStorage, jika tidak ada pakai img/sertif.jpg
   let bgGedungUrl = "";
   try {
     bgGedungUrl = localStorage.getItem(CERT_BG_STORAGE_KEY) || "";
@@ -1830,7 +1884,6 @@ async function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
     bgGedungUrl = new URL("img/sertif.jpg", window.location.href).href;
   }
 
-  // URL QR ringkas & bersih agar titik QR renggang dan sangat mudah di-scan
   const urlValidasi = new URL(
     `validasi-sertifikat.html?nim=${encodeURIComponent(m.nim)}&jenis=${isSspect ? "SSPECT" : "TOEFL"}&sha=${shaParam}`,
     window.location.href
@@ -1839,10 +1892,6 @@ async function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
   let htmlTabelSkor = "";
   if (isSspect) {
     htmlTabelSkor = `
-      <!-- ========================================================================= -->
-      <!-- [PENANDA KHUSUS SERTIFIKAT SSPECT]                                         -->
-      <!-- Saat ini menampilkan 3 kolom: Listening, Reading, dan Total Score.        -->
-      <!-- ========================================================================= -->
       <table class="score-grid">
         <thead>
           <tr>
@@ -1859,11 +1908,9 @@ async function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
           </tr>
         </tbody>
       </table>
-      <!-- ================= [AKHIR PENANDA KHUSUS SERTIFIKAT SSPECT] ================ -->
     `;
   } else {
     htmlTabelSkor = `
-      <!-- TABEL NILAI TOEFL (4 KOLOM STANDAR) -->
       <table class="score-grid">
         <thead>
           <tr>
