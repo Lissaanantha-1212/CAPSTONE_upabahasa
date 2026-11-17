@@ -128,14 +128,20 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">PILIH RUANG LAB UJIAN</label>
+            <label class="flex items-center gap-2 text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">
+              <span class="w-5 h-5 rounded-full bg-polnes-main text-white inline-flex items-center justify-center text-[11px] font-extrabold shrink-0">1</span>
+              <span>PILIH RUANG LAB UJIAN</span>
+            </label>
             <select id="selectLabToefl" onchange="cekUlangSinkronisasi()" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-[13px] font-semibold text-slate-700 outline-none focus:border-polnes-main">
               <option value="Lab A">Lab A</option>
               <option value="Lab B">Lab B</option>
             </select>
           </div>
           <div>
-            <label class="block text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">PILIH SESI & WAKTU</label>
+            <label class="flex items-center gap-2 text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">
+              <span class="w-5 h-5 rounded-full bg-polnes-main text-white inline-flex items-center justify-center text-[11px] font-extrabold shrink-0">2</span>
+              <span>PILIH SESI & WAKTU</span>
+            </label>
             <select id="selectSesiToefl" onchange="cekUlangSinkronisasi()" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-[13px] font-semibold text-slate-700 outline-none focus:border-polnes-main">
               <option value="SESI 1 (08.00 - 10.00 WITA)">SESI 1 (08.00 - 10.00 WITA)</option>
               <option value="SESI 2 (10.00 - 12.00 WITA)">SESI 2 (10.00 - 12.00 WITA)</option>
