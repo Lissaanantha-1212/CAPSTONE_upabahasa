@@ -254,13 +254,48 @@
     window.previewDataGlobal = [];
     window.activeJadwalLogId = null;
 
+    function deteksiNomorSectionFile(fileName, rows) {
+      const upperName = String(fileName || "").toUpperCase();
+      const matchNama = upperName.match(/(?:SECTION|SEC)[\s._-]*([123])\b/);
+      if (matchNama) return parseInt(matchNama[1], 10);
+
+      // Cek juga di 5 baris teratas file Excel jika nama file sudah diubah
+      if (Array.isArray(rows)) {
+        for (let i = 0; i < Math.min(5, rows.length); i++) {
+          const rowText = (rows[i] || []).map(c => String(c || "").toUpperCase()).join(" ");
+          const matchIsi = rowText.match(/(?:SECTION|SEC)[\s._-]*([123])\b/);
+          if (matchIsi) return parseInt(matchIsi[1], 10);
+          if (rowText.includes("LISTENING")) return 1;
+          if (rowText.includes("STRUCTURE")) return 2;
+          if (rowText.includes("READING")) return 3;
+        }
+      }
+      return null;
+    }
+
+    function resetSlotSection(secNum, inputEl) {
+      if (inputEl) inputEl.value = "";
+      document.getElementById(`labelSec${secNum}`).innerText = "Belum ada file dipilih";
+      if (secNum === 1) fileSec1Info = { data: null, jam: "", tanggal: "" };
+      if (secNum === 2) fileSec2Info = { data: null, jam: "", tanggal: "" };
+      if (secNum === 3) fileSec3Info = { data: null, jam: "", tanggal: "" };
+      resetPreview("Unggah 3 file Excel Section yang sesuai untuk mencocokkan jadwal & menampilkan peserta.");
+    }
+
     function handleFileSection(secNum, input) {
       const file = input.files[0];
       if (!file) return;
 
-      document.getElementById(`labelSec${secNum}`).innerText = file.name;
-
       const fileName = file.name;
+
+      // Validasi cepat dari nama file sebelum membaca isi
+      const secDariNama = deteksiNomorSectionFile(fileName, null);
+      if (secDariNama && secDariNama !== secNum) {
+        alert(`DITOLAK: Tombol ini khusus untuk Excel Section ${secNum}, sedangkan file yang Anda pilih adalah Section ${secDariNama} (${fileName})!`);
+        resetSlotSection(secNum, input);
+        return;
+      }
+
       const tglMatch = fileName.match(/(\d{2}-\d{2}-\d{4})/);
       const jamMatch = fileName.match(/(\d{2}-\d{2}-\d{2})/g);
 
@@ -273,6 +308,16 @@
         const workbook = XLSX.read(data, { type: 'array' });
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
+
+        // Validasi kedua dari isi header Excel (untuk berjaga-jaga jika nama file di-rename)
+        const secDariIsi = deteksiNomorSectionFile(fileName, rows);
+        if (secDariIsi && secDariIsi !== secNum) {
+          alert(`DITOLAK: Tombol ini khusus untuk Excel Section ${secNum}, tetapi isi file "${fileName}" terdeteksi sebagai Section ${secDariIsi}!`);
+          resetSlotSection(secNum, input);
+          return;
+        }
+
+        document.getElementById(`labelSec${secNum}`).innerText = fileName;
 
         if ((!fileTanggal || !fileJamStr) && rows[1] && rows[1][3]) {
           const d2 = String(rows[1][3]).trim();
