@@ -1,7 +1,7 @@
 /**
- * MODUL PENJADWALAN - UPA BAHASA POLNES (FULL VERSION UTUH + VALIDASI KETAT LAB & SESI)
- * Menangani Upload Excel, Antrean, Filter Kelas, Validasi Kapasitas Lab (Maks 30),
- * Validasi Ketat Lab & Sesi Terpakai, Kunci Sesi, Histori, & PDF Paten 1 Halaman.
+ * MODUL PENJADWALAN - UPA BAHASA POLNES (FULL VERSION UTUH + VALIDASI KETAT LAB, SESI, & STATUS REKAPAN KELAS)
+ * Menangani Upload Excel, Validasi Kelas Belum Masuk Rekapan, Antrean, Filter Kelas,
+ * Validasi Kapasitas Lab (Maks 30), Validasi Ketat Lab & Sesi Terpakai, Kunci Sesi, Histori, & PDF Paten 1 Halaman.
  */
 
 let uploadedMahasiswaList = [];
@@ -64,6 +64,143 @@ function handleSelectFileClick() {
   if (fileInput) fileInput.click();
 }
 
+/**
+ * Helper: Mengecek apakah kelas / daftar NIM yang sudah pernah dijadwalkan
+ * sudah menyelesaikan tahap pencocokan dan masuk ke Rekapan.
+ */
+async function validasiKelayakanUploadKelas(namaKelasUpper, daftarNim) {
+  // 1. Cek apakah kelas masih berada di antrean_mahasiswa (belum dikunci)
+  const { data: antreanKelas, error: errAntrean } = await window.supabaseClient
+    .from('antrean_mahasiswa')
+    .select('id, nama_kelas, nim')
+    .ilike('nama_kelas', namaKelasUpper);
+
+  if (!errAntrean && antreanKelas && antreanKelas.length > 0) {
+    return {
+      boleh: false,
+      pesan: `[DITOLAK] Kelas "${namaKelasUpper}" masih berada di dalam daftar antrean (${antreanKelas.length} mahasiswa) dan belum dikunci/diproses!`
+    };
+  }
+
+  // 2. Cek apakah salah satu NIM masih berada di antrean dengan nama kelas berbeda
+  if (daftarNim.length > 0) {
+    const { data: antreanNim } = await window.supabaseClient
+      .from('antrean_mahasiswa')
+      .select('nim, nama_kelas')
+      .in('nim', daftarNim);
+
+    if (antreanNim && antreanNim.length > 0) {
+      return {
+        boleh: false,
+        pesan: `[DITOLAK] Sebanyak ${antreanNim.length} mahasiswa di file ini (contoh NIM: ${antreanNim[0].nim}) masih berada di antrean kelas "${antreanNim[0].nama_kelas}"!`
+      };
+    }
+  }
+
+  // 3. Cek apakah kelas sudah pernah dijadwalkan di jadwal_log
+  const { data: historiJadwal, error: errJadwal } = await window.supabaseClient
+    .from('jadwal_log')
+    .select('id, jenis_tes, tanggal, sesi, nama_kelas, status')
+    .ilike('nama_kelas', `%${namaKelasUpper}%`)
+    .order('id', { ascending: false });
+
+  if (errJadwal) throw errJadwal;
+
+  // Juga cek lewat peserta_ujian berdasarkan NIM (antisipasi jika penulisan nama kelas sedikit beda spasi)
+  let jadwalTerkaitPeserta = [];
+  if (daftarNim.length > 0) {
+    const { data: pesertaExisting } = await window.supabaseClient
+      .from('peserta_ujian')
+      .select('jadwal_id, nim, nama_kelas')
+      .in('nim', daftarNim);
+
+    if (pesertaExisting && pesertaExisting.length > 0) {
+      const jadwalIds = [...new Set(pesertaExisting.map(p => p.jadwal_id).filter(Boolean))];
+      if (jadwalIds.length > 0) {
+        const { data: jadwalByNim } = await window.supabaseClient
+          .from('jadwal_log')
+          .select('id, jenis_tes, tanggal, sesi, nama_kelas, status')
+          .in('id', jadwalIds)
+          .order('id', { ascending: false });
+        jadwalTerkaitPeserta = jadwalByNim || [];
+      }
+    }
+  }
+
+  // Gabungkan semua jadwal yang berkaitan dengan kelas atau NIM mahasiswa tersebut
+  const mapJadwal = new Map();
+  [...(historiJadwal || []), ...jadwalTerkaitPeserta].forEach(j => {
+    if (j && j.id) mapJadwal.set(j.id, j);
+  });
+  const semuaJadwalTerkait = Array.from(mapJadwal.values());
+
+  // Jika belum pernah dijadwalkan sama sekali -> DIIZINKAN upload
+  if (semuaJadwalTerkait.length === 0) {
+    return { boleh: true };
+  }
+
+  // 4. Jika sudah pernah dijadwalkan, pastikan jadwal terakhir sudah selesai pencocokan & masuk Rekapan
+  const jadwalTerakhir = semuaJadwalTerkait[0];
+  const jenisTesTerakhir = String(jadwalTerakhir.jenis_tes || '').toUpperCase();
+  const statusJadwal = String(jadwalTerakhir.status || '').toUpperCase();
+
+  // Jika status jadwal masih TERKUNCI / belum selesai, cek ke tabel rekapan apakah nilainya sudah masuk
+  const kandidatTabelRekapan = ['rekapan_mahasiswa', 'hasil_test', 'nilai_mahasiswa'];
+  let ditemukanDiRekapan = false;
+  let jumlahSudahMasukRekapan = 0;
+
+  for (const namaTabel of kandidatTabelRekapan) {
+    try {
+      const { data: rowsRekapan, error: errRek } = await window.supabaseClient
+        .from(namaTabel)
+        .select('*')
+        .in('nim', daftarNim);
+
+      if (!errRek && Array.isArray(rowsRekapan) && rowsRekapan.length > 0) {
+        // Pastikan kolom skor untuk jenis tes yang dijadwalkan memang sudah terisi (bukan null/kosong)
+        const terisiSkor = rowsRekapan.filter(r => {
+          if (jenisTesTerakhir.includes('SSPECT')) {
+            return (
+              r.skor_sspect !== null && r.skor_sspect !== undefined && r.skor_sspect !== '' ||
+              r.sspect !== null && r.sspect !== undefined && r.sspect !== '' ||
+              r.total_score !== null && r.total_score !== undefined && r.total_score !== ''
+            );
+          }
+          // Untuk TOEFL / tes reguler lainnya
+          return (
+            r.skor_toefl !== null && r.skor_toefl !== undefined && r.skor_toefl !== '' ||
+            r.toefl !== null && r.toefl !== undefined && r.toefl !== '' ||
+            r.skor_latihan !== null && r.skor_latihan !== undefined && r.skor_latihan !== '' ||
+            r.total_score !== null && r.total_score !== undefined && r.total_score !== ''
+          );
+        });
+
+        if (terisiSkor.length > 0) {
+          ditemukanDiRekapan = true;
+          jumlahSudahMasukRekapan = terisiSkor.length;
+          break;
+        }
+      }
+    } catch (_) {
+      // Lanjut cek nama tabel rekapan berikutnya jika tabel tidak ada
+    }
+  }
+
+  // Toleransi minimal 50% peserta kelas sudah masuk ke rekapan setelah pencocokan
+  const ambangMinimal = Math.max(1, Math.ceil(daftarNim.length * 0.5));
+
+  if (!ditemukanDiRekapan || jumlahSudahMasukRekapan < ambangMinimal) {
+    return {
+      boleh: false,
+      pesan:
+        `[DITOLAK] Kelas "${jadwalTerakhir.nama_kelas}" sudah dijadwalkan pada ${jadwalTerakhir.tanggal} (${jadwalTerakhir.sesi} - ${jadwalTerakhir.jenis_tes}, status: ${statusJadwal}) dan BELUM melalui proses pencocokan hingga masuk ke Rekapan!\n\n` +
+        `Selesaikan proses pencocokan hasil test (${jadwalTerakhir.jenis_tes}) hingga data masuk ke Rekapan terlebih dahulu sebelum menjadwalkan ulang kelas ini.`
+    };
+  }
+
+  return { boleh: true };
+}
+
 async function handleExcelUpload(e) {
   const file = e.target.files[0];
   if (!file) return;
@@ -89,6 +226,14 @@ async function handleExcelUpload(e) {
     fileNameText.innerText = file.name;
     fileNameText.classList.add('text-polnes-main', 'font-bold');
   }
+
+  const resetInputForm = () => {
+    e.target.value = '';
+    if (fileNameText) {
+      fileNameText.innerText = 'Klik untuk Pilih File Excel...';
+      fileNameText.classList.remove('text-polnes-main', 'font-bold');
+    }
+  };
 
   const reader = new FileReader();
   reader.onload = async (event) => {
@@ -119,6 +264,17 @@ async function handleExcelUpload(e) {
 
       if (parsedMhs.length === 0) {
         alert("Tidak ada data mahasiswa yang valid ditemukan di file Excel ini.");
+        resetInputForm();
+        return;
+      }
+
+      // VALIDASI KETAT: Tolak jika kelas masih dalam antrean atau sudah dijadwalkan tapi belum dicocokkan & masuk rekapan
+      const daftarNim = parsedMhs.map(m => m.nim);
+      const hasilValidasi = await validasiKelayakanUploadKelas(namaKelasInput.toUpperCase(), daftarNim);
+
+      if (!hasilValidasi.boleh) {
+        alert(hasilValidasi.pesan);
+        resetInputForm();
         return;
       }
 
@@ -137,17 +293,14 @@ async function handleExcelUpload(e) {
 
       alert(`Berhasil! ${parsedMhs.length} mahasiswa dari kelas "${namaKelasInput}" ditambahkan ke antrean.`);
       document.getElementById('namaKelasInput').value = '';
-      if(selectProdi) selectProdi.value = '';
-      e.target.value = '';
-      if (fileNameText) {
-        fileNameText.innerText = 'Klik untuk Pilih File Excel...';
-        fileNameText.classList.remove('text-polnes-main', 'font-bold');
-      }
+      if (selectProdi) selectProdi.value = '';
+      resetInputForm();
 
       await loadAntreanDariSupabase();
 
     } catch (err) {
       alert("Gagal membaca atau mengunggah file Excel: " + err.message);
+      resetInputForm();
     }
   };
   reader.readAsArrayBuffer(file);
