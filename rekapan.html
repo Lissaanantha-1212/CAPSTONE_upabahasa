@@ -206,6 +206,11 @@
             <span>Atur Nomor &amp; Tanggal Sertifikat</span>
           </button>
 
+          <button type="button" onclick="bukaModalEditorSertifikat()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-extrabold inline-flex items-center gap-2 shadow-2xs transition-all">
+            <i class="ri-edit-box-line text-sm text-emerald-400"></i>
+            <span>Atur Tampilan Sertifikat</span>
+          </button>
+
           <button type="button" onclick="bukaModalUnduhExcelRekapan()" class="px-4 py-2.5 rounded-xl bg-[#169C53] hover:bg-[#0E7A3F] text-white text-xs font-extrabold inline-flex items-center gap-2 shadow-2xs transition-all">
             <i class="ri-file-excel-2-line text-sm"></i>
             <span>Unduh Data Excel</span>
@@ -558,9 +563,362 @@
     </div>
   </div>
 
+  <!-- ==================== MODAL 5: EDITOR TAMPILAN SERTIFIKAT (100% BAHASA INGGRIS & CUSTOM TEKS) ==================== -->
+  <div id="modalEditorSertifikat" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-3xl max-h-[92vh] flex flex-col overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
+        <div>
+          <span class="text-[10px] font-extrabold uppercase tracking-wider text-[#169C53]">FULL ENGLISH &amp; CUSTOMIZABLE TEXT</span>
+          <h3 class="text-base font-extrabold text-slate-800">Editor Teks &amp; Tampilan Sertifikat (TOEFL &amp; SSPECT)</h3>
+          <p class="text-xs text-slate-400 mt-0.5">Tata letak tetap rapi, seluruh teks menggunakan Bahasa Inggris &amp; dapat diubah sesuai kebutuhan.</p>
+        </div>
+        <button type="button" onclick="tutupModalEditorSertifikat()" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center">
+          <i class="ri-close-line text-lg"></i>
+        </button>
+      </div>
+
+      <div class="p-6 overflow-y-auto custom-scrollbar space-y-5 text-xs">
+        <!-- Kop / Header Instansi -->
+        <div class="space-y-3">
+          <div class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1">1. Kop Surat &amp; Kode Dokumen (Header)</div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block font-extrabold text-slate-600 mb-1">Kode Form Dokumen (Pojok Kanan Atas)</label>
+              <input type="text" id="tplDocCode" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+            </div>
+            <div>
+              <label class="block font-extrabold text-slate-600 mb-1">Nama Kementerian (Baris 1)</label>
+              <input type="text" id="tplMinistry" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+            </div>
+            <div>
+              <label class="block font-extrabold text-slate-600 mb-1">Nama Institusi (Baris 2)</label>
+              <input type="text" id="tplInstitution" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+            </div>
+            <div>
+              <label class="block font-extrabold text-slate-600 mb-1">Unit Pelaksana (Baris 3)</label>
+              <input type="text" id="tplUnit" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Judul Sertifikat & Subjudul -->
+        <div class="space-y-3">
+          <div class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1">2. Judul Utama &amp; Keterangan Tes</div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block font-extrabold text-slate-600 mb-1">Judul Sertifikat</label>
+              <input type="text" id="tplCertTitle" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+            </div>
+            <div>
+              <label class="block font-extrabold text-slate-600 mb-1">Kalimat Pembuka</label>
+              <input type="text" id="tplPresentedTo" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+            </div>
+            <div>
+              <label class="block font-extrabold text-slate-600 mb-1">Keterangan Skor TOEFL</label>
+              <input type="text" id="tplScoreDescToefl" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+            </div>
+            <div>
+              <label class="block font-extrabold text-slate-600 mb-1">Keterangan Skor SSPECT</label>
+              <input type="text" id="tplScoreDescSspect" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Label Identitas & Kolom Nilai -->
+        <div class="space-y-3">
+          <div class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1">3. Label Identitas &amp; Tabel Skor (Bahasa Inggris)</div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block font-extrabold text-slate-600 mb-1">Label Nama</label>
+              <input type="text" id="tplLblName" class="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+            </div>
+            <div>
+              <label class="block font-extrabold text-slate-600 mb-1">Label NIM</label>
+              <input type="text" id="tplLblNim" class="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+            </div>
+            <div>
+              <label class="block font-extrabold text-slate-600 mb-1">Label Tempat/Tgl Lahir</label>
+              <input type="text" id="tplLblDob" class="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+            </div>
+            <div>
+              <label class="block font-extrabold text-slate-600 mb-1">Label Prodi</label>
+              <input type="text" id="tplLblProdi" class="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+            </div>
+            <div>
+              <label class="block font-extrabold text-slate-600 mb-1">Label Tanggal Tes</label>
+              <input type="text" id="tplLblTestDate" class="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+            </div>
+            <div>
+              <label class="block font-extrabold text-slate-600 mb-1">Label Total Skor</label>
+              <input type="text" id="tplLblTotalScore" class="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+            </div>
+            <div>
+              <label class="block font-extrabold text-slate-600 mb-1">Kolom Nilai 1</label>
+              <input type="text" id="tplColSec1" class="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+            </div>
+            <div>
+              <label class="block font-extrabold text-slate-600 mb-1">Kolom Nilai 2</label>
+              <input type="text" id="tplColSec2" class="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+            </div>
+            <div>
+              <label class="block font-extrabold text-slate-600 mb-1">Kolom Nilai 3</label>
+              <input type="text" id="tplColSec3" class="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Penandatangan & Footer -->
+        <div class="space-y-3">
+          <div class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1">4. Pejabat Penandatangan &amp; Alamat Footer</div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block font-extrabold text-slate-600 mb-1">Jabatan Penandatangan</label>
+              <input type="text" id="tplHeadTitle" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+            </div>
+            <div>
+              <label class="block font-extrabold text-slate-600 mb-1">Nama Kepala UPA Bahasa</label>
+              <input type="text" id="tplHeadName" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+            </div>
+            <div>
+              <label class="block font-extrabold text-slate-600 mb-1">NIP Kepala UPA Bahasa</label>
+              <input type="text" id="tplHeadNip" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block font-extrabold text-slate-600 mb-1">Alamat Kampus (Baris 1)</label>
+              <input type="text" id="tplFooterAddr1" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+            </div>
+            <div>
+              <label class="block font-extrabold text-slate-600 mb-1">Telepon / Fax (Baris 2)</label>
+              <input type="text" id="tplFooterAddr2" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+            </div>
+            <div>
+              <label class="block font-extrabold text-slate-600 mb-1">Website &amp; Email (Baris 3)</label>
+              <input type="text" id="tplFooterAddr3" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 shrink-0">
+        <button type="button" onclick="resetDefaultTemplateSertifikat()" class="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-rose-50 text-slate-600 hover:text-rose-600 text-xs font-extrabold">
+          Reset Default Full English
+        </button>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="tutupModalEditorSertifikat()" class="px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 text-xs font-extrabold">
+            Batal
+          </button>
+          <button type="button" onclick="simpanTemplateSertifikat()" class="px-5 py-2 rounded-xl bg-[#169C53] hover:bg-[#0E7A3F] text-white text-xs font-extrabold inline-flex items-center gap-1.5">
+            <i class="ri-save-3-line"></i>
+            <span>Simpan Perubahan Sertifikat</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ==================== SCRIPTS ==================== -->
   <script src="js/supabase-config.js"></script>
   <script src="js/modul-rekapan.js"></script>
   <script src="./js/admin-profil-global.js"></script>
+
+  <!-- ==================== SCRIPT PENGATURAN TEMPLATE SERTIFIKAT FULL ENGLISH ==================== -->
+  <script>
+    const STORAGE_KEY_CERT_TEMPLATE = "upa_bahasa_cert_template_v1";
+
+    const DEFAULT_CERT_TEMPLATE = {
+      docCode: "FM-P2M-04-01-01A/R3",
+      ministry: "MINISTRY OF HIGHER EDUCATION, SCIENCE, AND TECHNOLOGY",
+      institution: "STATE POLYTECHNIC OF SAMARINDA",
+      unit: "LANGUAGE UNIT (UPA BAHASA)",
+      certTitle: "CERTIFICATE OF ACHIEVEMENT",
+      presentedTo: "This is presented to",
+      scoreDescToefl: "Achieved the following score on TOEFL Prediction Test",
+      scoreDescSspect: "Achieved the following score on SSPECT (Samarinda State Polytechnic English Competency Test)",
+      lblName: "Name",
+      lblNim: "Student ID (NIM)",
+      lblDob: "Place, Date of Birth",
+      lblProdi: "Study Program",
+      lblTestDate: "Date of Test Taken",
+      colSec1: "Listening Comprehension",
+      colSec2: "Structure and Written Expression",
+      colSec3: "Reading Comprehension",
+      lblTotalScore: "Total Score",
+      headTitle: "Head of Language Unit",
+      headName: "Dwi Titi Maesaroh, S.Pd., M.Pd.",
+      headNip: "NIP. 198901172024062002",
+      footerAddr1: "Dr. Ciptomangunkusumo Street, Gunung Panjang Campus, Samarinda 75131",
+      footerAddr2: "Phone: 0541-260588, 260553, 262018 Fax: 260355",
+      footerAddr3: "Website: www.polnes.ac.id Email: bahasa@polnes.ac.id / polnes@polnes.ac.id"
+    };
+
+    function getCertTemplateConfig() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY_CERT_TEMPLATE) || "{}");
+        return { ...DEFAULT_CERT_TEMPLATE, ...saved };
+      } catch (e) {
+        return { ...DEFAULT_CERT_TEMPLATE };
+      }
+    }
+
+    function bukaModalEditorSertifikat() {
+      const cfg = getCertTemplateConfig();
+      document.getElementById("tplDocCode").value = cfg.docCode;
+      document.getElementById("tplMinistry").value = cfg.ministry;
+      document.getElementById("tplInstitution").value = cfg.institution;
+      document.getElementById("tplUnit").value = cfg.unit;
+      document.getElementById("tplCertTitle").value = cfg.certTitle;
+      document.getElementById("tplPresentedTo").value = cfg.presentedTo;
+      document.getElementById("tplScoreDescToefl").value = cfg.scoreDescToefl;
+      document.getElementById("tplScoreDescSspect").value = cfg.scoreDescSspect;
+      document.getElementById("tplLblName").value = cfg.lblName;
+      document.getElementById("tplLblNim").value = cfg.lblNim;
+      document.getElementById("tplLblDob").value = cfg.lblDob;
+      document.getElementById("tplLblProdi").value = cfg.lblProdi;
+      document.getElementById("tplLblTestDate").value = cfg.lblTestDate;
+      document.getElementById("tplColSec1").value = cfg.colSec1;
+      document.getElementById("tplColSec2").value = cfg.colSec2;
+      document.getElementById("tplColSec3").value = cfg.colSec3;
+      document.getElementById("tplLblTotalScore").value = cfg.lblTotalScore;
+      document.getElementById("tplHeadTitle").value = cfg.headTitle;
+      document.getElementById("tplHeadName").value = cfg.headName;
+      document.getElementById("tplHeadNip").value = cfg.headNip;
+      document.getElementById("tplFooterAddr1").value = cfg.footerAddr1;
+      document.getElementById("tplFooterAddr2").value = cfg.footerAddr2;
+      document.getElementById("tplFooterAddr3").value = cfg.footerAddr3;
+
+      const modal = document.getElementById("modalEditorSertifikat");
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+    }
+
+    function tutupModalEditorSertifikat() {
+      const modal = document.getElementById("modalEditorSertifikat");
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    }
+
+    function simpanTemplateSertifikat() {
+      const updated = {
+        docCode: document.getElementById("tplDocCode").value.trim() || DEFAULT_CERT_TEMPLATE.docCode,
+        ministry: document.getElementById("tplMinistry").value.trim() || DEFAULT_CERT_TEMPLATE.ministry,
+        institution: document.getElementById("tplInstitution").value.trim() || DEFAULT_CERT_TEMPLATE.institution,
+        unit: document.getElementById("tplUnit").value.trim() || DEFAULT_CERT_TEMPLATE.unit,
+        certTitle: document.getElementById("tplCertTitle").value.trim() || DEFAULT_CERT_TEMPLATE.certTitle,
+        presentedTo: document.getElementById("tplPresentedTo").value.trim() || DEFAULT_CERT_TEMPLATE.presentedTo,
+        scoreDescToefl: document.getElementById("tplScoreDescToefl").value.trim() || DEFAULT_CERT_TEMPLATE.scoreDescToefl,
+        scoreDescSspect: document.getElementById("tplScoreDescSspect").value.trim() || DEFAULT_CERT_TEMPLATE.scoreDescSspect,
+        lblName: document.getElementById("tplLblName").value.trim() || DEFAULT_CERT_TEMPLATE.lblName,
+        lblNim: document.getElementById("tplLblNim").value.trim() || DEFAULT_CERT_TEMPLATE.lblNim,
+        lblDob: document.getElementById("tplLblDob").value.trim() || DEFAULT_CERT_TEMPLATE.lblDob,
+        lblProdi: document.getElementById("tplLblProdi").value.trim() || DEFAULT_CERT_TEMPLATE.lblProdi,
+        lblTestDate: document.getElementById("tplLblTestDate").value.trim() || DEFAULT_CERT_TEMPLATE.lblTestDate,
+        colSec1: document.getElementById("tplColSec1").value.trim() || DEFAULT_CERT_TEMPLATE.colSec1,
+        colSec2: document.getElementById("tplColSec2").value.trim() || DEFAULT_CERT_TEMPLATE.colSec2,
+        colSec3: document.getElementById("tplColSec3").value.trim() || DEFAULT_CERT_TEMPLATE.colSec3,
+        lblTotalScore: document.getElementById("tplLblTotalScore").value.trim() || DEFAULT_CERT_TEMPLATE.lblTotalScore,
+        headTitle: document.getElementById("tplHeadTitle").value.trim() || DEFAULT_CERT_TEMPLATE.headTitle,
+        headName: document.getElementById("tplHeadName").value.trim() || DEFAULT_CERT_TEMPLATE.headName,
+        headNip: document.getElementById("tplHeadNip").value.trim() || DEFAULT_CERT_TEMPLATE.headNip,
+        footerAddr1: document.getElementById("tplFooterAddr1").value.trim() || DEFAULT_CERT_TEMPLATE.footerAddr1,
+        footerAddr2: document.getElementById("tplFooterAddr2").value.trim() || DEFAULT_CERT_TEMPLATE.footerAddr2,
+        footerAddr3: document.getElementById("tplFooterAddr3").value.trim() || DEFAULT_CERT_TEMPLATE.footerAddr3
+      };
+
+      localStorage.setItem(STORAGE_KEY_CERT_TEMPLATE, JSON.stringify(updated));
+      tutupModalEditorSertifikat();
+      alert("Pengaturan teks & tampilan sertifikat Full English berhasil disimpan!");
+    }
+
+    function resetDefaultTemplateSertifikat() {
+      localStorage.setItem(STORAGE_KEY_CERT_TEMPLATE, JSON.stringify(DEFAULT_CERT_TEMPLATE));
+      bukaModalEditorSertifikat();
+    }
+
+    function terapkanTeksInggrisPadaHtmlSertifikat(htmlStr) {
+      if (!htmlStr || typeof htmlStr !== "string") return htmlStr;
+      const cfg = getCertTemplateConfig();
+
+      const kamusProdiInggris = [
+        [/D3\s*-\s*TEKNIK INFORMATIKA/gi, "D3 - Informatics Engineering"],
+        [/D3\s*-\s*TEKNIK KOMPUTER/gi, "D3 - Computer Engineering"],
+        [/D4\s*-\s*TEKNIK INFORMATIKA MULTIMEDIA/gi, "D4 - Multimedia Informatics Engineering"],
+        [/D4\s*-\s*TEKNOLOGI REKAYASA KOMPUTER/gi, "D4 - Computer Engineering Technology"],
+        [/D3\s*-\s*AKUNTANSI/gi, "D3 - Accounting"],
+        [/D4\s*-\s*AKUNTANSI MANAJERIAL/gi, "D4 - Managerial Accounting"],
+        [/D4\s*-\s*KEUANGAN PERBANKAN/gi, "D4 - Banking and Finance"],
+        [/D3\s*-\s*ADMINISTRASI BISNIS/gi, "D3 - Business Administration"],
+        [/D4\s*-\s*MANAJEMEN PEMASARAN/gi, "D4 - Marketing Management"],
+        [/D4\s*-\s*BISNIS DIGITAL/gi, "D4 - Digital Business"],
+        [/D3\s*-\s*PARIWISATA/gi, "D3 - Tourism"],
+        [/D4\s*-\s*USAHA PERJALANAN WISATA/gi, "D4 - Travel Business Management"],
+        [/D4\s*-\s*PENGELOLAAN PERHOTELAN/gi, "D4 - Hospitality Management"],
+        [/D3\s*-\s*TEKNIK SIPIL/gi, "D3 - Civil Engineering"],
+        [/D4\s*-\s*TEKNOLOGI REKAYASA KONSTRUKSI BANGUNAN GEDUNG/gi, "D4 - Building Construction Engineering Technology"],
+        [/D4\s*-\s*REKAYASA JALAN DAN JEMBATAN/gi, "D4 - Road and Bridge Engineering"],
+        [/D4\s*-\s*REKAYASA KONSTRUKSI BANGUNAN AIR/gi, "D4 - Hydraulic Structure Engineering"],
+        [/D3\s*-\s*TEKNIK LISTRIK/gi, "D3 - Electrical Engineering"],
+        [/D4\s*-\s*TEKNIK LISTRIK/gi, "D4 - Electrical Engineering"],
+        [/D3\s*-\s*TEKNIK ALAT BERAT/gi, "D3 - Heavy Equipment Engineering"],
+        [/D3\s*-\s*PERAWATAN DAN PERBAIKAN MESIN/gi, "D3 - Machine Maintenance and Repair"],
+        [/D4\s*-\s*TEKNIK MESIN PRODUKSI DAN PERAWATAN/gi, "D4 - Production and Maintenance Mechanical Engineering"],
+        [/D3\s*-\s*PETRO DAN OLEO KIMIA/gi, "D3 - Petro and Oleo Chemistry"],
+        [/D4\s*-\s*TEKNOLOGI KIMIA INDUSTRI/gi, "D4 - Industrial Chemical Technology"],
+        [/D4\s*-\s*ARSITEKTUR BANGUNAN GEDUNG/gi, "D4 - Building Architecture"],
+        [/D4\s*-\s*DESAIN PRODUK KAYU DAN SERAT/gi, "D4 - Wood and Fiber Product Design"],
+        [/D3\s*-\s*NAUTIKA/gi, "D3 - Nautical Studies"],
+        [/D3\s*-\s*TEKNIKA/gi, "D3 - Marine Engineering"],
+        [/D3\s*-\s*KETATALAKSANAAN PELAYARAN DAN NIAGA KEPELABUHAN/gi, "D3 - Port and Shipping Management"]
+      ];
+
+      let out = htmlStr
+        .replace(/FM-P2M-04-01-01A\/R3/g, cfg.docCode)
+        .replace(/KEMENTERIAN PENDIDIKAN,\s*TINGGI,\s*SAINS,\s*DAN TEKNOLOGI/gi, cfg.ministry)
+        .replace(/KEMENTERIAN PENDIDIKAN,\s*KEBUDAYAAN,\s*RISET,\s*DAN TEKNOLOGI/gi, cfg.ministry)
+        .replace(/POLITEKNIK NEGERI SAMARINDA/gi, cfg.institution)
+        .replace(/UPA\.?\s*BAHASA/gi, cfg.unit)
+        .replace(/CERTIFICATE OF ACHIEVEMENT/gi, cfg.certTitle)
+        .replace(/This is presented to/gi, cfg.presentedTo)
+        .replace(/Achieved the following score on Toefl Prediction Test/gi, cfg.scoreDescToefl)
+        .replace(/Achieved the following score on SSPECT(?:\s*Test)?/gi, cfg.scoreDescSspect)
+        .replace(/>Name</g, `>${cfg.lblName}<`)
+        .replace(/>NIM</g, `>${cfg.lblNim}<`)
+        .replace(/Place,\s*date of birth/gi, cfg.lblDob)
+        .replace(/Program Study/gi, cfg.lblProdi)
+        .replace(/Date of test taken/gi, cfg.lblTestDate)
+        .replace(/Listening\s*(?:<br\s*\/?>|\s)*Comprehension/gi, cfg.colSec1)
+        .replace(/Structure and\s*(?:<br\s*\/?>|\s)*Written Expression/gi, cfg.colSec2)
+        .replace(/Reading\s*(?:<br\s*\/?>|\s)*Comprehension/gi, cfg.colSec3)
+        .replace(/Total Score/gi, cfg.lblTotalScore)
+        .replace(/Head of UPA\.?\s*Bahasa/gi, cfg.headTitle)
+        .replace(/Dwi Titi Maesaroh,\s*S\.Pd\.,\s*M\.Pd\./gi, cfg.headName)
+        .replace(/NIP\.\s*198901172024062002/gi, cfg.headNip)
+        .replace(/Jalan Dr\.\s*Ciptomangunkusumo Kampus Gunung Panjang Samarinda 75131/gi, cfg.footerAddr1)
+        .replace(/Telepon:\s*0541-260588,\s*260553,\s*262018\s*FAX\s*260355/gi, cfg.footerAddr2)
+        .replace(/Laman\s*:\s*www\.polnes\.ac\.id\s*Surel\s*:\s*bahasa@polnes\.ac\.id\s*;\s*polnes@polnes\.ac\.id/gi, cfg.footerAddr3);
+
+      kamusProdiInggris.forEach(([regex, eng]) => {
+        out = out.replace(regex, eng);
+      });
+
+      return out;
+    }
+
+    // Otomatis menyuntikkan teks Full English + kustomisasi saat window.open cetak sertifikat dipanggil
+    (function hookCetakSertifikatFullEnglish() {
+      const originalOpen = window.open;
+      window.open = function (...args) {
+        const win = originalOpen.apply(this, args);
+        if (win && win.document) {
+          const origWrite = win.document.write.bind(win.document);
+          win.document.write = function (markup) {
+            return origWrite(terapkanTeksInggrisPadaHtmlSertifikat(markup));
+          };
+        }
+        return win;
+      };
+    })();
+  </script>
 </body>
 </html>

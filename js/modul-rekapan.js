@@ -1535,7 +1535,7 @@ function eksekusiUnduhExcelRekapan() {
   tutupModalUnduhExcel();
 }
 
-// ==================== 8. CETAK SERTIFIKAT RESMI (100% SAMA CONTOH + SHA-256 + QR VERIFIKASI) ====================
+// ==================== 8. CETAK SERTIFIKAT RESMI (FULL ENGLISH + EDITOR + SHA-256 + QR VERIFIKASI) ====================
 async function unduhSertifikatByNim(nimTarget, jenisSertifikat) {
   const m = rekapanState.semuaData.find(x => String(x.nim) === String(nimTarget));
   if (!m) return;
@@ -1551,6 +1551,43 @@ async function unduhSertifikatMahasiswaAktif(jenisSertifikat) {
 function formatProgramStudySertifikat(prodiRaw) {
   const teks = String(prodiRaw || "-").trim();
   if (teks === "-") return "-";
+
+  const kamusProdi = [
+    [/D3\s*-\s*TEKNIK INFORMATIKA/i, "D3 - Informatics Engineering"],
+    [/D3\s*-\s*TEKNIK KOMPUTER/i, "D3 - Computer Engineering"],
+    [/D4\s*-\s*TEKNIK INFORMATIKA MULTIMEDIA/i, "D4 - Multimedia Informatics Engineering"],
+    [/D4\s*-\s*TEKNOLOGI REKAYASA KOMPUTER/i, "D4 - Computer Engineering Technology"],
+    [/D3\s*-\s*AKUNTANSI/i, "D3 - Accounting"],
+    [/D4\s*-\s*AKUNTANSI MANAJERIAL/i, "D4 - Managerial Accounting"],
+    [/D4\s*-\s*KEUANGAN PERBANKAN/i, "D4 - Banking and Finance"],
+    [/D3\s*-\s*ADMINISTRASI BISNIS/i, "D3 - Business Administration"],
+    [/D4\s*-\s*MANAJEMEN PEMASARAN/i, "D4 - Marketing Management"],
+    [/D4\s*-\s*BISNIS DIGITAL/i, "D4 - Digital Business"],
+    [/D3\s*-\s*PARIWISATA/i, "D3 - Tourism"],
+    [/D4\s*-\s*USAHA PERJALANAN WISATA/i, "D4 - Travel Business Management"],
+    [/D4\s*-\s*PENGELOLAAN PERHOTELAN/i, "D4 - Hospitality Management"],
+    [/D3\s*-\s*TEKNIK SIPIL/i, "D3 - Civil Engineering"],
+    [/D4\s*-\s*TEKNOLOGI REKAYASA KONSTRUKSI BANGUNAN GEDUNG/i, "D4 - Building Construction Engineering Technology"],
+    [/D4\s*-\s*REKAYASA JALAN DAN JEMBATAN/i, "D4 - Road and Bridge Engineering"],
+    [/D4\s*-\s*REKAYASA KONSTRUKSI BANGUNAN AIR/i, "D4 - Hydraulic Structure Engineering"],
+    [/D3\s*-\s*TEKNIK LISTRIK/i, "D3 - Electrical Engineering"],
+    [/D4\s*-\s*TEKNIK LISTRIK/i, "D4 - Electrical Engineering"],
+    [/D3\s*-\s*TEKNIK ALAT BERAT/i, "D3 - Heavy Equipment Engineering"],
+    [/D3\s*-\s*PERAWATAN DAN PERBAIKAN MESIN/i, "D3 - Machine Maintenance and Repair"],
+    [/D4\s*-\s*TEKNIK MESIN PRODUKSI DAN PERAWATAN/i, "D4 - Production and Maintenance Mechanical Engineering"],
+    [/D3\s*-\s*PETRO DAN OLEO KIMIA/i, "D3 - Petro and Oleo Chemistry"],
+    [/D4\s*-\s*TEKNOLOGI KIMIA INDUSTRI/i, "D4 - Industrial Chemical Technology"],
+    [/D4\s*-\s*ARSITEKTUR BANGUNAN GEDUNG/i, "D4 - Building Architecture"],
+    [/D4\s*-\s*DESAIN PRODUK KAYU DAN SERAT/i, "D4 - Wood and Fiber Product Design"],
+    [/D3\s*-\s*NAUTIKA/i, "D3 - Nautical Studies"],
+    [/D3\s*-\s*TEKNIKA/i, "D3 - Marine Engineering"],
+    [/D3\s*-\s*KETATALAKSANAAN PELAYARAN DAN NIAGA KEPELABUHAN/i, "D3 - Port and Shipping Management"]
+  ];
+
+  for (const [regex, eng] of kamusProdi) {
+    if (regex.test(teks)) return eng;
+  }
+
   return teks
     .toLowerCase()
     .replace(/\bd3\b/gi, "D3")
@@ -1558,10 +1595,50 @@ function formatProgramStudySertifikat(prodiRaw) {
     .replace(/\b\w/g, c => c.toUpperCase());
 }
 
+function getKonfigurasiTemplateSertifikat() {
+  const defaultCfg = {
+    docCode: "FM-P2M-04-01-01A/R3",
+    ministry: "MINISTRY OF HIGHER EDUCATION, SCIENCE, AND TECHNOLOGY",
+    institution: "STATE POLYTECHNIC OF SAMARINDA",
+    unit: "LANGUAGE UNIT (UPA BAHASA)",
+    certTitle: "CERTIFICATE OF ACHIEVEMENT",
+    presentedTo: "This is presented to",
+    scoreDescToefl: "Achieved the following score on TOEFL Prediction Test",
+    scoreDescSspect: "Achieved the following score on SSPECT (Samarinda State Polytechnic English Competency Test)",
+    lblName: "Name",
+    lblNim: "Student ID (NIM)",
+    lblDob: "Place, Date of Birth",
+    lblProdi: "Study Program",
+    lblTestDate: "Date of Test Taken",
+    colSec1: "Listening Comprehension",
+    colSec2: "Structure and Written Expression",
+    colSec3: "Reading Comprehension",
+    lblTotalScore: "Total Score",
+    headTitle: "Head of Language Unit",
+    headName: "Dwi Titi Maesaroh, S.Pd., M.Pd.",
+    headNip: "NIP. 198901172024062002",
+    footerAddr1: "Dr. Ciptomangunkusumo Street, Gunung Panjang Campus, Samarinda 75131",
+    footerAddr2: "Phone: 0541-260588, 260553, 262018 Fax: 260355",
+    footerAddr3: "Website: www.polnes.ac.id Email: bahasa@polnes.ac.id / polnes@polnes.ac.id"
+  };
+
+  if (typeof window.getCertTemplateConfig === "function") {
+    return { ...defaultCfg, ...window.getCertTemplateConfig() };
+  }
+
+  try {
+    const saved = JSON.parse(localStorage.getItem("upa_bahasa_cert_template_v1") || "{}");
+    return { ...defaultCfg, ...saved };
+  } catch (_) {
+    return defaultCfg;
+  }
+}
+
 async function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
   const isSspect = String(jenisSertifikat).toUpperCase() === "SSPECT";
+  const tpl = getKonfigurasiTemplateSertifikat();
 
-  const jenisTesText = isSspect ? "SSPECT Placement Test" : "Toefl Prediction Test";
+  const kalimatSkor = isSspect ? tpl.scoreDescSspect : tpl.scoreDescToefl;
   const defaultKodeSurat = isSspect ? "SSPECT" : "TOEFL-P";
   const nomor = m.nomor_sertifikat || `0355 / PL7.18 / UPA.BAHASA / ${defaultKodeSurat} / ${new Date().getFullYear()}`;
   const ttl = m.tempat_tanggal_lahir || "Samarinda, -";
@@ -1603,9 +1680,9 @@ async function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
       <table class="score-grid">
         <thead>
           <tr>
-            <th>Listening<br />Comprehension</th>
-            <th>Reading<br />Comprehension</th>
-            <th style="font-style:normal;">Total Score</th>
+            <th>${tpl.colSec1}</th>
+            <th>${tpl.colSec3}</th>
+            <th style="font-style:normal;">${tpl.lblTotalScore}</th>
           </tr>
         </thead>
         <tbody>
@@ -1624,10 +1701,10 @@ async function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
       <table class="score-grid">
         <thead>
           <tr>
-            <th>Listening<br />Comprehension</th>
-            <th>Structure and<br />Written Expression</th>
-            <th>Reading<br />Comprehension</th>
-            <th style="font-style:normal;">Total Score</th>
+            <th>${tpl.colSec1}</th>
+            <th>${tpl.colSec2}</th>
+            <th>${tpl.colSec3}</th>
+            <th style="font-style:normal;">${tpl.lblTotalScore}</th>
           </tr>
         </thead>
         <tbody>
@@ -1650,10 +1727,10 @@ async function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
 
   win.document.write(`
     <!DOCTYPE html>
-    <html lang="id">
+    <html lang="en">
     <head>
       <meta charset="UTF-8" />
-      <title>Sertifikat ${isSspect ? "SSPECT" : "TOEFL"} - ${m.nama_mahasiswa} (${m.nim})</title>
+      <title>Certificate ${isSspect ? "SSPECT" : "TOEFL"} - ${m.nama_mahasiswa} (${m.nim})</title>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
       <style>
         @page {
@@ -1890,13 +1967,13 @@ async function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
     <body>
       <div class="toolbar-cetak">
         <div>
-          <strong>Sertifikat Resmi ${isSspect ? "SSPECT" : "TOEFL"}</strong> &mdash; ${m.nama_mahasiswa} (${m.nim})
+          <strong>Official Certificate ${isSspect ? "SSPECT" : "TOEFL"}</strong> &mdash; ${m.nama_mahasiswa} (${m.nim})
         </div>
-        <button type="button" onclick="window.print()">Cetak / Simpan PDF (A4 Landscape)</button>
+        <button type="button" onclick="window.print()">Print / Save PDF (A4 Landscape)</button>
       </div>
 
       <div class="page-a4">
-        <div class="doc-code">FM-P2M-04-01-01A/R3</div>
+        <div class="doc-code">${tpl.docCode}</div>
 
         <div class="outer-frame">
           <div class="watermark-gedung"></div>
@@ -1904,50 +1981,50 @@ async function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
           <div class="kop-header">
             <img src="${logoUrl}" alt="Logo POLNES" />
             <div class="kop-text">
-              <div class="ministry">KEMENTERIAN PENDIDIKAN, TINGGI, SAINS, DAN TEKNOLOGI</div>
-              <div class="campus">POLITEKNIK NEGERI SAMARINDA</div>
-              <div class="unit">UPA. BAHASA</div>
+              <div class="ministry">${tpl.ministry}</div>
+              <div class="campus">${tpl.institution}</div>
+              <div class="unit">${tpl.unit}</div>
             </div>
           </div>
 
           <div class="cert-body">
             <div class="cert-title">
-              <h1>CERTIFICATE OF ACHIEVEMENT</h1>
+              <h1>${tpl.certTitle}</h1>
               <div class="no-surat">No : ${nomor}</div>
             </div>
 
-            <div class="presented-to">This is presented to</div>
+            <div class="presented-to">${tpl.presentedTo}</div>
 
             <table class="biodata-table">
               <tr>
-                <td class="lbl">Name</td>
+                <td class="lbl">${tpl.lblName}</td>
                 <td class="sep">:</td>
                 <td class="val-name">${m.nama_mahasiswa}</td>
               </tr>
               <tr>
-                <td class="lbl">NIM</td>
+                <td class="lbl">${tpl.lblNim}</td>
                 <td class="sep">:</td>
                 <td>${m.nim}</td>
               </tr>
               <tr>
-                <td class="lbl">Place, date of birth</td>
+                <td class="lbl">${tpl.lblDob}</td>
                 <td class="sep">:</td>
                 <td>${ttl}</td>
               </tr>
               <tr>
-                <td class="lbl">Program Study</td>
+                <td class="lbl">${tpl.lblProdi}</td>
                 <td class="sep">:</td>
                 <td>${prodiCantik}</td>
               </tr>
               <tr>
-                <td class="lbl">Date of test taken</td>
+                <td class="lbl">${tpl.lblTestDate}</td>
                 <td class="sep">:</td>
                 <td>${tglTes}</td>
               </tr>
             </table>
 
             <div class="achieved-line">
-              Achieved the following score on <span>${jenisTesText}</span>
+              ${kalimatSkor}
             </div>
 
             ${htmlTabelSkor}
@@ -1955,10 +2032,10 @@ async function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
             <div class="bottom-sign-row">
               <div class="ttd-box">
                 <div>Samarinda, ${tglTes}</div>
-                <div>Head of UPA. Bahasa</div>
+                <div>${tpl.headTitle}</div>
                 <div class="ttd-space"></div>
-                <div><b><u>Dwi Titi Maesaroh, S.Pd., M.Pd.</u></b></div>
-                <div>NIP. 198901172024062002</div>
+                <div><b><u>${tpl.headName}</u></b></div>
+                <div>${tpl.headNip}</div>
               </div>
 
               <div class="qr-verify-box">
@@ -1969,9 +2046,9 @@ async function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
           </div>
 
           <div class="footer-kampus">
-            <div>Jalan Dr. Ciptomangunkusumo Kampus Gunung Panjang Samarinda 75131</div>
-            <div>Telepon: 0541-260588, 260553, 262018 FAX 260355</div>
-            <div>Laman : www.polnes.ac.id Surel : bahasa@polnes.ac.id ; polnes@polnes.ac.id</div>
+            <div>${tpl.footerAddr1}</div>
+            <div>${tpl.footerAddr2}</div>
+            <div>${tpl.footerAddr3}</div>
           </div>
         </div>
       </div>
