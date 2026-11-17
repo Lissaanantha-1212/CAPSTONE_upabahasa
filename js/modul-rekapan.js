@@ -14,6 +14,9 @@ const rekapanState = {
   kolomTabelMaster: null
 };
 
+const CERT_BG_STORAGE_KEY = "upa_bahasa_cert_bg_custom";
+let tempUploadedCertBgDataUrl = null;
+
 function getDbClientRekapan() {
   return window.supabaseClient || window.supabase || null;
 }
@@ -1535,7 +1538,7 @@ function eksekusiUnduhExcelRekapan() {
   tutupModalUnduhExcel();
 }
 
-// ==================== 8. CETAK SERTIFIKAT RESMI (FULL ENGLISH + EDITOR + SHA-256 + QR VERIFIKASI) ====================
+// ==================== 8. CETAK SERTIFIKAT RESMI (FULL ENGLISH + LOGO POLNES.PNG + CUSTOM BG + SHA-256 + QR) ====================
 async function unduhSertifikatByNim(nimTarget, jenisSertifikat) {
   const m = rekapanState.semuaData.find(x => String(x.nim) === String(nimTarget));
   if (!m) return;
@@ -1634,6 +1637,97 @@ function getKonfigurasiTemplateSertifikat() {
   }
 }
 
+// ==================== HELPER UPLOAD & SIMPAN GAMBAR LATAR SERTIFIKAT ====================
+function handleUploadLatarSertifikat(event) {
+  const file = event?.target?.files?.[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement("canvas");
+      const maxWidth = 1600;
+      let width = img.width;
+      let height = img.height;
+
+      if (width > maxWidth) {
+        height = Math.round((height * maxWidth) / width);
+        width = maxWidth;
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, width, height);
+
+      tempUploadedCertBgDataUrl = canvas.toDataURL("image/jpeg", 0.82);
+      const prevImg = document.getElementById("previewLatarSertifikatModal");
+      const statusEl = document.getElementById("statusLatarSertifikatModal");
+      if (prevImg) prevImg.src = tempUploadedCertBgDataUrl;
+      if (statusEl) {
+        statusEl.textContent = "Status: Gambar latar baru siap diterapkan (klik Simpan Tampilan untuk menyimpan permanen)";
+        statusEl.className = "text-[11px] font-bold text-amber-600";
+      }
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function resetLatarSertifikatCustom() {
+  tempUploadedCertBgDataUrl = "__RESET__";
+  const prevImg = document.getElementById("previewLatarSertifikatModal");
+  const statusEl = document.getElementById("statusLatarSertifikatModal");
+  const fileInput = document.getElementById("inputUploadLatarSertifikat");
+  if (fileInput) fileInput.value = "";
+  if (prevImg) prevImg.src = "img/sertif.jpg";
+  if (statusEl) {
+    statusEl.textContent = "Status: Akan dikembalikan ke latar bawaan (klik Simpan Tampilan)";
+    statusEl.className = "text-[11px] font-bold text-rose-600";
+  }
+}
+
+function muatPreviewLatarSertifikatModal() {
+  tempUploadedCertBgDataUrl = null;
+  let savedBg = "";
+  try {
+    savedBg = localStorage.getItem(CERT_BG_STORAGE_KEY) || "";
+  } catch (_) {}
+
+  const prevImg = document.getElementById("previewLatarSertifikatModal");
+  const statusEl = document.getElementById("statusLatarSertifikatModal");
+  const fileInput = document.getElementById("inputUploadLatarSertifikat");
+  if (fileInput) fileInput.value = "";
+
+  if (savedBg) {
+    if (prevImg) prevImg.src = savedBg;
+    if (statusEl) {
+      statusEl.textContent = "Status: Menggunakan gambar latar kustom tersimpan";
+      statusEl.className = "text-[11px] font-bold text-[#169C53]";
+    }
+  } else {
+    if (prevImg) prevImg.src = "img/sertif.jpg";
+    if (statusEl) {
+      statusEl.textContent = "Status: Menggunakan latar bawaan (img/sertif.jpg)";
+      statusEl.className = "text-[11px] font-semibold text-slate-500";
+    }
+  }
+}
+
+function simpanLatarSertifikatPermanen() {
+  try {
+    if (tempUploadedCertBgDataUrl === "__RESET__") {
+      localStorage.removeItem(CERT_BG_STORAGE_KEY);
+    } else if (tempUploadedCertBgDataUrl) {
+      localStorage.setItem(CERT_BG_STORAGE_KEY, tempUploadedCertBgDataUrl);
+    }
+    tempUploadedCertBgDataUrl = null;
+  } catch (err) {
+    alert("Ukuran gambar terlalu besar untuk penyimpanan browser. Gunakan gambar di bawah 2MB.");
+  }
+}
+
 async function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
   const isSspect = String(jenisSertifikat).toUpperCase() === "SSPECT";
   const tpl = getKonfigurasiTemplateSertifikat();
@@ -1661,12 +1755,22 @@ async function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
   const shaFull = await generateSha256Sertifikat(m, isSspect ? "SSPECT" : "TOEFL");
   const shaParam = shaFull.substring(0, 12);
 
-  const logoUrl = new URL("./img/polnes.png", window.location.href).href;
-  const bgGedungUrl = new URL("./img/sertif.jpg", window.location.href).href;
+  // Logo selalu ambil dari folder img/polnes.png (dengan fallback ../img/polnes.png)
+  const logoUrl = new URL("img/polnes.png", window.location.href).href;
+  const logoFallbackUrl = new URL("../img/polnes.png", window.location.href).href;
+
+  // Latar belakang: prioritaskan hasil upload tersimpan di localStorage, jika tidak ada pakai img/sertif.jpg
+  let bgGedungUrl = "";
+  try {
+    bgGedungUrl = localStorage.getItem(CERT_BG_STORAGE_KEY) || "";
+  } catch (_) {}
+  if (!bgGedungUrl) {
+    bgGedungUrl = new URL("img/sertif.jpg", window.location.href).href;
+  }
 
   // URL QR ringkas & bersih agar titik QR renggang dan sangat mudah di-scan
   const urlValidasi = new URL(
-    `./validasi-sertifikat.html?nim=${encodeURIComponent(m.nim)}&jenis=${isSspect ? "SSPECT" : "TOEFL"}&sha=${shaParam}`,
+    `validasi-sertifikat.html?nim=${encodeURIComponent(m.nim)}&jenis=${isSspect ? "SSPECT" : "TOEFL"}&sha=${shaParam}`,
     window.location.href
   ).href;
 
@@ -1979,7 +2083,7 @@ async function cetakHalamanSertifikatResmi(m, jenisSertifikat = "TOEFL") {
           <div class="watermark-gedung"></div>
 
           <div class="kop-header">
-            <img src="${logoUrl}" alt="Logo POLNES" />
+            <img src="${logoUrl}" onerror="this.onerror=null; this.src='${logoFallbackUrl}';" alt="Logo POLNES" />
             <div class="kop-text">
               <div class="ministry">${tpl.ministry}</div>
               <div class="campus">${tpl.institution}</div>
