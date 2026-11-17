@@ -791,6 +791,14 @@
       }
     }
 
+    function getUrlAbsolutAset(pathRelatif) {
+      try {
+        return new URL(pathRelatif, window.location.href).href;
+      } catch (e) {
+        return pathRelatif;
+      }
+    }
+
     function bukaModalEditorSertifikat() {
       const cfg = getCertTemplateConfig();
       document.getElementById("tplDocCode").value = cfg.docCode;
@@ -877,6 +885,7 @@
     function terapkanTeksInggrisPadaHtmlSertifikat(htmlStr) {
       if (!htmlStr || typeof htmlStr !== "string") return htmlStr;
       const cfg = getCertTemplateConfig();
+      const urlLogoPolnes = getUrlAbsolutAset("img/polnes.png");
 
       const kamusProdiInggris = [
         [/D3\s*-\s*TEKNIK INFORMATIKA/gi, "D3 - Informatics Engineering"],
@@ -911,11 +920,12 @@
       ];
 
       let out = htmlStr
+        .replace(/src=["'](?:\.\/)?img\/polnes\.png["']/gi, `src="${urlLogoPolnes}"`)
         .replace(/FM-P2M-04-01-01A\/R3/g, cfg.docCode)
         .replace(/KEMENTERIAN PENDIDIKAN,\s*TINGGI,\s*SAINS,\s*DAN TEKNOLOGI/gi, cfg.ministry)
         .replace(/KEMENTERIAN PENDIDIKAN,\s*KEBUDAYAAN,\s*RISET,\s*DAN TEKNOLOGI/gi, cfg.ministry)
         .replace(/POLITEKNIK NEGERI SAMARINDA/gi, cfg.institution)
-        .replace(/UPA\.?\s*BAHASA/gi, cfg.unit)
+        .replace(/>UPA\.?\s*BAHASA</gi, `>${cfg.unit}<`)
         .replace(/CERTIFICATE OF ACHIEVEMENT/gi, cfg.certTitle)
         .replace(/This is presented to/gi, cfg.presentedTo)
         .replace(/Achieved the following score on Toefl Prediction Test/gi, cfg.scoreDescToefl)
@@ -943,7 +953,7 @@
       return out;
     }
 
-    // Otomatis menyuntikkan teks Full English + kustomisasi saat window.open cetak sertifikat dipanggil
+    // Otomatis menyuntikkan URL logo absolut + teks Full English saat window.open dipanggil
     (function hookCetakSertifikatFullEnglish() {
       const originalOpen = window.open;
       window.open = function (...args) {
