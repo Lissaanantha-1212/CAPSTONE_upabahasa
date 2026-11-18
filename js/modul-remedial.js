@@ -27,6 +27,19 @@ function formatTanggalIndoRem(tglStr) {
   return d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
 }
 
+function formatNomorMejaStudent(rawMeja, urutanIdx = 0) {
+  const str = String(rawMeja || "").trim().toUpperCase();
+  if (/^STUDENT\d+$/i.test(str)) {
+    const angka = str.replace(/\D/g, "");
+    return `STUDENT${angka.padStart(2, "0")}`;
+  }
+  const matchAngka = str.match(/(\d+)$/);
+  if (matchAngka) {
+    return `STUDENT${matchAngka[1].padStart(2, "0")}`;
+  }
+  return `STUDENT${String(urutanIdx + 1).padStart(2, "0")}`;
+}
+
 function isRowSudahSelesaiLog(item) {
   if (!item) return true;
   const st = String(item.status || item.status_log || "").trim().toUpperCase();
@@ -105,7 +118,7 @@ async function muatSemuaDataRemedial(tampilkanNotif = false) {
     remedialState.sesiTerkunci = terkunci;
 
     const inputNamaRombongan = document.getElementById("remNamaRombongan");
-    if (inputNamaRombongan && !inputNamaRombongan.value.trim()) {
+    if (inputNamaRombongan && inputNamaRombongan.tagName === "INPUT" && !inputNamaRombongan.value.trim()) {
       inputNamaRombongan.placeholder = `Otomatis: REMEDIAL-${terkunci.length + 1}`;
     }
 
@@ -318,7 +331,8 @@ async function kunciSesiRemedial() {
   const tanggal = document.getElementById("remTanggalUjian").value;
   const sesi = document.getElementById("remSesiUjian").value;
   const ruangLab = document.getElementById("remRuangLab").value;
-  const customNama = document.getElementById("remNamaRombongan").value.trim().toUpperCase();
+  const elRombongan = document.getElementById("remNamaRombongan");
+  const customNama = String(elRombongan?.value || "").trim().toUpperCase();
 
   if (remedialState.selectedIds.size === 0) {
     alert("Centang minimal 1 mahasiswa dari daftar antrean remedial terlebih dahulu!");
@@ -346,7 +360,6 @@ async function kunciSesiRemedial() {
   );
 
   const kodeRombongan = customNama || `REMEDIAL-${remedialState.sesiTerkunci.length + 1}`;
-  const kodePrefixMeja = ruangLab.toUpperCase().includes("B") ? "LABB" : "LABA";
 
   if (!confirm(`Kunci sesi "${kodeRombongan}" untuk ${pesertaTerpilih.length} mahasiswa di ${ruangLab} pada ${formatTanggalIndoRem(tanggal)} (${sesi})?`)) {
     return;
@@ -374,19 +387,25 @@ async function kunciSesiRemedial() {
 
     if (errJadwal) throw errJadwal;
 
-    // 2. Masukkan rincian mahasiswa & nomor mejanya ke `peserta_ujian`
+    // 2. Masukkan rincian mahasiswa & nomor mejanya (STUDENT01, STUDENT02, dst.) ke `peserta_ujian`
     const payloadPeserta = pesertaTerpilih.map((mhs, idx) => {
-      const noMeja = `${kodePrefixMeja}-${String(idx + 1).padStart(2, "0")}`;
+      const noMeja = `STUDENT${String(idx + 1).padStart(2, "0")}`;
       return {
         jadwal_id: insertedJadwal.id,
         id_meja: noMeja,
         nim: String(mhs.nim || "").trim(),
         nama: String(mhs.nama_mahasiswa || "-").toUpperCase(),
-        nama_kelas: kodeRombongan
+        nama_kelas: kodeRombongan,
+        prodi: String(mhs.program_studi || "-").trim()
       };
     });
 
-    const { error: errPeserta } = await db.from("peserta_ujian").insert(payloadPeserta);
+    let { error: errPeserta } = await db.from("peserta_ujian").insert(payloadPeserta);
+    if (errPeserta && String(errPeserta.message || "").toLowerCase().includes("prodi")) {
+      const payloadTanpaProdi = payloadPeserta.map(({ prodi, ...rest }) => rest);
+      const retry = await db.from("peserta_ujian").insert(payloadTanpaProdi);
+      errPeserta = retry.error;
+    }
     if (errPeserta) throw errPeserta;
 
     // 3. Hapus antrean mentah dari `pendaftaran_remedial` berdasarkan ID & NIM agar daftar antrean langsung bersih
@@ -399,7 +418,9 @@ async function kunciSesiRemedial() {
     }
 
     remedialState.selectedIds.clear();
-    document.getElementById("remNamaRombongan").value = "";
+    if (elRombongan && elRombongan.tagName === "INPUT") {
+      elRombongan.value = "";
+    }
     const checkAll = document.getElementById("checkAllAntrean");
     if (checkAll) checkAll.checked = false;
 
@@ -408,7 +429,7 @@ async function kunciSesiRemedial() {
     alert(
       `Sesi "${kodeRombongan}" Berhasil Dikunci & Masuk Jadwal Log!\n` +
       `• Lokasi & Waktu: ${ruangLab}, ${formatTanggalIndoRem(tanggal)} (${sesi})\n` +
-      `• Total Peserta Terplot: ${payloadPeserta.length} Mahasiswa (Meja ${kodePrefixMeja}-01 s/d ${kodePrefixMeja}-${String(payloadPeserta.length).padStart(2, "0")})\n` +
+      `• Total Peserta Terplot: ${payloadPeserta.length} Mahasiswa (Meja STUDENT01 s/d STUDENT${String(payloadPeserta.length).padStart(2, "0")})\n` +
       `• Daftar antrean telah dibersihkan otomatis.`
     );
   } catch (err) {
@@ -501,7 +522,7 @@ function bukaModalPesertaSesiRemedial(jadwalId) {
         .map((p, idx) => `
           <tr class="hover:bg-slate-50">
             <td class="px-3 py-2.5 font-bold text-slate-400">${idx + 1}</td>
-            <td class="px-3 py-2.5 font-mono font-extrabold text-[#169C53]">${p.id_meja || "-"}</td>
+            <td class="px-3 py-2.5 font-mono font-extrabold text-[#169C53]">${formatNomorMejaStudent(p.id_meja, idx)}</td>
             <td class="px-3 py-2.5 font-mono font-bold text-slate-800">${p.nim || "-"}</td>
             <td class="px-3 py-2.5 font-extrabold text-slate-900 uppercase">${p.nama || "-"}</td>
             <td class="px-3 py-2.5 text-slate-600">${p.nama_kelas || "-"}</td>
@@ -543,7 +564,7 @@ async function batalkanKunciSesiRemedial(jadwalId, namaRombongan) {
       const kembalikanAntrean = pesertaSesi.map(p => ({
         nim: p.nim,
         nama_mahasiswa: p.nama,
-        program_studi: "Peserta Remedial",
+        program_studi: p.prodi || "Peserta Remedial",
         nama_kelas: p.nama_kelas || "-"
       }));
       await db.from("pendaftaran_remedial").insert(kembalikanAntrean);
@@ -558,32 +579,40 @@ async function batalkanKunciSesiRemedial(jadwalId, namaRombongan) {
   }
 }
 
-// ==================== 6. CETAK PDF BERITA ACARA & ABSENSI RESMI REMEDIAL ====================
+// ==================== 6. CETAK PDF BERITA ACARA & ABSENSI RESMI (IDENTIK JADWAL TEST & SSPECT) ====================
 function cetakPdfBeritaAcaraRemedial(jadwalId) {
   const sesiObj = remedialState.sesiTerkunci.find(x => x.id === jadwalId);
   if (!sesiObj) return;
 
-  const namaRombongan = sesiObj.nama_kelas || "REMEDIAL";
+  const namaRombongan = String(sesiObj.nama_kelas || "REMEDIAL-1").trim().toUpperCase();
   const pesertaSesi = remedialState.semuaPesertaUjian.filter(p =>
     p.jadwal_id === sesiObj.id ||
-    String(p.nama_kelas || "").trim().toUpperCase() === String(namaRombongan).trim().toUpperCase()
+    String(p.nama_kelas || "").trim().toUpperCase() === namaRombongan
   );
 
   const logoUrl = new URL("./img/polnes.png", window.location.href).href;
-  const tanggalCetak = formatTanggalIndoRem(sesiObj.tanggal);
+  const tanggalIso = String(sesiObj.tanggal || "-").trim();
+  const tanggalSamarinda = new Date().toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric"
+  });
 
   const barisPesertaHtml = pesertaSesi
-    .map((p, idx) => `
-      <tr>
-        <td style="text-align:center;">${idx + 1}</td>
-        <td style="text-align:center; font-weight:bold;">${p.id_meja || "-"}</td>
-        <td style="text-align:center;">${p.nim || "-"}</td>
-        <td style="text-transform:uppercase; font-weight:bold;">${p.nama || "-"}</td>
-        <td>${p.nama_kelas || "-"}</td>
-        <td style="height:24px;">${idx % 2 === 0 ? `${idx + 1}.` : ""}</td>
-        <td style="height:24px;">${idx % 2 === 1 ? `${idx + 1}.` : ""}</td>
-      </tr>
-    `)
+    .map((p, idx) => {
+      const idMejaStudent = formatNomorMejaStudent(p.id_meja, idx);
+      const prodiTampil = p.prodi || p.program_studi || "-";
+      return `
+        <tr>
+          <td style="text-align:center;">${idx + 1}</td>
+          <td style="text-align:center;">${p.nim || "-"}</td>
+          <td style="text-transform:uppercase;">${p.nama || "-"}</td>
+          <td>${prodiTampil}</td>
+          <td style="text-align:center; font-weight:bold;">${idMejaStudent}</td>
+          <td style="height:22px;"></td>
+        </tr>
+      `;
+    })
     .join("");
 
   const win = window.open("", "_blank", "width=1000,height=820");
@@ -597,33 +626,33 @@ function cetakPdfBeritaAcaraRemedial(jadwalId) {
     <html lang="id">
     <head>
       <meta charset="UTF-8" />
-      <title>Berita Acara &amp; Daftar Hadir Remedial - ${namaRombongan}</title>
+      <title>Berita Acara &amp; Daftar Hadir Pelaksanaan Ujian - ${namaRombongan}</title>
       <style>
-        @page { size: A4 portrait; margin: 14mm 15mm; }
+        @page { size: A4 portrait; margin: 12mm 14mm; }
         * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-        body { margin: 0; padding: 0; background: #cbd5e1; font-family: 'Times New Roman', Times, serif; color: #0f172a; }
-        .toolbar { background: #0f172a; color: #fff; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; font-family: Arial, sans-serif; font-size: 13px; }
+        body { margin: 0; padding: 0; background: #cbd5e1; font-family: Arial, Helvetica, sans-serif; color: #0f172a; }
+        .toolbar { background: #0f172a; color: #fff; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
         .toolbar button { background: #169C53; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        .sheet { width: 210mm; min-height: 297mm; margin: 12px auto; background: #fff; padding: 14mm 15mm; box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
-        .kop { display: flex; align-items: center; border-bottom: 3px double #0f172a; padding-bottom: 8px; margin-bottom: 14px; gap: 14px; }
+        .sheet { width: 210mm; min-height: 297mm; margin: 12px auto; background: #fff; padding: 12mm 14mm; box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
+        .kop { display: flex; align-items: center; border-bottom: 2.5px solid #0f172a; padding-bottom: 8px; margin-bottom: 12px; gap: 14px; }
         .kop img { width: 64px; height: 64px; object-fit: contain; }
         .kop-teks { flex: 1; text-align: center; line-height: 1.25; }
-        .kop-teks .kementerian { font-size: 11pt; font-weight: bold; }
-        .kop-teks .kampus { font-size: 13pt; font-weight: bold; }
-        .kop-teks .unit { font-size: 11.5pt; font-weight: bold; }
-        .kop-teks .alamat { font-size: 8.5pt; font-style: italic; margin-top: 2px; }
+        .kop-teks .kementerian { font-size: 10.5pt; font-weight: bold; }
+        .kop-teks .kampus { font-size: 12.5pt; font-weight: bold; }
+        .kop-teks .unit { font-size: 10.5pt; font-weight: bold; }
+        .kop-teks .alamat { font-size: 8pt; color: #334155; margin-top: 2px; }
         .judul-dok { text-align: center; margin-bottom: 12px; }
-        .judul-dok h2 { margin: 0; font-size: 12.5pt; text-decoration: underline; letter-spacing: 0.5px; }
-        .judul-dok p { margin: 3px 0 0 0; font-size: 10pt; font-weight: bold; }
-        .meta-table { width: 100%; border-collapse: collapse; font-size: 10pt; margin-bottom: 12px; }
-        .meta-table td { padding: 2.5px 4px; }
-        .absen-table { width: 100%; border-collapse: collapse; font-size: 9.5pt; margin-bottom: 16px; }
-        .absen-table th, .absen-table td { border: 1px solid #1e293b; padding: 5px 6px; }
-        .absen-table th { background: #f1f5f9; font-weight: bold; text-align: center; }
-        .berita-acara-box { border: 1px solid #1e293b; padding: 8px 10px; font-size: 9.5pt; line-height: 1.45; margin-bottom: 18px; }
-        .ttd-grid { width: 100%; display: flex; justify-content: space-between; font-size: 10pt; margin-top: 10px; }
-        .ttd-col { width: 45%; }
-        .ttd-space { height: 54px; }
+        .judul-dok h2 { margin: 0; font-size: 11.5pt; font-weight: bold; letter-spacing: 0.3px; }
+        .judul-dok p { margin: 2px 0 0 0; font-size: 9.5pt; font-weight: bold; }
+        .meta-table { width: 100%; border-collapse: collapse; font-size: 9pt; margin-bottom: 10px; }
+        .meta-table td { padding: 2px 4px; }
+        .absen-table { width: 100%; border-collapse: collapse; font-size: 8.5pt; margin-bottom: 18px; }
+        .absen-table th, .absen-table td { border: 1px solid #cbd5e1; padding: 5px 6px; }
+        .absen-table th { background: #169C53; color: #ffffff; font-weight: bold; text-align: center; font-size: 8.5pt; }
+        .absen-table tbody tr:nth-child(even) { background: #f8fafc; }
+        .ttd-wrap { width: 100%; display: flex; justify-content: flex-end; margin-top: 14px; font-size: 9.5pt; }
+        .ttd-box { width: 220px; text-align: left; line-height: 1.35; }
+        .ttd-space { height: 52px; }
         @media print {
           body { background: none; }
           .toolbar { display: none !important; }
@@ -633,7 +662,7 @@ function cetakPdfBeritaAcaraRemedial(jadwalId) {
     </head>
     <body>
       <div class="toolbar">
-        <div><strong>Berita Acara &amp; Daftar Hadir Ujian Remedial</strong> &mdash; ${namaRombongan}</div>
+        <div><strong>Berita Acara &amp; Daftar Hadir Pelaksanaan Ujian</strong> &mdash; ${namaRombongan}</div>
         <button type="button" onclick="window.print()">Cetak / Simpan PDF</button>
       </div>
 
@@ -643,44 +672,44 @@ function cetakPdfBeritaAcaraRemedial(jadwalId) {
           <div class="kop-teks">
             <div class="kementerian">KEMENTERIAN PENDIDIKAN, TINGGI, SAINS, DAN TEKNOLOGI</div>
             <div class="kampus">POLITEKNIK NEGERI SAMARINDA</div>
-            <div class="unit">UNIT PENUNJANG AKADEMIK (UPA) BAHASA</div>
-            <div class="alamat">Jalan Dr. Ciptomangunkusumo Kampus Gunung Panjang Samarinda 75131 &bull; Telp. (0541) 260588</div>
+            <div class="unit">UNIT PENGELOLA AKADEMIK (UPA) BAHASA</div>
+            <div class="alamat">Jl. Cipto Mangunkusumo Kampus Gunung Panjang Samarinda 75131</div>
           </div>
         </div>
 
         <div class="judul-dok">
-          <h2>BERITA ACARA &amp; DAFTAR HADIR UJIAN REMEDIAL TOEFL</h2>
-          <p>ROMBONGAN: ${namaRombongan}</p>
+          <h2>BERITA ACARA &amp; DAFTAR HADIR PELAKSANAAN UJIAN</h2>
+          <p>JENIS TES: ${namaRombongan}</p>
         </div>
 
         <table class="meta-table">
           <tr>
-            <td style="width:130px;"><b>Hari / Tanggal</b></td>
-            <td style="width:12px;">:</td>
-            <td>${tanggalCetak}</td>
-            <td style="width:120px;"><b>Ruang Lab</b></td>
-            <td style="width:12px;">:</td>
+            <td style="width:105px;">Hari / Tanggal</td>
+            <td style="width:10px;">:</td>
+            <td>${tanggalIso}</td>
+            <td style="width:95px;">Ruang Lab</td>
+            <td style="width:10px;">:</td>
             <td>${sesiObj.ruang_lab || "-"}</td>
           </tr>
           <tr>
-            <td><b>Sesi &amp; Waktu</b></td>
+            <td>Waktu Sesi</td>
             <td>:</td>
             <td>${sesiObj.sesi || "-"}</td>
-            <td><b>Jumlah Peserta</b></td>
+            <td>Kelas Peserta</td>
             <td>:</td>
-            <td>${pesertaSesi.length} Mahasiswa</td>
+            <td>${namaRombongan}</td>
           </tr>
         </table>
 
         <table class="absen-table">
           <thead>
             <tr>
-              <th style="width:30px;">NO</th>
-              <th style="width:68px;">NO. MEJA</th>
-              <th style="width:85px;">NIM</th>
+              <th style="width:32px;">NO</th>
+              <th style="width:92px;">NIM</th>
               <th>NAMA MAHASISWA</th>
-              <th style="width:145px;">ROMBONGAN / KELAS</th>
-              <th colspan="2" style="width:115px;">TANDA TANGAN</th>
+              <th style="width:170px;">PRODI</th>
+              <th style="width:88px;">ID MEJA</th>
+              <th style="width:110px;">TANDA TANGAN</th>
             </tr>
           </thead>
           <tbody>
@@ -688,25 +717,12 @@ function cetakPdfBeritaAcaraRemedial(jadwalId) {
           </tbody>
         </table>
 
-        <div class="berita-acara-box">
-          <b>Catatan Berita Acara Pelaksanaan Ujian:</b><br />
-          Pada hari ini, tanggal <b>${tanggalCetak}</b>, telah dilaksanakan Ujian Remedial TOEFL Prediction bertempat di <b>${sesiObj.ruang_lab}</b> pada <b>${sesiObj.sesi}</b> dengan rincian:
-          Jumlah Peserta Terdaftar: <b>${pesertaSesi.length}</b> orang | Hadir: _______ orang | Tidak Hadir: _______ orang.
-        </div>
-
-        <div class="ttd-grid">
-          <div class="ttd-col">
-            <div>Pengawas / Teknisi Lab UPA Bahasa,</div>
+        <div class="ttd-wrap">
+          <div class="ttd-box">
+            <div>Samarinda, ${tanggalSamarinda}</div>
+            <div>Pengawas Ujian,</div>
             <div class="ttd-space"></div>
-            <div>( .......................................................... )</div>
-            <div>NIP / NIK.</div>
-          </div>
-          <div class="ttd-col" style="text-align:left;">
-            <div>Samarinda, ${tanggalCetak}</div>
-            <div>Mengetahui, Kepala UPA. Bahasa</div>
-            <div class="ttd-space"></div>
-            <div><b><u>Dwi Titi Maesaroh, S.Pd., M.Pd.</u></b></div>
-            <div>NIP. 198901172024062002</div>
+            <div>( __________________________ )</div>
           </div>
         </div>
       </div>
