@@ -248,14 +248,7 @@
 
           <div>
             <label class="block text-[11px] font-extrabold uppercase tracking-wider text-slate-600 mb-1.5">Label Rombongan / Gelombang</label>
-            <div class="flex items-center gap-1.5">
-              <div class="flex items-center border border-slate-200 rounded-xl bg-slate-50 overflow-hidden shrink-0">
-                <button type="button" onclick="ubahUrutanRombonganRem(-1)" class="px-2.5 py-2.5 hover:bg-slate-200 text-slate-600 font-extrabold text-xs transition-colors" title="Kurangi Urutan">-</button>
-                <input type="number" id="remUrutanGelombang" value="1" min="1" oninput="sinkronUrutanRombonganRem()" class="w-11 text-center bg-transparent text-xs font-extrabold text-[#169C53] outline-none" title="Angka Urutan Gelombang" />
-                <button type="button" onclick="ubahUrutanRombonganRem(1)" class="px-2.5 py-2.5 hover:bg-slate-200 text-slate-600 font-extrabold text-xs transition-colors" title="Tambah Urutan">+</button>
-              </div>
-              <input type="text" id="remNamaRombongan" value="REMEDIAL-1" placeholder="Otomatis: REMEDIAL-1 (Bisa diubah)" class="w-full min-w-0 px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#169C53] outline-none" />
-            </div>
+            <input type="text" id="remNamaRombongan" placeholder="Otomatis: REMEDIAL-1 (Bisa diubah)" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#169C53] outline-none" />
           </div>
         </div>
 
@@ -403,24 +396,8 @@
   <script src="./js/modul-remedial.js"></script>
   <script src="./js/admin-profil-global.js"></script>
 
-  <!-- PENGAMAN LINK SUBMENU HASIL TEST & SINKRON URUTAN GELOMBANG -->
+  <!-- PENGAMAN LINK SUBMENU HASIL TEST -->
   <script>
-    function sinkronUrutanRombonganRem() {
-      const angkaEl = document.getElementById("remUrutanGelombang");
-      const labelEl = document.getElementById("remNamaRombongan");
-      if (!angkaEl || !labelEl) return;
-      const urut = Math.max(1, parseInt(angkaEl.value || "1", 10));
-      labelEl.value = `REMEDIAL-${urut}`;
-    }
-
-    function ubahUrutanRombonganRem(delta) {
-      const angkaEl = document.getElementById("remUrutanGelombang");
-      if (!angkaEl) return;
-      const saatIni = parseInt(angkaEl.value || "1", 10);
-      angkaEl.value = Math.max(1, saatIni + delta);
-      sinkronUrutanRombonganRem();
-    }
-
     document.addEventListener("DOMContentLoaded", () => {
       document.querySelectorAll('a[href="hasil-toefl.html"]').forEach(a => a.setAttribute("href", "toefl.html"));
       document.querySelectorAll('a[href="hasil-sspect.html"]').forEach(a => a.setAttribute("href", "sspect.html"));
