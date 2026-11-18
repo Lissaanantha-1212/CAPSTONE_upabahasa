@@ -40,6 +40,65 @@ function formatNomorMejaStudent(rawMeja, urutanIdx = 0) {
   return `STUDENT${String(urutanIdx + 1).padStart(2, "0")}`;
 }
 
+function getCacheProdiLocalRem() {
+  try {
+    return JSON.parse(localStorage.getItem("upa_cache_prodi_nim") || "{}");
+  } catch (e) {
+    return {};
+  }
+}
+
+function simpanCacheProdiLocalRem(nim, prodi) {
+  const nimClean = String(nim || "").trim();
+  const prodiClean = String(prodi || "").trim();
+  if (!nimClean || !prodiClean || prodiClean === "-" || prodiClean === "Peserta Remedial") return;
+  try {
+    const cache = getCacheProdiLocalRem();
+    cache[nimClean] = prodiClean;
+    localStorage.setItem("upa_cache_prodi_nim", JSON.stringify(cache));
+  } catch (e) {}
+}
+
+function ambilProdiPesertaRem(p) {
+  if (!p) return "-";
+  const nimClean = String(p.nim || "").trim();
+
+  // 1. Cek langsung dari properti object peserta
+  const langsung = String(p.program_studi || p.prodi || p.jurusan || "").trim();
+  if (langsung && langsung !== "-" && langsung !== "Peserta Remedial") {
+    return langsung;
+  }
+
+  // 2. Cek jika prodi tersimpan di field nama_kelas dengan pemisah " | "
+  const kelasRaw = String(p.nama_kelas || "").trim();
+  if (kelasRaw.includes("|")) {
+    const bagian = kelasRaw.split("|").map(s => s.trim());
+    if (bagian[1] && bagian[1] !== "-") return bagian[1];
+  }
+
+  // 3. Cek dari cache lokal NIM -> Prodi
+  const cache = getCacheProdiLocalRem();
+  if (nimClean && cache[nimClean]) {
+    return cache[nimClean];
+  }
+
+  // 4. Cari dari riwayat `peserta_ujian` lain dengan NIM yang sama (misal dari Jadwal Test reguler)
+  if (nimClean && Array.isArray(remedialState.semuaPesertaUjian)) {
+    const riwayatLain = remedialState.semuaPesertaUjian.find(item => {
+      if (String(item.nim || "").trim() !== nimClean) return false;
+      const pr = String(item.program_studi || item.prodi || item.jurusan || "").trim();
+      return pr && pr !== "-" && pr !== "Peserta Remedial";
+    });
+    if (riwayatLain) {
+      const prFound = String(riwayatLain.program_studi || riwayatLain.prodi || riwayatLain.jurusan).trim();
+      simpanCacheProdiLocalRem(nimClean, prFound);
+      return prFound;
+    }
+  }
+
+  return "-";
+}
+
 function isRowSudahSelesaiLog(item) {
   if (!item) return true;
   const st = String(item.status || item.status_log || "").trim().toUpperCase();
@@ -86,6 +145,10 @@ async function muatSemuaDataRemedial(tampilkanNotif = false) {
     const allJadwal = resJadwal.data || [];
     const allPeserta = resPeserta.data || [];
 
+    // Simpan cache NIM -> Program Studi selagi data ada di antrean atau riwayat peserta_ujian
+    rawAntrean.forEach(a => simpanCacheProdiLocalRem(a.nim, a.program_studi || a.prodi));
+    allPeserta.forEach(p => simpanCacheProdiLocalRem(p.nim, p.program_studi || p.prodi));
+
     remedialState.semuaJadwalLog = allJadwal;
     remedialState.semuaPesertaUjian = allPeserta;
 
@@ -102,7 +165,7 @@ async function muatSemuaDataRemedial(tampilkanNotif = false) {
     const namaKelasAktifSet = new Set(terkunci.map(j => String(j.nama_kelas || "").trim().toUpperCase()));
     const nimSudahDijadwalkanSet = new Set(
       allPeserta
-        .filter(p => idSesiAktifSet.has(p.jadwal_id) || namaKelasAktifSet.has(String(p.nama_kelas || "").trim().toUpperCase()))
+        .filter(p => idSesiAktifSet.has(p.jadwal_id) || namaKelasAktifSet.has(String(p.nama_kelas || "").split("|")[0].trim().toUpperCase()))
         .map(p => String(p.nim || "").trim())
     );
 
@@ -387,25 +450,50 @@ async function kunciSesiRemedial() {
 
     if (errJadwal) throw errJadwal;
 
-    // 2. Masukkan rincian mahasiswa & nomor mejanya (STUDENT01, STUDENT02, dst.) ke `peserta_ujian`
-    const payloadPeserta = pesertaTerpilih.map((mhs, idx) => {
-      const noMeja = `STUDENT${String(idx + 1).padStart(2, "0")}`;
-      return {
-        jadwal_id: insertedJadwal.id,
-        id_meja: noMeja,
-        nim: String(mhs.nim || "").trim(),
-        nama: String(mhs.nama_mahasiswa || "-").toUpperCase(),
-        nama_kelas: kodeRombongan,
-        prodi: String(mhs.program_studi || "-").trim()
-      };
+    // 2. Simpan cache Prodi per NIM sebelum antrean dihapus & siapkan payload `peserta_ujian`
+    pesertaTerpilih.forEach(mhs => {
+      simpanCacheProdiLocalRem(mhs.nim, mhs.program_studi || mhs.prodi);
     });
 
-    let { error: errPeserta } = await db.from("peserta_ujian").insert(payloadPeserta);
-    if (errPeserta && String(errPeserta.message || "").toLowerCase().includes("prodi")) {
-      const payloadTanpaProdi = payloadPeserta.map(({ prodi, ...rest }) => rest);
-      const retry = await db.from("peserta_ujian").insert(payloadTanpaProdi);
-      errPeserta = retry.error;
+    const basePayload = pesertaTerpilih.map((mhs, idx) => ({
+      jadwal_id: insertedJadwal.id,
+      id_meja: `STUDENT${String(idx + 1).padStart(2, "0")}`,
+      nim: String(mhs.nim || "").trim(),
+      nama: String(mhs.nama_mahasiswa || "-").toUpperCase(),
+      nama_kelas: kodeRombongan
+    }));
+
+    // Coba insert dengan kolom `program_studi`, lalu `prodi`, dan fallback menyisipkan info prodi di `nama_kelas` bila kolom tidak ada di DB
+    let { error: errPeserta } = await db.from("peserta_ujian").insert(
+      basePayload.map((row, idx) => ({
+        ...row,
+        program_studi: String(pesertaTerpilih[idx].program_studi || pesertaTerpilih[idx].prodi || "-").trim()
+      }))
+    );
+
+    if (errPeserta) {
+      const retryProdi = await db.from("peserta_ujian").insert(
+        basePayload.map((row, idx) => ({
+          ...row,
+          prodi: String(pesertaTerpilih[idx].program_studi || pesertaTerpilih[idx].prodi || "-").trim()
+        }))
+      );
+      errPeserta = retryProdi.error;
     }
+
+    if (errPeserta) {
+      const retryKelasWithProdi = await db.from("peserta_ujian").insert(
+        basePayload.map((row, idx) => {
+          const prodiMhs = String(pesertaTerpilih[idx].program_studi || pesertaTerpilih[idx].prodi || "-").trim();
+          return {
+            ...row,
+            nama_kelas: prodiMhs && prodiMhs !== "-" ? `${kodeRombongan} | ${prodiMhs}` : kodeRombongan
+          };
+        })
+      );
+      errPeserta = retryKelasWithProdi.error;
+    }
+
     if (errPeserta) throw errPeserta;
 
     // 3. Hapus antrean mentah dari `pendaftaran_remedial` berdasarkan ID & NIM agar daftar antrean langsung bersih
@@ -429,7 +517,7 @@ async function kunciSesiRemedial() {
     alert(
       `Sesi "${kodeRombongan}" Berhasil Dikunci & Masuk Jadwal Log!\n` +
       `• Lokasi & Waktu: ${ruangLab}, ${formatTanggalIndoRem(tanggal)} (${sesi})\n` +
-      `• Total Peserta Terplot: ${payloadPeserta.length} Mahasiswa (Meja STUDENT01 s/d STUDENT${String(payloadPeserta.length).padStart(2, "0")})\n` +
+      `• Total Peserta Terplot: ${basePayload.length} Mahasiswa (Meja STUDENT01 s/d STUDENT${String(basePayload.length).padStart(2, "0")})\n` +
       `• Daftar antrean telah dibersihkan otomatis.`
     );
   } catch (err) {
@@ -462,7 +550,7 @@ function renderTabelLogTerkunciRemedial(list) {
       const namaRombongan = item.nama_kelas || `REMEDIAL-${idx + 1}`;
       const pesertaSesi = remedialState.semuaPesertaUjian.filter(p =>
         p.jadwal_id === item.id ||
-        String(p.nama_kelas || "").trim().toUpperCase() === String(namaRombongan).trim().toUpperCase()
+        String(p.nama_kelas || "").split("|")[0].trim().toUpperCase() === String(namaRombongan).trim().toUpperCase()
       );
       const jmlPeserta = pesertaSesi.length || item.jumlah_mhs || 0;
 
@@ -509,7 +597,7 @@ function bukaModalPesertaSesiRemedial(jadwalId) {
   const namaRombongan = sesiObj.nama_kelas || "REMEDIAL";
   const pesertaSesi = remedialState.semuaPesertaUjian.filter(p =>
     p.jadwal_id === sesiObj.id ||
-    String(p.nama_kelas || "").trim().toUpperCase() === String(namaRombongan).trim().toUpperCase()
+    String(p.nama_kelas || "").split("|")[0].trim().toUpperCase() === String(namaRombongan).trim().toUpperCase()
   );
 
   document.getElementById("modalJudulSesiRem").textContent = `${namaRombongan} • ${sesiObj.ruang_lab}`;
@@ -525,7 +613,7 @@ function bukaModalPesertaSesiRemedial(jadwalId) {
             <td class="px-3 py-2.5 font-mono font-extrabold text-[#169C53]">${formatNomorMejaStudent(p.id_meja, idx)}</td>
             <td class="px-3 py-2.5 font-mono font-bold text-slate-800">${p.nim || "-"}</td>
             <td class="px-3 py-2.5 font-extrabold text-slate-900 uppercase">${p.nama || "-"}</td>
-            <td class="px-3 py-2.5 text-slate-600">${p.nama_kelas || "-"}</td>
+            <td class="px-3 py-2.5 text-slate-600">${ambilProdiPesertaRem(p)}</td>
           </tr>
         `)
         .join("");
@@ -557,15 +645,15 @@ async function batalkanKunciSesiRemedial(jadwalId, namaRombongan) {
   try {
     const pesertaSesi = remedialState.semuaPesertaUjian.filter(p =>
       p.jadwal_id === jadwalId ||
-      String(p.nama_kelas || "").trim().toUpperCase() === String(namaRombongan).trim().toUpperCase()
+      String(p.nama_kelas || "").split("|")[0].trim().toUpperCase() === String(namaRombongan).trim().toUpperCase()
     );
 
     if (pesertaSesi.length > 0) {
       const kembalikanAntrean = pesertaSesi.map(p => ({
         nim: p.nim,
         nama_mahasiswa: p.nama,
-        program_studi: p.prodi || "Peserta Remedial",
-        nama_kelas: p.nama_kelas || "-"
+        program_studi: ambilProdiPesertaRem(p),
+        nama_kelas: String(p.nama_kelas || "-").split("|")[0].trim()
       }));
       await db.from("pendaftaran_remedial").insert(kembalikanAntrean);
       await db.from("peserta_ujian").delete().eq("jadwal_id", jadwalId);
@@ -587,7 +675,7 @@ function cetakPdfBeritaAcaraRemedial(jadwalId) {
   const namaRombongan = String(sesiObj.nama_kelas || "REMEDIAL-1").trim().toUpperCase();
   const pesertaSesi = remedialState.semuaPesertaUjian.filter(p =>
     p.jadwal_id === sesiObj.id ||
-    String(p.nama_kelas || "").trim().toUpperCase() === namaRombongan
+    String(p.nama_kelas || "").split("|")[0].trim().toUpperCase() === namaRombongan
   );
 
   const logoUrl = new URL("./img/polnes.png", window.location.href).href;
@@ -601,13 +689,13 @@ function cetakPdfBeritaAcaraRemedial(jadwalId) {
   const barisPesertaHtml = pesertaSesi
     .map((p, idx) => {
       const idMejaStudent = formatNomorMejaStudent(p.id_meja, idx);
-      const prodiTampil = p.prodi || p.program_studi || "-";
+      const prodiTampil = ambilProdiPesertaRem(p);
       return `
         <tr>
           <td style="text-align:center;">${idx + 1}</td>
           <td style="text-align:center;">${p.nim || "-"}</td>
           <td style="text-transform:uppercase;">${p.nama || "-"}</td>
-          <td>${prodiTampil}</td>
+          <td style="text-transform:uppercase;">${prodiTampil}</td>
           <td style="text-align:center; font-weight:bold;">${idMejaStudent}</td>
           <td style="height:22px;"></td>
         </tr>
