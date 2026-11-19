@@ -295,6 +295,19 @@
       resetPreview("Unggah 3 file Excel Section yang sesuai dan bertanggal sama untuk mencocokkan jadwal & menampilkan peserta.");
     }
 
+    // Hapus file unggahan & labelnya otomatis setelah hasil pencocokan muncul di tabel agar siap upload lagi
+    function bersihkanSemuaInputUnggahan() {
+      [1, 2, 3].forEach((secNum) => {
+        const inputEl = document.getElementById(`fileSec${secNum}`);
+        const labelEl = document.getElementById(`labelSec${secNum}`);
+        if (inputEl) inputEl.value = "";
+        if (labelEl) labelEl.innerText = "Belum ada file dipilih";
+      });
+      fileSec1Info = { data: null, jam: "", tanggal: "" };
+      fileSec2Info = { data: null, jam: "", tanggal: "" };
+      fileSec3Info = { data: null, jam: "", tanggal: "" };
+    }
+
     function cekKesesuaianTanggalDenganSectionLain(secNum, tglBaru) {
       const normBaru = normalisasiTanggalISO(tglBaru);
       if (!normBaru) return { valid: true };
@@ -642,6 +655,9 @@
         document.getElementById('badgeJumlahMhs').innerText = `${parsedPeserta.length} Peserta (Excel) / ${dbPeserta.length} Jadwal`;
         renderTabelPreview(parsedPeserta);
 
+        // Otomatis hilangkan file unggahan di 3 kotak atas setelah hasil pencocokan muncul di tabel
+        bersihkanSemuaInputUnggahan();
+
       } catch (err) {
         console.error(err);
         alert("Gagal menarik data jadwal dari Supabase: " + err.message);
@@ -865,6 +881,7 @@
           if (errDel) console.warn("Gagal menghapus jadwal_log:", errDel.message);
         }
 
+        bersihkanSemuaInputUnggahan();
         alert(`SUKSES! ${window.previewDataGlobal.length} nilai berhasil digabungkan ke Rekapan Master (${kategoriPilihan}) dan jadwal terkait telah dihapus dari log.`);
         resetPreview("Data berhasil disimpan ke Rekapan Master dan log jadwal telah dibersihkan.");
 
