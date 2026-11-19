@@ -84,6 +84,12 @@ function resetFileInput(sectionNum) {
   if (sectionNum === 3) parsedSec3Data = null;
 }
 
+function resetSemuaFileUpload() {
+  resetFileInput(1);
+  resetFileInput(2);
+  resetFileInput(3);
+}
+
 function parseFileInfo(filename) {
   const dateMatch = filename.match(/(\d{2}-\d{2}-\d{4})/);
   const timeMatch = filename.match(/(\d{2}-\d{2}-\d{2})(?=\.\w+$)/);
@@ -211,6 +217,7 @@ async function jalankanAutoMappingEngine(lab, sesi) {
 
   if (errJadwal || !jadwalList || jadwalList.length === 0) {
     alert(`[VALIDASI GAGAL] Tidak ditemukan jadwal Modul 1 untuk ${lab}, ${sesi} pada tanggal ${tanggalUjianDb}.`);
+    resetSemuaFileUpload();
     return;
   }
 
@@ -223,6 +230,7 @@ async function jalankanAutoMappingEngine(lab, sesi) {
 
   if (existingLog && existingLog.length > 0) {
     alert('[DITOLAK] Hasil test untuk sesi ini sudah pernah disimpan secara permanen ke database.');
+    resetSemuaFileUpload();
     return;
   }
 
@@ -305,6 +313,9 @@ async function jalankanAutoMappingEngine(lab, sesi) {
   if (statusSync) {
     statusSync.innerHTML = `<span class="text-polnes-main font-bold">Sinkronisasi Berhasil!</span> ${dbPesertaList.length} peserta sesuai jadwal. <b class="text-rose-500">${susulanRows.length > 0 ? susulanRows.length + ' Siswa Susulan terdeteksi.' : 'Semua data pas dan valid.'}</b>`;
   }
+
+  // Bersihkan ketiga input upload file setelah hasil pencocokan muncul di tabel agar siap upload lagi
+  resetSemuaFileUpload();
 }
 
 async function prosesBindNim(idMeja) {
@@ -470,6 +481,7 @@ async function simpanPermanenKeDatabase() {
 
     if (deleteJadwalErr) throw deleteJadwalErr;
 
+    resetSemuaFileUpload();
     alert("Berhasil! Data nilai tersimpan permanen ke HasilTes dan histori jadwal sesi ini telah dibersihkan otomatis.");
     window.location.reload();
 
