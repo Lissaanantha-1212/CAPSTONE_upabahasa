@@ -109,11 +109,11 @@
         </div>
 
         <!-- Form Login Manual -->
-        <form onsubmit="prosesLoginUser(event)" class="space-y-3.5">
+        <form onsubmit="prosesLoginUser(event)" autocomplete="off" class="space-y-3.5">
           <div class="space-y-1">
             <label class="block text-[11px] font-bold uppercase tracking-wider text-emerald-100">Username atau Email</label>
             <div class="relative">
-              <input type="text" id="loginUsername" autocomplete="username" placeholder="Masukkan username atau email" class="w-full px-4 py-3 bg-emerald-950/40 border border-emerald-700/60 rounded-xl text-sm text-white placeholder-emerald-300/50 focus:border-white focus:outline-none transition-all" />
+              <input type="text" id="loginUsername" name="upa_login_id_field" autocomplete="off" placeholder="Masukkan username atau email" class="w-full px-4 py-3 bg-emerald-950/40 border border-emerald-700/60 rounded-xl text-sm text-white placeholder-emerald-300/50 focus:border-white focus:outline-none transition-all" />
             </div>
           </div>
 
@@ -125,7 +125,7 @@
               </button>
             </div>
             <div class="relative">
-              <input type="password" id="loginPassword" autocomplete="current-password" placeholder="Masukkan password Anda" class="w-full pl-4 pr-11 py-3 bg-emerald-950/40 border border-emerald-700/60 rounded-xl text-sm text-white placeholder-emerald-300/50 focus:border-white focus:outline-none transition-all" />
+              <input type="password" id="loginPassword" name="upa_login_pw_field" autocomplete="new-password" placeholder="Masukkan password Anda" class="w-full pl-4 pr-11 py-3 bg-emerald-950/40 border border-emerald-700/60 rounded-xl text-sm text-white placeholder-emerald-300/50 focus:border-white focus:outline-none transition-all" />
               <button type="button" onclick="toggleLihatSandi('loginPassword', 'iconEyeLogin')" class="absolute inset-y-0 right-0 px-3.5 flex items-center text-emerald-200 hover:text-white" title="Tampilkan/Sembunyikan Password">
                 <i id="iconEyeLogin" class="ri-eye-off-line text-base"></i>
               </button>
@@ -407,8 +407,8 @@
       localStorage.removeItem("upa_login_lock_until");
     }
 
-    // 4. Simpan Sesi Aktif Secara Konsisten (Kompatibel dengan Seluruh Halaman Admin)
-    function simpanSesiAktif(userRecord, rememberMe = true) {
+    // 4. Simpan Sesi Aktif Secara Konsisten (Hanya setelah verifikasi login berhasil)
+    function simpanSesiAktif(userRecord, rememberMe = true, loginMethod = "manual") {
       const aktifUser = {
         id: userRecord.id,
         nama: userRecord.nama,
@@ -416,6 +416,7 @@
         email: userRecord.email || "",
         avatar_url: userRecord.avatar_url || "",
         role: userRecord.role || "staff",
+        login_method: loginMethod,
         login_at: new Date().toISOString()
       };
       localStorage.setItem("upa_active_staff", JSON.stringify(aktifUser));
@@ -438,6 +439,7 @@
       btn.innerHTML = `<i class="ri-loader-4-line animate-spin text-base"></i><span>Menghubungkan ke Google...</span>`;
 
       try {
+        sessionStorage.setItem("upa_oauth_google_intent", "1");
         const redirectUrl = new URL("./login.html", window.location.href).href;
         const { error } = await window.supabaseClient.auth.signInWithOAuth({
           provider: "google",
@@ -448,6 +450,7 @@
         });
         if (error) throw error;
       } catch (err) {
+        sessionStorage.removeItem("upa_oauth_google_intent");
         tampilkanAlertLogin("error", "Gagal memulai login Google: " + err.message);
         btn.disabled = false;
         btn.innerHTML = `<span>Lanjutkan dengan Google</span>`;
@@ -458,17 +461,73 @@
     async function tanganiCallbackGoogleOAuth() {
       if (!window.supabaseClient) return;
 
+      const urlParams = new URLSearchParams(window.location.search);
+      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+
+      // A. Jika user diarahkan balik setelah berhasil simpan password baru
+      if (urlParams.get("reset") === "success") {
+        localStorage.removeItem("upa_active_staff");
+        sessionStorage.removeItem("upa_session_only");
+        sessionStorage.removeItem("upa_oauth_google_intent");
+        await window.supabaseClient.auth.signOut().catch(() => {});
+        tampilkanAlertLogin(
+          "sukses",
+          "Password baru berhasil disimpan! Silakan login kembali menggunakan <b>username/email</b> dan <b>password baru</b> Anda."
+        );
+        window.history.replaceState({}, document.title, window.location.pathname);
+        return;
+      }
+
+      // B. Jika URL membawa token/kode recovery reset password, langsung arahkan ke form buat password baru (JANGAN login)
+      if (
+        hashParams.get("type") === "recovery" ||
+        urlParams.get("type") === "recovery" ||
+        sessionStorage.getItem("upa_password_recovery_pending") === "1"
+      ) {
+        localStorage.removeItem("upa_active_staff");
+        sessionStorage.removeItem("upa_oauth_google_intent");
+        window.location.href = "reset-password.html" + window.location.search + window.location.hash;
+        return;
+      }
+
+      const hasGoogleIntent = sessionStorage.getItem("upa_oauth_google_intent") === "1";
+
+      // C. Jika halaman login dibuka normal (klik Staff Login dari beranda), wajib bersihkan seluruh sisa sesi lama
+      if (!hasGoogleIntent) {
+        localStorage.removeItem("upa_active_staff");
+        sessionStorage.removeItem("upa_session_only");
+        await window.supabaseClient.auth.signOut().catch(() => {});
+        return;
+      }
+
       const { data: sessionData } = await window.supabaseClient.auth.getSession();
       const authUser = sessionData?.session?.user;
-      if (!authUser || !authUser.email) return;
+      if (!authUser || !authUser.email) {
+        sessionStorage.removeItem("upa_oauth_google_intent");
+        return;
+      }
+
+      // Pastikan provider autentikasi benar-benar Google OAuth
+      const provider = authUser.app_metadata?.provider || "";
+      const isGoogleIdentity =
+        provider === "google" ||
+        (Array.isArray(authUser.identities) && authUser.identities.some(id => id.provider === "google"));
+
+      if (!isGoogleIdentity) {
+        await window.supabaseClient.auth.signOut().catch(() => {});
+        localStorage.removeItem("upa_active_staff");
+        sessionStorage.removeItem("upa_oauth_google_intent");
+        return;
+      }
+
+      sessionStorage.removeItem("upa_oauth_google_intent");
 
       const emailGoogle = authUser.email.trim().toLowerCase();
-      const namaGoogle = authUser.user_metadata?.full_name || authUser.user_metadata?.name || emailGoogle.split("@")[0];
       const avatarGoogle = authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture || "";
 
       tampilkanAlertLogin("sukses", `Memverifikasi akses akun Google <b>${emailGoogle}</b>...`);
 
-      // Cek apakah email Google terdaftar di tabel user_app (Whitelist Staf/Kepala)
+      // Cek apakah email Google SUDAH terdaftar di tabel user_app (Wajib Register Now dulu jika database kosong)
       const { data: daftarUser, error } = await window.supabaseClient
         .from("user_app")
         .select("*")
@@ -479,39 +538,17 @@
         return;
       }
 
-      let staffData = daftarUser && daftarUser.length > 0 ? daftarUser[0] : null;
+      const staffData = daftarUser && daftarUser.length > 0 ? daftarUser[0] : null;
 
-      // Jika tabel user_app masih kosong (pengguna pertama), otomatis daftarkan
       if (!staffData) {
-        const { count } = await window.supabaseClient
-          .from("user_app")
-          .select("*", { count: "exact", head: true });
-
-        if (count === 0) {
-          const usernameAuto = emailGoogle.split("@")[0].replace(/[^a-zA-Z0-9._]/g, "");
-          const { data: inserted } = await window.supabaseClient
-            .from("user_app")
-            .insert([{
-              nama: namaGoogle,
-              username: usernameAuto,
-              email: emailGoogle,
-              password: "OAUTH_GOOGLE_USER",
-              avatar_url: avatarGoogle,
-              google_linked: true,
-              role: "kepala"
-            }])
-            .select()
-            .single();
-          staffData = inserted;
-        } else {
-          // Tolak akses jika email Google belum didaftarkan oleh staf/kepala UPA Bahasa
-          await window.supabaseClient.auth.signOut();
-          tampilkanAlertLogin(
-            "error",
-            `Akses ditolak: Email <b>${emailGoogle}</b> belum terdaftar di sistem UPA Bahasa. Silakan daftar akun terlebih dahulu dengan email tersebut atau hubungi Admin.`
-          );
-          return;
-        }
+        // Tolak akses jika email Google belum terdaftar di database user_app (termasuk saat database kosong)
+        await window.supabaseClient.auth.signOut().catch(() => {});
+        localStorage.removeItem("upa_active_staff");
+        tampilkanAlertLogin(
+          "error",
+          `Akses ditolak: Email <b>${emailGoogle}</b> belum terdaftar di database sistem UPA Bahasa. Silakan klik <b>Register Now</b> untuk mendaftarkan akun terlebih dahulu.`
+        );
+        return;
       }
 
       // Sinkronkan foto profil & status koneksi Google
@@ -526,7 +563,7 @@
 
       staffData.avatar_url = staffData.avatar_url || avatarGoogle;
       resetKegagalanLogin();
-      simpanSesiAktif(staffData, true);
+      simpanSesiAktif(staffData, true, "google");
 
       tampilkanAlertLogin("sukses", `Verifikasi Google berhasil! Selamat datang, <b>${staffData.nama}</b>. Mengalihkan ke Dashboard...`);
       setTimeout(() => {
@@ -581,6 +618,9 @@
           password: pass,
           options: { data: { full_name: username, username: username, role: role } }
         }).catch(() => {});
+
+        // Pastikan signUp tidak meninggalkan sesi aktif sebelum user login manual
+        await window.supabaseClient.auth.signOut().catch(() => {});
 
         const { error } = await window.supabaseClient
           .from("user_app")
@@ -673,7 +713,7 @@
           .eq("id", userData.id);
 
         resetKegagalanLogin();
-        simpanSesiAktif(userData, rememberMe);
+        simpanSesiAktif(userData, rememberMe, "manual");
 
         tampilkanAlertLogin("sukses", `Login Sukses! Selamat datang, <b>${userData.nama}</b>. Mengalihkan ke Dashboard...`);
         setTimeout(() => {
@@ -727,8 +767,25 @@
       }
     }
 
+    // Tangkap event PASSWORD_RECOVERY dari Supabase Auth agar tidak pernah melompat ke dashboard
+    if (window.supabaseClient && window.supabaseClient.auth) {
+      window.supabaseClient.auth.onAuthStateChange((event) => {
+        if (event === "PASSWORD_RECOVERY") {
+          localStorage.removeItem("upa_active_staff");
+          sessionStorage.setItem("upa_password_recovery_pending", "1");
+          window.location.href = "reset-password.html" + window.location.search + window.location.hash;
+        }
+      });
+    }
+
     // Inisialisasi saat halaman dibuka
     document.addEventListener("DOMContentLoaded", () => {
+      // Kosongkan input agar tidak terisi sisa cache browser saat mulai dari awal
+      const inpUser = document.getElementById("loginUsername");
+      const inpPass = document.getElementById("loginPassword");
+      if (inpUser) inpUser.value = "";
+      if (inpPass) inpPass.value = "";
+
       cekStatusKunciLogin();
       tanganiCallbackGoogleOAuth();
     });

@@ -19,13 +19,45 @@
 
   function getActiveStaff() {
     try {
-      return JSON.parse(
-        localStorage.getItem("upa_active_staff") ||
-          '{"nama":"Admin UPA","username":"admin","role":"staff"}'
-      );
+      const raw = localStorage.getItem("upa_active_staff");
+      if (!raw) return null;
+      return JSON.parse(raw);
     } catch {
-      return { nama: "Admin UPA", username: "admin", role: "staff" };
+      return null;
     }
+  }
+
+  async function verifikasiSesiLoginAdmin() {
+    const hashStr = String(window.location.hash || "");
+    const searchStr = String(window.location.search || "");
+
+    // Tolak langsung jika halaman admin terbuka dari tautan recovery reset password
+    if (hashStr.includes("type=recovery") || searchStr.includes("type=recovery")) {
+      localStorage.removeItem("upa_active_staff");
+      if (window.supabaseClient) {
+        await window.supabaseClient.auth.signOut().catch(() => {});
+      }
+      window.location.replace("reset-password.html" + searchStr + hashStr);
+      return null;
+    }
+
+    const activeUser = getActiveStaff();
+    const isValidMethod =
+      activeUser &&
+      activeUser.id &&
+      (activeUser.login_method === "manual" || activeUser.login_method === "google");
+
+    if (!isValidMethod) {
+      localStorage.removeItem("upa_active_staff");
+      sessionStorage.removeItem("upa_session_only");
+      if (window.supabaseClient) {
+        await window.supabaseClient.auth.signOut().catch(() => {});
+      }
+      window.location.replace("login.html");
+      return null;
+    }
+
+    return activeUser;
   }
 
   function getInisial(nama) {
@@ -37,11 +69,14 @@
     return clean.substring(0, 2).toUpperCase() || "UP";
   }
 
-  function initGlobalAdminProfil() {
+  async function initGlobalAdminProfil() {
+    const verifiedUser = await verifikasiSesiLoginAdmin();
+    if (!verifiedUser) return;
+
     const header = document.querySelector("main > header") || document.querySelector("header");
     if (!header) return;
 
-    const user = getActiveStaff();
+    const user = verifiedUser;
     const inisial = getInisial(user.nama || user.username);
     const labelRole =
       user.role === "kepala"
@@ -177,7 +212,7 @@
       const btn = document.getElementById("btnSimpanUserGlobal");
       const current = getActiveStaff();
 
-      if (!usernameBaru || usernameBaru === current.username) {
+      if (!usernameBaru || !current || usernameBaru === current.username) {
         document.getElementById("modalUbahUsername").classList.add("hidden");
         return;
       }
@@ -234,7 +269,7 @@
       btn.textContent = "Memperbarui...";
 
       try {
-        if (!window.supabaseClient || !current.id) {
+        if (!window.supabaseClient || !current || !current.id) {
           throw new Error("Sesi database tidak ditemukan. Silakan login ulang.");
         }
 
