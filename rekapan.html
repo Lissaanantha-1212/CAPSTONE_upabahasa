@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Rekapan &amp; Sertifikat - UPA Bahasa POLNES</title>
+  <!-- tangkap sesi dari Piya lebih dulu agar tidak terlempar ke login.html -->
+  <script src="./js/admin-profil-global.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -52,28 +54,28 @@
         />
         <span class="font-bold text-lg tracking-wide text-white">UPA ADMIN</span>
       </div>
-      <button type="button" onclick="document.getElementById('adminSidebar').classList.add('-translate-x-full')" class="lg:hidden text-gray-400 hover:text-white" aria-label="Tutup sidebar">
+      <button type="button" onclick="toggleMobileSidebar()" class="lg:hidden text-gray-400 hover:text-white" aria-label="Tutup sidebar">
         <i class="ri-close-line text-xl"></i>
       </button>
     </div>
 
     <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/dashboard" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
+      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/dashboard" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
         <i class="ri-layout-grid-line text-lg"></i> Dashboard
       </a>
-      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/konten" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
+      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/konten" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
         <i class="ri-file-text-line text-lg"></i> Manajemen Konten
       </a>
-      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/layanan" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
+      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/layanan" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
         <i class="ri-briefcase-line text-lg"></i> Manajemen Layanan
       </a>
-      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/pembelajaran" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
+      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/pembelajaran" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
         <i class="ri-graduation-cap-line text-lg"></i> Manajemen Pembelajaran
       </a>
-      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/pengaduan" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
+      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/pengaduan" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
         <i class="ri-message-2-line text-lg"></i> Manajemen Pengaduan
       </a>
-      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/survei" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
+      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/survei" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
         <i class="ri-emotion-happy-line text-lg"></i> Manajemen Survei
       </a>
 
@@ -81,8 +83,8 @@
       <div class="space-y-1">
         <button
           type="button"
-          onclick="document.getElementById('subPenjadwalan').classList.toggle('hidden'); document.getElementById('arrowPenjadwalan').classList.toggle('rotate-180')"
-          class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200"
+          onclick="toggleSubmenuSidebar('subPenjadwalan', 'arrowPenjadwalan')"
+          class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200"
         >
           <span class="flex items-center gap-3">
             <i class="ri-calendar-line text-lg"></i> Penjadwalan
@@ -91,10 +93,10 @@
         </button>
 
         <div id="subPenjadwalan" class="pl-11 pr-2 space-y-1 hidden">
-          <a href="jadwal-test.html" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-colors">
+          <a href="jadwal-test.html" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-colors">
             <span class="w-1.5 h-1.5 rounded-full bg-[#10C35D]"></span> Jadwal Test
           </a>
-          <a href="jadwal-remedial.html" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-colors">
+          <a href="jadwal-remedial.html" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-colors">
             <span class="w-1.5 h-1.5 rounded-full bg-[#10C35D]"></span> Jadwal Remedial
           </a>
         </div>
@@ -104,8 +106,8 @@
       <div class="space-y-1">
         <button
           type="button"
-          onclick="document.getElementById('subHasilTest').classList.toggle('hidden'); document.getElementById('arrowHasilTest').classList.toggle('rotate-180')"
-          class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200"
+          onclick="toggleSubmenuSidebar('subHasilTest', 'arrowHasilTest')"
+          class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200"
         >
           <span class="flex items-center gap-3">
             <i class="ri-file-upload-line text-lg"></i> Hasil Test
@@ -114,17 +116,17 @@
         </button>
 
         <div id="subHasilTest" class="pl-11 pr-2 space-y-1 hidden">
-          <a href="toefl.html" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-colors">
+          <a href="toefl.html" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-colors">
             <span class="w-1.5 h-1.5 rounded-full bg-[#10C35D]"></span> TOEFL
           </a>
-          <a href="sspect.html" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-colors">
+          <a href="sspect.html" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-colors">
             <span class="w-1.5 h-1.5 rounded-full bg-[#10C35D]"></span> SSPECT
           </a>
         </div>
       </div>
 
       <!-- Rekapan (AKTIF) -->
-      <a href="rekapan.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold bg-[#10C35D] text-white shadow-md transition-all duration-200">
+      <a href="rekapan.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold bg-[#10C35D] text-white shadow-md transition-all duration-200">
         <i class="ri-folder-chart-line text-lg"></i> Rekapan
       </a>
     </nav>
@@ -136,7 +138,7 @@
     <!-- TOP HEADER -->
     <header class="h-16 bg-white shadow-sm flex items-center justify-between px-4 lg:px-8 z-40 relative shrink-0">
       <div class="flex items-center gap-3">
-        <button type="button" onclick="document.getElementById('adminSidebar').classList.remove('-translate-x-full')" class="lg:hidden text-gray-600 hover:text-[#10C35D]" aria-label="Buka sidebar">
+        <button type="button" onclick="toggleMobileSidebar()" class="lg:hidden text-gray-600 hover:text-[#10C35D]" aria-label="Buka sidebar">
           <i class="ri-menu-line text-2xl"></i>
         </button>
         <div>
@@ -146,14 +148,14 @@
       </div>
 
       <!-- PROFILE DROPDOWN -->
-      <div class="relative">
+      <div class="relative z-[90]" id="dropdownProfilWrapper">
         <button
           type="button"
-          onclick="document.getElementById('profileDropdownMenu').classList.toggle('hidden')"
+          onclick="toggleDropdownProfil(event)"
           class="flex items-center gap-2 sm:gap-3 rounded-xl px-2 py-1.5 hover:bg-[#F0F8F3] transition-colors focus:outline-none focus:ring-2 focus:ring-[#10C35D]"
         >
           <div id="headerAdminInitial" class="w-10 h-10 rounded-full bg-[#10C35D] text-white flex items-center justify-center font-bold shadow-sm">
-            A
+            <span id="userAvatarText">A</span>
           </div>
           <div class="hidden sm:block text-left">
             <p class="text-sm font-semibold text-[#0a3d2e]">Profile</p>
@@ -186,7 +188,7 @@
             </div>
           </div>
           <div class="border-t border-gray-100 p-3">
-            <button type="button" onclick="if (typeof logoutKePiya === 'function') logoutKePiya(); else if (typeof prosesLogoutUser === 'function') prosesLogoutUser();" class="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
+            <button type="button" onclick="if (typeof logoutKePiya === 'function') logoutKePiya(); else if (typeof prosesLogoutUser === 'function') prosesLogoutUser();" class="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
               <i class="ri-logout-box-r-line text-lg"></i> Logout
             </button>
           </div>
@@ -305,11 +307,11 @@
         <div class="px-5 py-3.5 bg-slate-50/60 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500 font-semibold">
           <span id="infoPaginationRekapan">Menampilkan 0 data</span>
           <div class="flex items-center gap-2">
-            <button type="button" id="btnPrevPageRekapan" onclick="if (typeof gantiHalamanRekapan === 'function') gantiHalamanRekapan(-1);" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 font-bold">
+            <button type="button" id="btnPrevPageRekapan" onclick="if (typeof gantiHalamanRekapan === 'function') gantiHalamanRekapan(-1);" class="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 font-bold">
               Sebelumnya
             </button>
             <span id="labelHalamanRekapan" class="px-2 font-extrabold text-slate-700">Hal 1</span>
-            <button type="button" id="btnNextPageRekapan" onclick="if (typeof gantiHalamanRekapan === 'function') gantiHalamanRekapan(1);" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 font-bold">
+            <button type="button" id="btnNextPageRekapan" onclick="if (typeof gantiHalamanRekapan === 'function') gantiHalamanRekapan(1);" class="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 font-bold">
               Berikutnya
             </button>
           </div>
@@ -402,7 +404,7 @@
           <h3 class="text-sm font-extrabold text-slate-800">Atur Nomor &amp; Tanggal Sertifikat 1 Angkatan</h3>
           <p class="text-xs text-slate-400 mt-0.5">Terapkan nomor urut berantai &amp; tanggal terbit serentak untuk 1 angkatan</p>
         </div>
-        <button type="button" onclick="if (typeof tutupModalBatchNomor === 'function') tutupModalBatchNomor();" class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-400 flex items-center justify-center">
+        <button type="button" onclick="if (typeof tutupModalBatchNomor === 'function') tutupModalBatchNomor();" class="w-8 h-8 rounded-xl hover:bg-slate-100 text-slate-400 flex items-center justify-center">
           <i class="ri-close-line text-lg"></i>
         </button>
       </div>
@@ -472,7 +474,7 @@
           <h3 class="text-sm font-extrabold text-slate-800">Unduh Laporan Data Excel (.xlsx)</h3>
           <p class="text-xs text-slate-400 mt-0.5">Ekspor data keseluruhan per angkatan &amp; kategori tes</p>
         </div>
-        <button type="button" onclick="if (typeof tutupModalUnduhExcel === 'function') tutupModalUnduhExcel();" class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-400 flex items-center justify-center">
+        <button type="button" onclick="if (typeof tutupModalUnduhExcel === 'function') tutupModalUnduhExcel();" class="w-8 h-8 rounded-xl hover:bg-slate-100 text-slate-400 flex items-center justify-center">
           <i class="ri-close-line text-lg"></i>
         </button>
       </div>
@@ -521,7 +523,7 @@
           <h3 class="text-sm font-extrabold text-slate-800">Import File Nilai / Arsip Excel</h3>
           <p class="text-xs text-slate-400 mt-0.5">Auto-deteksi angkatan dari NIM &amp; gabung skor tanpa duplikasi nama</p>
         </div>
-        <button type="button" onclick="if (typeof tutupModalImportArsip === 'function') tutupModalImportArsip();" class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-400 flex items-center justify-center">
+        <button type="button" onclick="if (typeof tutupModalImportArsip === 'function') tutupModalImportArsip();" class="w-8 h-8 rounded-xl hover:bg-slate-100 text-slate-400 flex items-center justify-center">
           <i class="ri-close-line text-lg"></i>
         </button>
       </div>
@@ -550,7 +552,7 @@
             type="file"
             id="inputFileExcelArsip"
             accept=".xlsx,.xls,.csv"
-            class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 bg-slate-50 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-extrabold file:bg-[#169C53] file:text-white hover:file:bg-[#0E7A3F]"
+            class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 bg-slate-50 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-extrabold file:bg-[#169C53] file:text-white hover:file:bg-[#0E7A3F]"
           />
         </div>
 
@@ -763,8 +765,34 @@
   <script src="js/supabase-config.js"></script>
   <script src="js/modul-rekapan.js"></script>
 
-  <!-- ==================== SCRIPT PENGATURAN TEMPLATE SERTIFIKAT FULL ENGLISH ==================== -->
+  <!-- ==================== SCRIPT SIDEBAR, PROFIL & TEMPLATE SERTIFIKAT ==================== -->
   <script>
+    function toggleMobileSidebar() {
+      const sb = document.getElementById("adminSidebar");
+      if (sb) sb.classList.toggle("-translate-x-full");
+    }
+
+    function toggleSubmenuSidebar(menuId, arrowId) {
+      const menu = document.getElementById(menuId);
+      const arrow = document.getElementById(arrowId);
+      if (menu) menu.classList.toggle("hidden");
+      if (arrow) arrow.classList.toggle("rotate-180");
+    }
+
+    function toggleDropdownProfil(event) {
+      if (event) event.stopPropagation();
+      const menu = document.getElementById("profileDropdownMenu");
+      if (menu) menu.classList.toggle("hidden");
+    }
+
+    document.addEventListener("click", (e) => {
+      const wrapper = document.getElementById("dropdownProfilWrapper");
+      const menu = document.getElementById("profileDropdownMenu");
+      if (wrapper && menu && !wrapper.contains(e.target)) {
+        menu.classList.add("hidden");
+      }
+    });
+
     const STORAGE_KEY_CERT_TEMPLATE = "upa_bahasa_cert_template_v1";
 
     const DEFAULT_CERT_TEMPLATE = {
