@@ -4,6 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Rekapan & Sertifikat - UPA Bahasa POLNES</title>
+
+  <!-- Tangkap sesi dari Piya lebih dulu agar tidak terlempar ke login.html -->
+  <script src="./js/admin-profil-global.js"></script>
+
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -28,153 +32,156 @@
     }
   </style>
 </head>
-<body class="bg-[#F8FAFC] text-slate-800 antialiased min-h-screen flex">
+<body class="bg-[#F7FAF8] text-slate-800 antialiased flex h-screen overflow-hidden">
 
-  <!-- ==================== SIDEBAR NAVIGASI ==================== -->
-  <aside id="sidebarMenu" class="w-60 bg-white border-r border-slate-200/80 hidden lg:flex flex-col fixed inset-y-0 left-0 z-40 overflow-y-auto custom-scrollbar">
-    <div class="h-16 px-5 border-b border-slate-200/80 flex items-center gap-3 shrink-0">
-      <img src="./img/polnes.png" alt="Logo POLNES" onerror="this.style.display='none'" class="w-8 h-8 object-contain shrink-0" />
-      <span class="text-sm font-extrabold text-slate-800 tracking-tight">UPA BAHASA</span>
+  <!-- ==================== SIDEBAR (SAMA PERSIS DENGAN JADWAL TEST & UPA ADMIN) ==================== -->
+  <aside id="adminSidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-[#0a3d2e] text-white flex flex-col flex-shrink-0 h-full transform -translate-x-full lg:translate-x-0 lg:static transition-transform duration-300 ease-in-out">
+    <div class="flex items-center justify-between h-16 px-6 bg-[#082d22] shrink-0">
+      <div class="flex items-center gap-3">
+        <img
+          src="./img/logo-polnes.png"
+          onerror="this.onerror=null; this.src='./img/polnes.png';"
+          alt="Logo POLNES"
+          class="w-8 h-8 object-contain"
+        >
+        <span class="font-bold text-lg tracking-wide text-white">UPA ADMIN</span>
+      </div>
+      <button type="button" onclick="document.getElementById('adminSidebar').classList.add('-translate-x-full')" class="lg:hidden text-gray-400 hover:text-white" aria-label="Tutup sidebar">
+        <i class="ri-close-line text-xl"></i>
+      </button>
     </div>
 
-    <nav class="px-3.5 py-4 space-y-1 text-[13px] font-semibold flex-1">
-      <a href="dashboard.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-        <i class="ri-layout-grid-line text-base text-slate-400"></i>
-        <span>Dashboard</span>
+    <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/dashboard" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
+        <i class="ri-layout-grid-line text-lg"></i> Dashboard
+      </a>
+      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/konten" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
+        <i class="ri-file-text-line text-lg"></i> Manajemen Konten
+      </a>
+      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/layanan" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
+        <i class="ri-briefcase-line text-lg"></i> Manajemen Layanan
+      </a>
+      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/pembelajaran" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
+        <i class="ri-graduation-cap-line text-lg"></i> Manajemen Pembelajaran
+      </a>
+      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/pengaduan" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
+        <i class="ri-message-2-line text-lg"></i> Manajemen Pengaduan
+      </a>
+      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/survei" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
+        <i class="ri-emotion-happy-line text-lg"></i> Manajemen Survei
       </a>
 
-      <div class="px-3.5 pt-5 pb-1.5 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
-        LAYANAN TEST
-      </div>
-
-      <div>
-        <button type="button" onclick="toggleSubmenuSidebar('submenuPenjadwalan', 'chevronPenjadwalan')" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+      <!-- Dropdown Penjadwalan -->
+      <div class="space-y-1">
+        <button
+          type="button"
+          onclick="document.getElementById('subPenjadwalan').classList.toggle('hidden'); document.getElementById('arrowPenjadwalan').classList.toggle('rotate-180')"
+          class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200"
+        >
           <span class="flex items-center gap-3">
-            <i class="ri-calendar-2-line text-base text-slate-400"></i>
-            <span>Penjadwalan</span>
+            <i class="ri-calendar-line text-lg"></i> Penjadwalan
           </span>
-          <i id="chevronPenjadwalan" class="ri-arrow-down-s-line text-base text-slate-400 transition-transform"></i>
+          <i id="arrowPenjadwalan" class="ri-arrow-down-s-line text-base transition-transform duration-200"></i>
         </button>
-        <div id="submenuPenjadwalan" class="hidden mt-1 ml-3 pl-3 space-y-1">
-          <a href="jadwal-test.html" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs text-slate-600 hover:text-[#169C53] hover:bg-emerald-50/50">
-            <span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
-            <span>Jadwal Test</span>
+
+        <div id="subPenjadwalan" class="pl-11 pr-2 space-y-1 hidden">
+          <a href="jadwal-test.html" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-colors">
+            <span class="w-1.5 h-1.5 rounded-full bg-[#10C35D]"></span> Jadwal Test
           </a>
-          <a href="jadwal-remedial.html" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs text-slate-600 hover:text-[#169C53] hover:bg-emerald-50/50">
-            <span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
-            <span>Jadwal Remedial</span>
-          </a>
-          <a href="jadwal-kursus.html" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs text-slate-600 hover:text-[#169C53] hover:bg-emerald-50/50">
-            <span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
-            <span>Jadwal Kursus</span>
+          <a href="jadwal-remedial.html" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-colors">
+            <span class="w-1.5 h-1.5 rounded-full bg-[#10C35D]"></span> Jadwal Remedial
           </a>
         </div>
       </div>
 
-      <div>
-        <button type="button" onclick="toggleSubmenuSidebar('submenuHasilTest', 'chevronHasilTest')" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+      <!-- Dropdown Hasil Test -->
+      <div class="space-y-1">
+        <button
+          type="button"
+          onclick="document.getElementById('subHasilTest').classList.toggle('hidden'); document.getElementById('arrowHasilTest').classList.toggle('rotate-180')"
+          class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200"
+        >
           <span class="flex items-center gap-3">
-            <i class="ri-file-upload-line text-base text-slate-400"></i>
-            <span>Hasil Test</span>
+            <i class="ri-file-upload-line text-lg"></i> Hasil Test
           </span>
-          <i id="chevronHasilTest" class="ri-arrow-down-s-line text-base text-slate-400 transition-transform"></i>
+          <i id="arrowHasilTest" class="ri-arrow-down-s-line text-base transition-transform duration-200"></i>
         </button>
-        <div id="submenuHasilTest" class="hidden mt-1 ml-3 pl-3 space-y-1">
-          <a href="toefl.html" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs text-slate-600 hover:text-[#169C53] hover:bg-emerald-50/50">
-            <span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
-            <span>TOEFL</span>
+
+        <div id="subHasilTest" class="pl-11 pr-2 space-y-1 hidden">
+          <a href="toefl.html" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-colors">
+            <span class="w-1.5 h-1.5 rounded-full bg-[#10C35D]"></span> TOEFL
           </a>
-          <a href="sspect.html" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs text-slate-600 hover:text-[#169C53] hover:bg-emerald-50/50">
-            <span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
-            <span>SSPECT</span>
+          <a href="sspect.html" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-colors">
+            <span class="w-1.5 h-1.5 rounded-full bg-[#10C35D]"></span> SSPECT
           </a>
         </div>
       </div>
 
-      <a href="kalkulasi-score.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-        <i class="ri-calculator-line text-base text-slate-400"></i>
-        <span>Kalkulasi Score</span>
-      </a>
-
-      <a href="rekapan.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-emerald-50 text-[#169C53] font-bold transition-colors">
-        <i class="ri-bar-chart-box-line text-base text-[#169C53]"></i>
-        <span>Rekapan</span>
-      </a>
-
-      <a href="dashboard.html#informasi" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-        <i class="ri-information-line text-base text-slate-400"></i>
-        <span>Pusat Informasi</span>
-      </a>
-
-      <div class="px-3.5 pt-5 pb-1.5 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
-        MANAJEMEN KONTEN
-      </div>
-
-      <a href="dashboard.html#konten" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-        <i class="ri-article-line text-base text-slate-400"></i>
-        <span>Konten Utama</span>
-      </a>
-
-      <a href="layanan-tes.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-        <i class="ri-heart-pulse-line text-base text-slate-400"></i>
-        <span>Layanan Tambahan</span>
-      </a>
-
-      <a href="dashboard.html#pembelajaran" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-        <i class="ri-book-open-line text-base text-slate-400"></i>
-        <span>Pembelajaran</span>
-      </a>
-
-      <a href="dashboard.html#pengaduan" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-        <i class="ri-chat-3-line text-base text-slate-400"></i>
-        <span>Pengaduan</span>
-      </a>
-
-      <a href="dashboard.html#survei" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-        <i class="ri-survey-line text-base text-slate-400"></i>
-        <span>Survei</span>
+      <!-- Rekapan (AKTIF) -->
+      <a href="rekapan.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold bg-[#10C35D] text-white shadow-md transition-all duration-200">
+        <i class="ri-folder-chart-line text-lg"></i> Rekapan
       </a>
     </nav>
   </aside>
 
   <!-- ==================== AREA KONTEN UTAMA ==================== -->
-  <div class="flex-1 lg:pl-60 flex flex-col min-w-0">
+  <div class="flex-1 flex flex-col h-screen overflow-hidden relative">
 
-    <!-- TOP HEADER -->
-    <header class="bg-white border-b border-slate-200/80 sticky top-0 z-30">
-      <div class="max-w-7xl mx-auto px-6 sm:px-8 h-16 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <button type="button" onclick="toggleMobileSidebar()" class="lg:hidden w-9 h-9 rounded-xl border border-slate-200 flex items-center justify-center text-slate-600">
-            <i class="ri-menu-line text-lg"></i>
-          </button>
-          <div class="text-[11px] font-extrabold tracking-wider text-slate-400 uppercase">
-            LAYANAN TEST / REKAPAN
-          </div>
+    <!-- TOP HEADER (SAMA PERSIS DENGAN JADWAL TEST) -->
+    <header class="h-16 bg-white shadow-sm flex items-center justify-between px-4 lg:px-8 z-40 relative shrink-0">
+      <div class="flex items-center gap-3">
+        <button type="button" onclick="document.getElementById('adminSidebar').classList.remove('-translate-x-full')" class="lg:hidden text-gray-600 hover:text-[#10C35D]" aria-label="Buka sidebar">
+          <i class="ri-menu-line text-2xl"></i>
+        </button>
+        <div>
+          <h2 class="text-lg font-semibold text-[#0a3d2e]">Panel Administrasi</h2>
+          <p class="text-xs text-gray-500 hidden sm:block">Selamat datang di Sistem Informasi UPA Bahasa</p>
         </div>
+      </div>
 
-        <!-- PROFIL PENGGUNA & MENU DROPDOWN -->
-        <div class="relative z-[99]" id="dropdownProfilWrapper">
-          <button onclick="toggleDropdownProfil(event)" class="w-10 h-10 rounded-full bg-[#169C53] text-white flex items-center justify-center font-extrabold text-xs shadow-md hover:bg-[#0E7A3F] transition-all focus:outline-none">
-            <span id="userAvatarText">LA</span>
-          </button>
+      <!-- PROFILE DROPDOWN (OTOMATIS MENGIKUTI AKUN YANG LOGIN DI PIYA) -->
+      <div class="relative">
+        <button
+          type="button"
+          onclick="document.getElementById('profileDropdownMenu').classList.toggle('hidden')"
+          class="flex items-center gap-2 sm:gap-3 rounded-xl px-2 py-1.5 hover:bg-[#F0F8F3] transition-colors focus:outline-none focus:ring-2 focus:ring-[#10C35D]"
+        >
+          <div id="headerAdminInitial" class="w-10 h-10 rounded-full bg-[#10C35D] text-white flex items-center justify-center font-bold shadow-sm">
+            A
+          </div>
+          <div class="hidden sm:block text-left">
+            <p class="text-sm font-semibold text-[#0a3d2e]">Profile</p>
+            <p id="headerAdminName" class="text-xs text-gray-500">Admin UPA</p>
+          </div>
+          <i class="ri-arrow-down-s-line text-gray-500 text-lg"></i>
+        </button>
 
-          <div id="menuDropdownProfil" class="hidden absolute right-0 mt-2 w-60 bg-white rounded-2xl shadow-2xl border border-slate-200 py-2 z-[999] text-xs">
-            <div class="px-4 py-3 border-b border-slate-100">
-              <div class="font-extrabold text-slate-900 text-sm" id="popupNamaUser">Lissa Anantha</div>
-              <div class="text-[11px] text-slate-400 font-mono mt-0.5" id="popupUsername">@admin</div>
+        <div id="profileDropdownMenu" class="hidden absolute right-0 top-full mt-3 w-72 max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50">
+          <div class="px-5 py-4 bg-[#F0F8F3] border-b border-gray-100">
+            <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Akun Administrator</p>
+            <div class="flex items-center gap-3 mt-3">
+              <div id="dropdownAdminInitial" class="w-12 h-12 rounded-full bg-[#10C35D] text-white flex items-center justify-center text-lg font-bold shrink-0">
+                A
+              </div>
+              <div class="min-w-0">
+                <p id="dropdownAdminName" class="font-semibold text-[#0a3d2e] truncate">Admin UPA</p>
+                <p id="dropdownAdminEmail" class="text-xs text-gray-500 break-all">-</p>
+              </div>
             </div>
-            
-            <button onclick="bukaModalUbahUsername()" class="w-full text-left px-4 py-3 text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 font-semibold transition-all">
-              <i class="ri-user-settings-line text-base text-[#169C53]"></i> Ubah Username
-            </button>
-            <button onclick="bukaModalUbahPassword()" class="w-full text-left px-4 py-3 text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 font-semibold transition-all">
-              <i class="ri-lock-password-line text-base text-[#169C53]"></i> Ubah Kata Sandi
-            </button>
-            
-            <div class="border-t border-slate-100 my-1"></div>
-            
-            <button onclick="prosesLogoutUser()" class="w-full text-left px-4 py-3 text-rose-600 hover:bg-rose-50 flex items-center gap-2.5 font-extrabold transition-all">
-              <i class="ri-logout-box-line text-base"></i> Log Out
+          </div>
+          <div class="px-5 py-4 space-y-3">
+            <div class="flex items-center justify-between gap-3">
+              <span class="text-sm text-gray-500">Role</span>
+              <span id="dropdownAdminRole" class="text-sm font-medium text-[#0a3d2e]">Administrator</span>
+            </div>
+            <div class="flex items-center justify-between gap-3">
+              <span class="text-sm text-gray-500">Nomor Admin</span>
+              <span id="dropdownAdminNumber" class="text-sm font-semibold text-[#0a3d2e]">Nomor admin belum tersedia</span>
+            </div>
+          </div>
+          <div class="border-t border-gray-100 p-3">
+            <button type="button" onclick="logoutKePiya()" class="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
+              <i class="ri-logout-box-r-line text-lg"></i> Logout
             </button>
           </div>
         </div>
@@ -182,128 +189,130 @@
     </header>
 
     <!-- MAIN CONTENT -->
-    <main class="max-w-7xl w-full mx-auto px-6 sm:px-8 py-6 space-y-5">
+    <main class="flex-1 overflow-y-auto px-6 sm:px-8 py-6 space-y-5 pb-12">
+      <div class="max-w-7xl w-full mx-auto space-y-5">
 
-      <!-- JUDUL HALAMAN & TOMBOL AKSI MASSAL -->
-      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div>
-          <div class="text-[11px] font-extrabold tracking-wider text-[#169C53] uppercase">
-            ALUR SISTEM (JADWAL &rarr; PENCOCOKAN &rarr; KONVERSI) &amp; ARSIP MASTER
+        <!-- JUDUL HALAMAN & TOMBOL AKSI MASSAL -->
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div>
+            <div class="text-[11px] font-extrabold tracking-wider text-[#10C35D] uppercase">
+              ALUR SISTEM (JADWAL &rarr; PENCOCOKAN &rarr; KONVERSI) &amp; ARSIP MASTER
+            </div>
+            <h1 class="text-xl sm:text-2xl font-extrabold text-slate-800 mt-0.5">
+              Rekapan Induk Mahasiswa &amp; Sertifikat
+            </h1>
           </div>
-          <h1 class="text-xl sm:text-2xl font-extrabold text-slate-800 mt-0.5">
-            Rekapan Induk Mahasiswa &amp; Sertifikat
-          </h1>
+
+          <div class="flex flex-wrap items-center gap-2.5">
+            <button type="button" onclick="sinkronkanDatabaseRekapan(true)" class="px-4 py-2.5 rounded-xl bg-[#0284C7] hover:bg-[#0369A1] text-white text-xs font-extrabold inline-flex items-center gap-2 shadow-2xs transition-all">
+              <i class="ri-refresh-line text-sm"></i>
+              <span>Sinkron Alur Sistem</span>
+            </button>
+
+            <button type="button" onclick="bukaModalBatchNomorSertifikat()" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-extrabold inline-flex items-center gap-2 shadow-2xs transition-all">
+              <i class="ri-calendar-check-line text-sm"></i>
+              <span>Atur Nomor &amp; Tanggal Sertifikat</span>
+            </button>
+
+            <button type="button" onclick="bukaModalEditorSertifikat()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-extrabold inline-flex items-center gap-2 shadow-2xs transition-all">
+              <i class="ri-edit-box-line text-sm text-emerald-400"></i>
+              <span>Atur Tampilan Sertifikat</span>
+            </button>
+
+            <button type="button" onclick="bukaModalUnduhExcelRekapan()" class="px-4 py-2.5 rounded-xl bg-[#10C35D] hover:bg-[#0B8A42] text-white text-xs font-extrabold inline-flex items-center gap-2 shadow-2xs transition-all">
+              <i class="ri-file-excel-2-line text-sm"></i>
+              <span>Unduh Data Excel</span>
+            </button>
+
+            <!-- Tombol Buka Modal Pilihan Kategori Import Arsip -->
+            <button type="button" onclick="bukaModalImportArsip()" class="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-extrabold inline-flex items-center gap-2 shadow-2xs transition-all">
+              <i class="ri-upload-2-line text-sm text-[#10C35D]"></i>
+              <span>Import Arsip</span>
+            </button>
+          </div>
         </div>
 
-        <div class="flex flex-wrap items-center gap-2.5">
-          <button type="button" onclick="sinkronkanDatabaseRekapan(true)" class="px-4 py-2.5 rounded-xl bg-[#0284C7] hover:bg-[#0369A1] text-white text-xs font-extrabold inline-flex items-center gap-2 shadow-2xs transition-all">
-            <i class="ri-refresh-line text-sm"></i>
-            <span>Sinkron Alur Sistem</span>
-          </button>
+        <!-- ==================== BAR 1: TAB TAHUN ANGKATAN (AUTO-NIM) & STATISTIK ==================== -->
+        <section class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs px-5 py-4 flex flex-wrap items-center justify-between gap-4">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-xs font-extrabold text-slate-500 inline-flex items-center gap-1.5 mr-1">
+              <i class="ri-folder-user-line text-[#10C35D] text-base"></i>
+              <span>TAHUN ANGKATAN (AUTO-NIM):</span>
+            </span>
+            <div id="containerTabAngkatan" class="flex flex-wrap items-center gap-2">
+              <button type="button" onclick="pilihTabAngkatan('SEMUA')" class="px-3.5 py-1.5 rounded-full bg-[#10C35D] text-white text-xs font-extrabold">
+                Semua (0)
+              </button>
+            </div>
+          </div>
 
-          <button type="button" onclick="bukaModalBatchNomorSertifikat()" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-extrabold inline-flex items-center gap-2 shadow-2xs transition-all">
-            <i class="ri-calendar-check-line text-sm"></i>
-            <span>Atur Nomor &amp; Tanggal Sertifikat</span>
-          </button>
+          <div class="flex flex-wrap items-center gap-2 text-xs font-extrabold">
+            <span id="statTotalMahasiswa" class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700">Total: 0</span>
+            <span id="statLulusToefl" class="px-3 py-1.5 rounded-xl bg-emerald-50 text-[#10C35D] border border-emerald-200">Lulus TOEFL: 0</span>
+            <span id="statBelumLulus" class="px-3 py-1.5 rounded-xl bg-amber-50 text-amber-700 border border-amber-200">Belum Lulus: 0</span>
+          </div>
+        </section>
 
-          <button type="button" onclick="bukaModalEditorSertifikat()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-extrabold inline-flex items-center gap-2 shadow-2xs transition-all">
-            <i class="ri-edit-box-line text-sm text-emerald-400"></i>
-            <span>Atur Tampilan Sertifikat</span>
-          </button>
+        <!-- ==================== BAR 2: PENCARIAN OTOMATIS & FILTER STATUS ==================== -->
+        <section class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <div class="relative flex-1">
+            <i class="ri-search-line absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+            <input
+              type="text"
+              id="inputCariRekapan"
+              oninput="terapkanFilterRekapan()"
+              placeholder="Cari NIM, Nama Mahasiswa, Jurusan, atau Program Studi..."
+              class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold text-slate-700 focus:border-[#10C35D] outline-none transition-all"
+            />
+          </div>
 
-          <button type="button" onclick="bukaModalUnduhExcelRekapan()" class="px-4 py-2.5 rounded-xl bg-[#169C53] hover:bg-[#0E7A3F] text-white text-xs font-extrabold inline-flex items-center gap-2 shadow-2xs transition-all">
-            <i class="ri-file-excel-2-line text-sm"></i>
-            <span>Unduh Data Excel</span>
-          </button>
+          <select id="filterStatusRekapan" onchange="terapkanFilterRekapan()" class="px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm font-bold text-slate-700 focus:border-[#10C35D] outline-none sm:w-52">
+            <option value="SEMUA">Semua Status</option>
+            <option value="LULUS">Lulus TOEFL</option>
+            <option value="BELUM_LULUS">Belum Lulus</option>
+          </select>
+        </section>
 
-          <!-- Tombol Buka Modal Pilihan Kategori Import Arsip -->
-          <button type="button" onclick="bukaModalImportArsip()" class="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-extrabold inline-flex items-center gap-2 shadow-2xs transition-all">
-            <i class="ri-upload-2-line text-sm text-[#169C53]"></i>
-            <span>Import Arsip</span>
-          </button>
-        </div>
+        <!-- ==================== BAR 3: TABEL UTAMA REKAPAN ==================== -->
+        <section class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
+          <div class="overflow-x-auto custom-scrollbar">
+            <table class="w-full text-left border-collapse text-xs sm:text-sm">
+              <thead>
+                <tr class="bg-slate-50/90 border-b border-slate-200 text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">
+                  <th class="px-4 py-3.5 w-14">NO</th>
+                  <th class="px-4 py-3.5">NIM &amp; NAMA MAHASISWA</th>
+                  <th class="px-4 py-3.5">JURUSAN &amp; PRODI</th>
+                  <th class="px-4 py-3.5 text-center">ANGKATAN</th>
+                  <th class="px-4 py-3.5 text-center">STATUS</th>
+                  <th class="px-4 py-3.5 text-center">AKSI &amp; SERTIFIKAT</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyRekapanMaster" class="divide-y divide-slate-100">
+                <tr>
+                  <td colspan="6" class="px-6 py-12 text-center text-slate-400 italic">
+                    Memuat data mahasiswa &amp; sinkronisasi nilai dari database...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination Info -->
+          <div class="px-5 py-3.5 bg-slate-50/60 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500 font-semibold">
+            <span id="infoPaginationRekapan">Menampilkan 0 data</span>
+            <div class="flex items-center gap-2">
+              <button type="button" id="btnPrevPageRekapan" onclick="gantiHalamanRekapan(-1)" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 font-bold">
+                Sebelumnya
+              </button>
+              <span id="labelHalamanRekapan" class="px-2 font-extrabold text-slate-700">Hal 1</span>
+              <button type="button" id="btnNextPageRekapan" onclick="gantiHalamanRekapan(1)" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 font-bold">
+                Berikutnya
+              </button>
+            </div>
+          </div>
+        </section>
+
       </div>
-
-      <!-- ==================== BAR 1: TAB TAHUN ANGKATAN (AUTO-NIM) & STATISTIK ==================== -->
-      <section class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs px-5 py-4 flex flex-wrap items-center justify-between gap-4">
-        <div class="flex flex-wrap items-center gap-2">
-          <span class="text-xs font-extrabold text-slate-500 inline-flex items-center gap-1.5 mr-1">
-            <i class="ri-folder-user-line text-[#169C53] text-base"></i>
-            <span>TAHUN ANGKATAN (AUTO-NIM):</span>
-          </span>
-          <div id="containerTabAngkatan" class="flex flex-wrap items-center gap-2">
-            <button type="button" onclick="pilihTabAngkatan('SEMUA')" class="px-3.5 py-1.5 rounded-full bg-[#169C53] text-white text-xs font-extrabold">
-              Semua (0)
-            </button>
-          </div>
-        </div>
-
-        <div class="flex flex-wrap items-center gap-2 text-xs font-extrabold">
-          <span id="statTotalMahasiswa" class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700">Total: 0</span>
-          <span id="statLulusToefl" class="px-3 py-1.5 rounded-xl bg-emerald-50 text-[#169C53] border border-emerald-200">Lulus TOEFL: 0</span>
-          <span id="statBelumLulus" class="px-3 py-1.5 rounded-xl bg-amber-50 text-amber-700 border border-amber-200">Belum Lulus: 0</span>
-        </div>
-      </section>
-
-      <!-- ==================== BAR 2: PENCARIAN OTOMATIS & FILTER STATUS ==================== -->
-      <section class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-        <div class="relative flex-1">
-          <i class="ri-search-line absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-          <input
-            type="text"
-            id="inputCariRekapan"
-            oninput="terapkanFilterRekapan()"
-            placeholder="Cari NIM, Nama Mahasiswa, Jurusan, atau Program Studi..."
-            class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold text-slate-700 focus:border-[#169C53] outline-none transition-all"
-          />
-        </div>
-
-        <select id="filterStatusRekapan" onchange="terapkanFilterRekapan()" class="px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm font-bold text-slate-700 focus:border-[#169C53] outline-none sm:w-52">
-          <option value="SEMUA">Semua Status</option>
-          <option value="LULUS">Lulus TOEFL</option>
-          <option value="BELUM_LULUS">Belum Lulus</option>
-        </select>
-      </section>
-
-      <!-- ==================== BAR 3: TABEL UTAMA REKAPAN ==================== -->
-      <section class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
-        <div class="overflow-x-auto custom-scrollbar">
-          <table class="w-full text-left border-collapse text-xs sm:text-sm">
-            <thead>
-              <tr class="bg-slate-50/90 border-b border-slate-200 text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">
-                <th class="px-4 py-3.5 w-14">NO</th>
-                <th class="px-4 py-3.5">NIM &amp; NAMA MAHASISWA</th>
-                <th class="px-4 py-3.5">JURUSAN &amp; PRODI</th>
-                <th class="px-4 py-3.5 text-center">ANGKATAN</th>
-                <th class="px-4 py-3.5 text-center">STATUS</th>
-                <th class="px-4 py-3.5 text-center">AKSI &amp; SERTIFIKAT</th>
-              </tr>
-            </thead>
-            <tbody id="tbodyRekapanMaster" class="divide-y divide-slate-100">
-              <tr>
-                <td colspan="6" class="px-6 py-12 text-center text-slate-400 italic">
-                  Memuat data mahasiswa &amp; sinkronisasi nilai dari database...
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Pagination Info -->
-        <div class="px-5 py-3.5 bg-slate-50/60 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500 font-semibold">
-          <span id="infoPaginationRekapan">Menampilkan 0 data</span>
-          <div class="flex items-center gap-2">
-            <button type="button" id="btnPrevPageRekapan" onclick="gantiHalamanRekapan(-1)" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 font-bold">
-              Sebelumnya
-            </button>
-            <span id="labelHalamanRekapan" class="px-2 font-extrabold text-slate-700">Hal 1</span>
-            <button type="button" id="btnNextPageRekapan" onclick="gantiHalamanRekapan(1)" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 font-bold">
-              Berikutnya
-            </button>
-          </div>
-        </div>
-      </section>
-
     </main>
   </div>
 
@@ -314,7 +323,7 @@
         <div>
           <div class="flex flex-wrap items-center gap-2 mb-2">
             <span id="detailBadgeAngkatan" class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-extrabold">Angkatan 2024</span>
-            <span id="detailBadgeBatasLulus" class="px-3 py-1 rounded-full bg-emerald-50 text-[#169C53] border border-emerald-200 text-xs font-extrabold">D3 (Batas Lulus: 400)</span>
+            <span id="detailBadgeBatasLulus" class="px-3 py-1 rounded-full bg-emerald-50 text-[#10C35D] border border-emerald-200 text-xs font-extrabold">D3 (Batas Lulus: 400)</span>
             <span id="detailBadgeStatusLulus" class="px-3 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-xs font-extrabold">BELUM LULUS</span>
           </div>
           <h2 id="detailNamaMahasiswa" class="text-xl sm:text-2xl font-extrabold text-slate-800 uppercase">NAMA MAHASISWA</h2>
@@ -341,8 +350,8 @@
               <div id="boxSkorLatihan" class="text-lg font-extrabold text-slate-800 mt-1">-</div>
             </div>
             <div class="rounded-2xl border border-emerald-200 bg-emerald-50/40 p-3.5 text-center">
-              <div id="labelBoxToefl" class="text-[10px] font-extrabold text-[#169C53] uppercase">TOEFL UTAMA</div>
-              <div id="boxSkorToefl" class="text-lg font-extrabold text-[#169C53] mt-1">-</div>
+              <div id="labelBoxToefl" class="text-[10px] font-extrabold text-[#10C35D] uppercase">TOEFL UTAMA</div>
+              <div id="boxSkorToefl" class="text-lg font-extrabold text-[#10C35D] mt-1">-</div>
             </div>
             <div class="rounded-2xl border border-slate-200/90 bg-slate-50/50 p-3.5 text-center">
               <div class="text-[10px] font-extrabold text-slate-400 uppercase">REMEDIAL 1</div>
@@ -361,9 +370,9 @@
           <div class="mt-3 rounded-xl bg-slate-50 border border-slate-200/70 px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
             <span class="font-bold text-slate-500">Rincian Section Skor:</span>
             <div class="flex flex-wrap items-center gap-4 font-extrabold text-slate-700">
-              <span>Listening (Sec 1): <span id="detailSec1" class="text-[#169C53]">-</span></span>
-              <span>Structure (Sec 2): <span id="detailSec2" class="text-[#169C53]">-</span></span>
-              <span>Reading (Sec 3): <span id="detailSec3" class="text-[#169C53]">-</span></span>
+              <span>Listening (Sec 1): <span id="detailSec1" class="text-[#10C353]">-</span></span>
+              <span>Structure (Sec 2): <span id="detailSec2" class="text-[#10C353]">-</span></span>
+              <span>Reading (Sec 3): <span id="detailSec3" class="text-[#10C353]">-</span></span>
             </div>
           </div>
         </div>
@@ -401,7 +410,7 @@
             <label for="batchTargetAngkatan" class="block text-[11px] font-extrabold text-slate-500 uppercase mb-1">
               1. Tahun Angkatan Target
             </label>
-            <select id="batchTargetAngkatan" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-bold text-slate-700 bg-white outline-none focus:border-[#169C53]">
+            <select id="batchTargetAngkatan" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-bold text-slate-700 bg-white outline-none focus:border-[#10C353]">
               <option value="2024">Angkatan 2024</option>
             </select>
           </div>
@@ -410,7 +419,7 @@
             <label for="batchTanggalTerbit" class="block text-[11px] font-extrabold text-slate-500 uppercase mb-1">
               2. Tanggal Terbit Sertifikat
             </label>
-            <input type="date" id="batchTanggalTerbit" onchange="updatePreviewBatchNomor()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-bold text-slate-700 bg-white outline-none focus:border-[#169C53]" />
+            <input type="date" id="batchTanggalTerbit" onchange="updatePreviewBatchNomor()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-bold text-slate-700 bg-white outline-none focus:border-[#10C353]" />
           </div>
         </div>
 
@@ -419,14 +428,14 @@
             <label for="batchKodeAwal" class="block text-[11px] font-extrabold text-slate-500 uppercase mb-1">
               3. Nomor Urut Awal
             </label>
-            <input type="text" id="batchKodeAwal" value="0355" oninput="updatePreviewBatchNomor()" placeholder="0355 atau A11" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-mono font-extrabold text-slate-800 uppercase outline-none focus:border-[#169C53]" />
+            <input type="text" id="batchKodeAwal" value="0355" oninput="updatePreviewBatchNomor()" placeholder="0355 atau A11" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-mono font-extrabold text-slate-800 uppercase outline-none focus:border-[#10C353]" />
           </div>
 
           <div>
             <label for="batchFormatSuffix" class="block text-[11px] font-extrabold text-slate-500 uppercase mb-1">
               4. Format Akhiran Surat
             </label>
-            <input type="text" id="batchFormatSuffix" value="/ PL7.18 / UPA.BAHASA / TOEFL-P / 2026" oninput="updatePreviewBatchNomor()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-mono font-bold text-slate-700 outline-none focus:border-[#169C53]" />
+            <input type="text" id="batchFormatSuffix" value="/ PL7.18 / UPA.BAHASA / TOEFL-P / 2026" oninput="updatePreviewBatchNomor()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-mono font-bold text-slate-700 outline-none focus:border-[#10C353]" />
           </div>
         </div>
 
@@ -470,7 +479,7 @@
           <label for="exportPilihAngkatan" class="block text-[11px] font-extrabold text-slate-500 uppercase mb-1">
             1. Pilih Tahun Angkatan
           </label>
-          <select id="exportPilihAngkatan" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-bold text-slate-700 bg-white outline-none focus:border-[#169C53]">
+          <select id="exportPilihAngkatan" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-bold text-slate-700 bg-white outline-none focus:border-[#10C353]">
             <option value="SEMUA">Semua Angkatan</option>
           </select>
         </div>
@@ -479,7 +488,7 @@
           <label for="exportPilihKategori" class="block text-[11px] font-extrabold text-slate-500 uppercase mb-1">
             2. Pilih Jenis Data yang Diunduh
           </label>
-          <select id="exportPilihKategori" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-bold text-slate-700 bg-white outline-none focus:border-[#169C53]">
+          <select id="exportPilihKategori" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-bold text-slate-700 bg-white outline-none focus:border-[#10C353]">
             <option value="SEMUA">Rekapan Lengkap (SSPECT + Latihan + TOEFL + Remedial)</option>
             <option value="SSPECT">Data Nilai SSPECT Saja</option>
             <option value="LATIHAN">Data Nilai Latihan TOEFL Saja</option>
@@ -493,7 +502,7 @@
         <button type="button" onclick="tutupModalUnduhExcel()" class="px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 text-xs font-extrabold">
           Batal
         </button>
-        <button type="button" onclick="eksekusiUnduhExcelRekapan()" class="px-4 py-2 rounded-xl bg-[#169C53] hover:bg-[#0E7A3F] text-white text-xs font-extrabold inline-flex items-center gap-1.5">
+        <button type="button" onclick="eksekusiUnduhExcelRekapan()" class="px-4 py-2 rounded-xl bg-[#10C35D] hover:bg-[#0B8A42] text-white text-xs font-extrabold inline-flex items-center gap-1.5">
           <i class="ri-file-excel-2-line"></i>
           <span>Download Excel (.xlsx)</span>
         </button>
@@ -519,7 +528,7 @@
           <label for="importKategoriTes" class="block text-[11px] font-extrabold text-slate-500 uppercase mb-1">
             1. Pilih Kategori Nilai yang Diimport
           </label>
-          <select id="importKategoriTes" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-bold text-slate-700 bg-white outline-none focus:border-[#169C53]">
+          <select id="importKategoriTes" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-bold text-slate-700 bg-white outline-none focus:border-[#10C353]">
             <option value="SSPECT">Nilai SSPECT</option>
             <option value="LATIHAN">Nilai Latihan TOEFL</option>
             <option value="TOEFL">Nilai TOEFL Utama</option>
@@ -538,7 +547,7 @@
             type="file"
             id="inputFileExcelArsip"
             accept=".xlsx,.xls,.csv"
-            class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 bg-slate-50 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-extrabold file:bg-[#169C53] file:text-white hover:file:bg-[#0E7A3F]"
+            class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 bg-slate-50 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-extrabold file:bg-[#10C35D] file:text-white hover:file:bg-[#0B8A42]"
           />
         </div>
 
@@ -555,7 +564,7 @@
         <button type="button" onclick="tutupModalImportArsip()" class="px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 text-xs font-extrabold">
           Batal
         </button>
-        <button type="button" id="btnEksekusiImportArsip" onclick="prosesImportArsipCerdas()" class="px-4 py-2 rounded-xl bg-[#169C53] hover:bg-[#0E7A3F] text-white text-xs font-extrabold inline-flex items-center gap-1.5">
+        <button type="button" id="btnEksekusiImportArsip" onclick="prosesImportArsipCerdas()" class="px-4 py-2 rounded-xl bg-[#10C35D] hover:bg-[#0B8A42] text-white text-xs font-extrabold inline-flex items-center gap-1.5">
           <i class="ri-upload-cloud-2-line"></i>
           <span>Proses Import &amp; Gabung Skor</span>
         </button>
@@ -568,7 +577,7 @@
     <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-3xl max-h-[92vh] flex flex-col overflow-hidden">
       <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
         <div>
-          <span class="text-[10px] font-extrabold uppercase tracking-wider text-[#169C53]">FULL ENGLISH &amp; CUSTOMIZABLE TEXT</span>
+          <span class="text-[10px] font-extrabold uppercase tracking-wider text-[#10C35D]">FULL ENGLISH &amp; CUSTOMIZABLE TEXT</span>
           <h3 class="text-base font-extrabold text-slate-800">Editor Teks &amp; Tampilan Sertifikat (TOEFL &amp; SSPECT)</h3>
           <p class="text-xs text-slate-400 mt-0.5">Tata letak tetap rapi, seluruh teks menggunakan Bahasa Inggris &amp; dapat diubah sesuai kebutuhan.</p>
         </div>
@@ -598,7 +607,7 @@
                 id="inputUploadLatarSertifikat"
                 accept="image/png, image/jpeg, image/webp"
                 onchange="handleUploadLatarSertifikat(event)"
-                class="block w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-extrabold file:bg-[#169C53] file:text-white hover:file:bg-[#0E7A3F] cursor-pointer"
+                class="block w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-extrabold file:bg-[#10C35D] file:text-white hover:file:bg-[#0B8A42] cursor-pointer"
               />
               <p id="statusLatarSertifikatModal" class="text-[11px] font-semibold text-slate-600">
                 Status: Menggunakan latar bawaan (img/sertif.jpg)
@@ -613,19 +622,19 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label class="block font-extrabold text-slate-600 mb-1">Kode Form Dokumen (Pojok Kanan Atas)</label>
-              <input type="text" id="tplDocCode" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+              <input type="text" id="tplDocCode" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#10C353] outline-none" />
             </div>
             <div>
               <label class="block font-extrabold text-slate-600 mb-1">Nama Kementerian (Baris 1)</label>
-              <input type="text" id="tplMinistry" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+              <input type="text" id="tplMinistry" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#10C353] outline-none" />
             </div>
             <div>
               <label class="block font-extrabold text-slate-600 mb-1">Nama Institusi (Baris 2)</label>
-              <input type="text" id="tplInstitution" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+              <input type="text" id="tplInstitution" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#10C353] outline-none" />
             </div>
             <div>
               <label class="block font-extrabold text-slate-600 mb-1">Unit Pelaksana (Baris 3)</label>
-              <input type="text" id="tplUnit" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+              <input type="text" id="tplUnit" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#10C353] outline-none" />
             </div>
           </div>
         </div>
@@ -636,19 +645,19 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label class="block font-extrabold text-slate-600 mb-1">Judul Sertifikat</label>
-              <input type="text" id="tplCertTitle" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+              <input type="text" id="tplCertTitle" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#10C353] outline-none" />
             </div>
             <div>
               <label class="block font-extrabold text-slate-600 mb-1">Kalimat Pembuka</label>
-              <input type="text" id="tplPresentedTo" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+              <input type="text" id="tplPresentedTo" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#10C353] outline-none" />
             </div>
             <div>
               <label class="block font-extrabold text-slate-600 mb-1">Keterangan Skor TOEFL</label>
-              <input type="text" id="tplScoreDescToefl" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+              <input type="text" id="tplScoreDescToefl" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#10C353] outline-none" />
             </div>
             <div>
               <label class="block font-extrabold text-slate-600 mb-1">Keterangan Skor SSPECT</label>
-              <input type="text" id="tplScoreDescSspect" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+              <input type="text" id="tplScoreDescSspect" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#10C353] outline-none" />
             </div>
           </div>
         </div>
@@ -659,39 +668,39 @@
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <div>
               <label class="block font-extrabold text-slate-600 mb-1">Label Nama</label>
-              <input type="text" id="tplLblName" class="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+              <input type="text" id="tplLblName" class="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#10C353] outline-none" />
             </div>
             <div>
               <label class="block font-extrabold text-slate-600 mb-1">Label NIM</label>
-              <input type="text" id="tplLblNim" class="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+              <input type="text" id="tplLblNim" class="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#10C353] outline-none" />
             </div>
             <div>
               <label class="block font-extrabold text-slate-600 mb-1">Label Tempat/Tgl Lahir</label>
-              <input type="text" id="tplLblDob" class="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+              <input type="text" id="tplLblDob" class="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#10C353] outline-none" />
             </div>
             <div>
               <label class="block font-extrabold text-slate-600 mb-1">Label Prodi</label>
-              <input type="text" id="tplLblProdi" class="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+              <input type="text" id="tplLblProdi" class="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#10C353] outline-none" />
             </div>
             <div>
               <label class="block font-extrabold text-slate-600 mb-1">Label Tanggal Tes</label>
-              <input type="text" id="tplLblTestDate" class="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+              <input type="text" id="tplLblTestDate" class="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#10C353] outline-none" />
             </div>
             <div>
               <label class="block font-extrabold text-slate-600 mb-1">Label Total Skor</label>
-              <input type="text" id="tplLblTotalScore" class="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+              <input type="text" id="tplLblTotalScore" class="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#10C353] outline-none" />
             </div>
             <div>
               <label class="block font-extrabold text-slate-600 mb-1">Kolom Nilai 1</label>
-              <input type="text" id="tplColSec1" class="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+              <input type="text" id="tplColSec1" class="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#10C353] outline-none" />
             </div>
             <div>
               <label class="block font-extrabold text-slate-600 mb-1">Kolom Nilai 2</label>
-              <input type="text" id="tplColSec2" class="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+              <input type="text" id="tplColSec2" class="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#10C353] outline-none" />
             </div>
             <div>
               <label class="block font-extrabold text-slate-600 mb-1">Kolom Nilai 3</label>
-              <input type="text" id="tplColSec3" class="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+              <input type="text" id="tplColSec3" class="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#10C353] outline-none" />
             </div>
           </div>
         </div>
@@ -702,29 +711,29 @@
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label class="block font-extrabold text-slate-600 mb-1">Jabatan Penandatangan</label>
-              <input type="text" id="tplHeadTitle" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+              <input type="text" id="tplHeadTitle" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#10C353] outline-none" />
             </div>
             <div>
               <label class="block font-extrabold text-slate-600 mb-1">Nama Kepala UPA Bahasa</label>
-              <input type="text" id="tplHeadName" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+              <input type="text" id="tplHeadName" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#10C353] outline-none" />
             </div>
             <div>
               <label class="block font-extrabold text-slate-600 mb-1">NIP Kepala UPA Bahasa</label>
-              <input type="text" id="tplHeadNip" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+              <input type="text" id="tplHeadNip" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#10C353] outline-none" />
             </div>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label class="block font-extrabold text-slate-600 mb-1">Alamat Kampus (Baris 1)</label>
-              <input type="text" id="tplFooterAddr1" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+              <input type="text" id="tplFooterAddr1" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#10C353] outline-none" />
             </div>
             <div>
               <label class="block font-extrabold text-slate-600 mb-1">Telepon / Fax (Baris 2)</label>
-              <input type="text" id="tplFooterAddr2" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+              <input type="text" id="tplFooterAddr2" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#10C353] outline-none" />
             </div>
             <div>
               <label class="block font-extrabold text-slate-600 mb-1">Website &amp; Email (Baris 3)</label>
-              <input type="text" id="tplFooterAddr3" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#169C53] outline-none" />
+              <input type="text" id="tplFooterAddr3" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-800 focus:border-[#10C353] outline-none" />
             </div>
           </div>
         </div>
@@ -738,7 +747,7 @@
           <button type="button" onclick="tutupModalEditorSertifikat()" class="px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 text-xs font-extrabold">
             Batal
           </button>
-          <button type="button" onclick="simpanTemplateSertifikat()" class="px-5 py-2 rounded-xl bg-[#169C53] hover:bg-[#0E7A3F] text-white text-xs font-extrabold inline-flex items-center gap-1.5">
+          <button type="button" onclick="simpanTemplateSertifikat()" class="px-5 py-2 rounded-xl bg-[#10C35D] hover:bg-[#0B8A42] text-white text-xs font-extrabold inline-flex items-center gap-1.5">
             <i class="ri-save-3-line"></i>
             <span>Simpan Perubahan Sertifikat</span>
           </button>
