@@ -4,19 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Rekapan &amp; Sertifikat - UPA Bahasa POLNES</title>
-
-  <!-- Tangkap sesi dari Piya lebih dulu agar tidak terlempar ke login.html -->
-  <script src="./js/admin-profil-global.js"></script>
-
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet" />
-  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet" />
-
-  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
   <script>
     tailwind.config = {
       theme: {
@@ -58,7 +52,7 @@
         />
         <span class="font-bold text-lg tracking-wide text-white">UPA ADMIN</span>
       </div>
-      <button type="button" onclick="toggleMobileSidebar()" class="lg:hidden text-gray-400 hover:text-white" aria-label="Tutup sidebar">
+      <button type="button" onclick="document.getElementById('adminSidebar').classList.add('-translate-x-full')" class="lg:hidden text-gray-400 hover:text-white" aria-label="Tutup sidebar">
         <i class="ri-close-line text-xl"></i>
       </button>
     </div>
@@ -87,7 +81,7 @@
       <div class="space-y-1">
         <button
           type="button"
-          onclick="toggleSubmenuSidebar('subPenjadwalan', 'arrowPenjadwalan')"
+          onclick="document.getElementById('subPenjadwalan').classList.toggle('hidden'); document.getElementById('arrowPenjadwalan').classList.toggle('rotate-180')"
           class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200"
         >
           <span class="flex items-center gap-3">
@@ -110,7 +104,7 @@
       <div class="space-y-1">
         <button
           type="button"
-          onclick="toggleSubmenuSidebar('subHasilTest', 'arrowHasilTest')"
+          onclick="document.getElementById('subHasilTest').classList.toggle('hidden'); document.getElementById('arrowHasilTest').classList.toggle('rotate-180')"
           class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200"
         >
           <span class="flex items-center gap-3">
@@ -142,7 +136,7 @@
     <!-- TOP HEADER -->
     <header class="h-16 bg-white shadow-sm flex items-center justify-between px-4 lg:px-8 z-40 relative shrink-0">
       <div class="flex items-center gap-3">
-        <button type="button" onclick="toggleMobileSidebar()" class="lg:hidden text-gray-600 hover:text-[#10C35D]" aria-label="Buka sidebar">
+        <button type="button" onclick="document.getElementById('adminSidebar').classList.remove('-translate-x-full')" class="lg:hidden text-gray-600 hover:text-[#10C35D]" aria-label="Buka sidebar">
           <i class="ri-menu-line text-2xl"></i>
         </button>
         <div>
@@ -152,14 +146,14 @@
       </div>
 
       <!-- PROFILE DROPDOWN -->
-      <div class="relative z-[99]" id="dropdownProfilWrapper">
+      <div class="relative">
         <button
           type="button"
-          onclick="toggleDropdownProfil(event)"
+          onclick="document.getElementById('profileDropdownMenu').classList.toggle('hidden')"
           class="flex items-center gap-2 sm:gap-3 rounded-xl px-2 py-1.5 hover:bg-[#F0F8F3] transition-colors focus:outline-none focus:ring-2 focus:ring-[#10C35D]"
         >
           <div id="headerAdminInitial" class="w-10 h-10 rounded-full bg-[#10C35D] text-white flex items-center justify-center font-bold shadow-sm">
-            <span id="userAvatarText">A</span>
+            A
           </div>
           <div class="hidden sm:block text-left">
             <p class="text-sm font-semibold text-[#0a3d2e]">Profile</p>
@@ -201,7 +195,7 @@
     </header>
 
     <!-- MAIN CONTENT -->
-    <main class="flex-1 overflow-y-auto p-6 md:p-8 space-y-5 pb-12 custom-scrollbar">
+    <main class="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 pb-12 custom-scrollbar">
 
       <!-- JUDUL HALAMAN & TOMBOL AKSI MASSAL -->
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -769,34 +763,8 @@
   <script src="js/supabase-config.js"></script>
   <script src="js/modul-rekapan.js"></script>
 
-  <!-- ==================== SCRIPT PENDUKUNG SIDEBAR, PROFIL & TEMPLATE SERTIFIKAT ==================== -->
+  <!-- ==================== SCRIPT PENGATURAN TEMPLATE SERTIFIKAT FULL ENGLISH ==================== -->
   <script>
-    function toggleMobileSidebar() {
-      const sb = document.getElementById("adminSidebar");
-      if (sb) sb.classList.toggle("-translate-x-full");
-    }
-
-    function toggleSubmenuSidebar(menuId, arrowId) {
-      const menu = document.getElementById(menuId);
-      const arrow = document.getElementById(arrowId);
-      if (menu) menu.classList.toggle("hidden");
-      if (arrow) arrow.classList.toggle("rotate-180");
-    }
-
-    function toggleDropdownProfil(event) {
-      if (event) event.stopPropagation();
-      const menu = document.getElementById("profileDropdownMenu");
-      if (menu) menu.classList.toggle("hidden");
-    }
-
-    document.addEventListener("click", (e) => {
-      const wrapper = document.getElementById("dropdownProfilWrapper");
-      const menu = document.getElementById("profileDropdownMenu");
-      if (wrapper && menu && !wrapper.contains(e.target)) {
-        menu.classList.add("hidden");
-      }
-    });
-
     const STORAGE_KEY_CERT_TEMPLATE = "upa_bahasa_cert_template_v1";
 
     const DEFAULT_CERT_TEMPLATE = {
