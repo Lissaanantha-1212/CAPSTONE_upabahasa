@@ -4,19 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Rekapan &amp; Sertifikat - UPA Bahasa POLNES</title>
-
-  <!-- Tangkap sesi dari Piya lebih dulu agar tidak terlempar ke login.html -->
-  <script src="./js/admin-profil-global.js"></script>
-
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet" />
-  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet" />
-
-  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
   <script>
     tailwind.config = {
       theme: {
@@ -201,7 +195,7 @@
     </header>
 
     <!-- MAIN CONTENT -->
-    <main class="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 pb-12">
+    <main class="flex-1 overflow-y-auto p-6 md:p-8 space-y-5 pb-12 custom-scrollbar">
 
       <!-- JUDUL HALAMAN & TOMBOL AKSI MASSAL -->
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -768,6 +762,7 @@
   <!-- ==================== SCRIPTS ==================== -->
   <script src="js/supabase-config.js"></script>
   <script src="js/modul-rekapan.js"></script>
+  <script src="./js/admin-profil-global.js"></script>
 
   <!-- ==================== SCRIPT PENGATURAN TEMPLATE SERTIFIKAT FULL ENGLISH ==================== -->
   <script>
