@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Jadwal Remedial - UPA Bahasa POLNES</title>
 
+  <!-- Tangkap sesi dari Piya lebih dulu agar tidak terlempar ke login.html -->
+  <script src="./js/admin-profil-global.js"></script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -18,8 +21,8 @@
           fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
           colors: {
             polnes: {
-              main: '#169C53',
-              dark: '#0E7A3F',
+              main: '#10C35D',
+              dark: '#0B8A42',
               darker: '#0B4628',
               light: '#E8F8EF'
             }
@@ -35,164 +38,169 @@
     .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
   </style>
 </head>
-<body class="bg-[#F8FAFC] font-sans text-slate-800 antialiased flex min-h-screen">
+<body class="bg-[#F7FAF8] font-sans text-slate-800 antialiased flex h-screen overflow-hidden">
 
-  <!-- ==================== SIDEBAR STAFF (100% IDENTIK DENGAN JADWAL TEST & SEMUA MENU) ==================== -->
-  <aside id="sidebarMenu" class="hidden md:flex flex-col w-64 bg-white border-r border-slate-200/80 shrink-0 fixed md:sticky top-0 h-screen z-40">
-    <!-- Logo Brand -->
-    <div class="h-16 px-6 flex items-center justify-between border-b border-slate-100">
-      <a href="dashboard.html" class="flex items-center gap-3">
-        <img src="./img/polnes.png" onerror="this.style.display='none'; document.getElementById('fallbackLogoSide').classList.remove('hidden')" alt="Logo POLNES" class="w-8 h-8 object-contain" />
-        <div id="fallbackLogoSide" class="hidden w-8 h-8 rounded-lg bg-[#169C53] text-white flex items-center justify-center font-extrabold text-xs">UP</div>
-        <span class="font-extrabold text-slate-900 text-sm tracking-tight">UPA BAHASA</span>
-      </a>
-      <button type="button" onclick="toggleMobileSidebar()" class="md:hidden text-slate-400 hover:text-slate-700">
+  <!-- ==================== SIDEBAR (SAMA PERSIS DENGAN JADWAL TEST & UPA ADMIN) ==================== -->
+  <aside id="adminSidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-[#0a3d2e] text-white flex flex-col flex-shrink-0 h-full transform -translate-x-full lg:translate-x-0 lg:static transition-transform duration-300 ease-in-out">
+    <div class="flex items-center justify-between h-16 px-6 bg-[#082d22] shrink-0">
+      <div class="flex items-center gap-3">
+        <img
+          src="./img/logo-polnes.png"
+          onerror="this.onerror=null; this.src='./img/polnes.png';"
+          alt="Logo POLNES"
+          class="w-8 h-8 object-contain"
+        >
+        <span class="font-bold text-lg tracking-wide text-white">UPA ADMIN</span>
+      </div>
+      <button type="button" onclick="document.getElementById('adminSidebar').classList.add('-translate-x-full')" class="lg:hidden text-gray-400 hover:text-white" aria-label="Tutup sidebar">
         <i class="ri-close-line text-xl"></i>
       </button>
     </div>
 
-    <!-- Menu Navigasi -->
-    <nav class="flex-1 overflow-y-auto custom-scrollbar px-4 py-5 space-y-6 text-xs font-semibold text-slate-600">
-      <!-- Dashboard -->
-      <div>
-        <a href="dashboard.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-50 text-slate-600 hover:text-slate-900 transition-all">
-          <i class="ri-dashboard-line text-base"></i>
-          <span>Dashboard</span>
-        </a>
-      </div>
+    <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/dashboard" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
+        <i class="ri-layout-grid-line text-lg"></i> Dashboard
+      </a>
+      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/konten" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
+        <i class="ri-file-text-line text-lg"></i> Manajemen Konten
+      </a>
+      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/layanan" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
+        <i class="ri-briefcase-line text-lg"></i> Manajemen Layanan
+      </a>
+      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/pembelajaran" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
+        <i class="ri-graduation-cap-line text-lg"></i> Manajemen Pembelajaran
+      </a>
+      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/pengaduan" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
+        <i class="ri-message-2-line text-lg"></i> Manajemen Pengaduan
+      </a>
+      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/survei" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
+        <i class="ri-emotion-happy-line text-lg"></i> Manajemen Survei
+      </a>
 
-      <!-- LAYANAN TEST -->
-      <div class="space-y-1.5">
-        <div class="px-3.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">LAYANAN TEST</div>
+      <!-- Dropdown Penjadwalan (TERBUKA & AKTIF DI JADWAL REMEDIAL) -->
+      <div class="space-y-1">
+        <button
+          type="button"
+          onclick="document.getElementById('subPenjadwalan').classList.toggle('hidden'); document.getElementById('arrowPenjadwalan').classList.toggle('rotate-180')"
+          class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-sm font-medium text-white bg-white/10 hover:bg-white/15 transition-all duration-200"
+        >
+          <span class="flex items-center gap-3">
+            <i class="ri-calendar-line text-lg"></i> Penjadwalan
+          </span>
+          <i id="arrowPenjadwalan" class="ri-arrow-down-s-line text-base rotate-180 transition-transform duration-200"></i>
+        </button>
 
-        <!-- Dropdown Penjadwalan (AKTIF DENGAN HIGHLIGHT HIJAU LEMBUT SAMA PERSIS JADWAL TEST) -->
-        <div>
-          <button type="button" onclick="toggleSubmenuSidebar('subPenjadwalan', 'chevPenjadwalan')" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-[#E8F8EF] text-[#169C53] font-bold transition-all">
-            <span class="flex items-center gap-3">
-              <i class="ri-calendar-event-line text-base text-[#169C53]"></i>
-              <span>Penjadwalan</span>
-            </span>
-            <i id="chevPenjadwalan" class="ri-arrow-up-s-line text-sm text-[#169C53] transition-transform"></i>
-          </button>
-
-          <ul id="subPenjadwalan" class="mt-1.5 pl-6 pr-1 space-y-1">
-            <li>
-              <a href="jadwal-test.html" class="flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all">
-                <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                <span>Jadwal Test</span>
-              </a>
-            </li>
-            <li>
-              <a href="jadwal-remedial.html" class="flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-[#E8F8EF] text-[#169C53] font-extrabold transition-all">
-                <span class="w-1.5 h-1.5 rounded-full bg-[#169C53]"></span>
-                <span>Jadwal Remedial</span>
-              </a>
-            </li>
-            <li>
-              <a href="jadwal-kursus.html" class="flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all">
-                <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                <span>Jadwal Kursus</span>
-              </a>
-            </li>
-          </ul>
+        <div id="subPenjadwalan" class="pl-11 pr-2 space-y-1">
+          <a href="jadwal-test.html" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-colors">
+            <span class="w-1.5 h-1.5 rounded-full bg-[#10C35D]"></span> Jadwal Test
+          </a>
+          <a href="jadwal-remedial.html" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold bg-[#10C35D] text-white shadow-md transition-colors">
+            <span class="w-1.5 h-1.5 rounded-full bg-white"></span> Jadwal Remedial
+          </a>
         </div>
+      </div>
 
-        <!-- Dropdown Hasil Test -->
-        <div>
-          <button type="button" onclick="toggleSubmenuSidebar('subHasilTest', 'chevHasilTest')" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl hover:bg-slate-50 transition-all">
-            <span class="flex items-center gap-3">
-              <i class="ri-file-upload-line text-base"></i>
-              <span>Hasil Test</span>
-            </span>
-            <i id="chevHasilTest" class="ri-arrow-down-s-line text-sm transition-transform"></i>
-          </button>
-          <ul id="subHasilTest" class="hidden mt-1 pl-6 pr-1 space-y-1">
-            <li>
-              <a href="toefl.html" class="flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50">
-                <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                <span>TOEFL</span>
-              </a>
-            </li>
-            <li>
-              <a href="sspect.html" class="flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50">
-                <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                <span>SSPECT</span>
-              </a>
-            </li>
-          </ul>
+      <!-- Dropdown Hasil Test -->
+      <div class="space-y-1">
+        <button
+          type="button"
+          onclick="document.getElementById('subHasilTest').classList.toggle('hidden'); document.getElementById('arrowHasilTest').classList.toggle('rotate-180')"
+          class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200"
+        >
+          <span class="flex items-center gap-3">
+            <i class="ri-file-upload-line text-lg"></i> Hasil Test
+          </span>
+          <i id="arrowHasilTest" class="ri-arrow-down-s-line text-base transition-transform duration-200"></i>
+        </button>
+
+        <div id="subHasilTest" class="pl-11 pr-2 space-y-1 hidden">
+          <a href="toefl.html" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-colors">
+            <span class="w-1.5 h-1.5 rounded-full bg-[#10C35D]"></span> TOEFL
+          </a>
+          <a href="sspect.html" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-colors">
+            <span class="w-1.5 h-1.5 rounded-full bg-[#10C35D]"></span> SSPECT
+          </a>
         </div>
-
-        <a href="kalkulasi-score.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-50 transition-all">
-          <i class="ri-calculator-line text-base"></i>
-          <span>Kalkulasi Score</span>
-        </a>
-
-        <a href="rekapan.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-50 transition-all">
-          <i class="ri-bar-chart-box-line text-base"></i>
-          <span>Rekapan</span>
-        </a>
-
-        <a href="pusat-informasi.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-50 transition-all">
-          <i class="ri-information-line text-base"></i>
-          <span>Pusat Informasi</span>
-        </a>
       </div>
 
-      <!-- MANAJEMEN KONTEN -->
-      <div class="space-y-1.5">
-        <div class="px-3.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">MANAJEMEN KONTEN</div>
-        <a href="konten-utama.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-50 transition-all">
-          <i class="ri-layout-top-line text-base"></i>
-          <span>Konten Utama</span>
-        </a>
-        <a href="layanan-tambahan.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-50 transition-all">
-          <i class="ri-heart-pulse-line text-base"></i>
-          <span>Layanan Tambahan</span>
-        </a>
-        <a href="pembelajaran.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-50 transition-all">
-          <i class="ri-book-open-line text-base"></i>
-          <span>Pembelajaran</span>
-        </a>
-        <a href="pengaduan.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-50 transition-all">
-          <i class="ri-chat-3-line text-base"></i>
-          <span>Pengaduan</span>
-        </a>
-        <a href="survei.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl hover:bg-slate-50 transition-all">
-          <i class="ri-clipboard-line text-base"></i>
-          <span>Survei</span>
-        </a>
-      </div>
+      <a href="rekapan.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
+        <i class="ri-folder-chart-line text-lg"></i> Rekapan
+      </a>
     </nav>
   </aside>
 
   <!-- ==================== AREA KONTEN UTAMA ==================== -->
-  <div class="flex-1 flex flex-col min-w-0">
+  <div class="flex-1 flex flex-col h-screen overflow-hidden relative">
 
-    <!-- Topbar Header -->
-    <header class="h-16 bg-white border-b border-slate-200/80 px-4 md:px-8 flex items-center justify-between sticky top-0 z-30">
+    <!-- Topbar Header (SAMA PERSIS DENGAN JADWAL TEST) -->
+    <header class="h-16 bg-white shadow-sm flex items-center justify-between px-4 lg:px-8 z-40 relative shrink-0">
       <div class="flex items-center gap-3">
-        <button type="button" onclick="toggleMobileSidebar()" class="md:hidden w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center">
-          <i class="ri-menu-line text-lg"></i>
+        <button type="button" onclick="document.getElementById('adminSidebar').classList.remove('-translate-x-full')" class="lg:hidden text-gray-600 hover:text-[#10C35D]" aria-label="Buka sidebar">
+          <i class="ri-menu-line text-2xl"></i>
         </button>
-        <div class="flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
-          <span>PENJADWALAN</span>
-          <span>/</span>
-          <span class="text-[#169C53]">JADWAL REMEDIAL</span>
+        <div>
+          <h2 class="text-lg font-semibold text-[#0a3d2e]">Panel Administrasi</h2>
+          <p class="text-xs text-gray-500 hidden sm:block">Selamat datang di Sistem Informasi UPA Bahasa</p>
         </div>
       </div>
 
       <div class="flex items-center gap-3">
-        <span class="hidden sm:inline-block px-3 py-1 rounded-full bg-emerald-50 text-[#169C53] text-[11px] font-extrabold border border-emerald-200">
+        <span class="hidden sm:inline-block px-3 py-1 rounded-full bg-emerald-50 text-[#10C35D] text-[11px] font-extrabold border border-emerald-200">
           Max 25 Peserta / Lab
         </span>
-        <div class="w-9 h-9 rounded-full bg-[#0B4628] text-white font-extrabold text-xs flex items-center justify-center shadow-xs">
-          LA
+
+        <!-- PROFILE DROPDOWN (OTOMATIS MENGIKUTI AKUN YANG LOGIN DI PIYA) -->
+        <div class="relative">
+          <button
+            type="button"
+            onclick="document.getElementById('profileDropdownMenu').classList.toggle('hidden')"
+            class="flex items-center gap-2 sm:gap-3 rounded-xl px-2 py-1.5 hover:bg-[#F0F8F3] transition-colors focus:outline-none focus:ring-2 focus:ring-[#10C35D]"
+          >
+            <div id="headerAdminInitial" class="w-10 h-10 rounded-full bg-[#10C35D] text-white flex items-center justify-center font-bold shadow-sm">
+              A
+            </div>
+            <div class="hidden sm:block text-left">
+              <p class="text-sm font-semibold text-[#0a3d2e]">Profile</p>
+              <p id="headerAdminName" class="text-xs text-gray-500">Admin UPA</p>
+            </div>
+            <i class="ri-arrow-down-s-line text-gray-500 text-lg"></i>
+          </button>
+
+          <div id="profileDropdownMenu" class="hidden absolute right-0 top-full mt-3 w-72 max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50">
+            <div class="px-5 py-4 bg-[#F0F8F3] border-b border-gray-100">
+              <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Akun Administrator</p>
+              <div class="flex items-center gap-3 mt-3">
+                <div id="dropdownAdminInitial" class="w-12 h-12 rounded-full bg-[#10C35D] text-white flex items-center justify-center text-lg font-bold shrink-0">
+                  A
+                </div>
+                <div class="min-w-0">
+                  <p id="dropdownAdminName" class="font-semibold text-[#0a3d2e] truncate">Admin UPA</p>
+                  <p id="dropdownAdminEmail" class="text-xs text-gray-500 break-all">-</p>
+                </div>
+              </div>
+            </div>
+            <div class="px-5 py-4 space-y-3">
+              <div class="flex items-center justify-between gap-3">
+                <span class="text-sm text-gray-500">Role</span>
+                <span id="dropdownAdminRole" class="text-sm font-medium text-[#0a3d2e]">Administrator</span>
+              </div>
+              <div class="flex items-center justify-between gap-3">
+                <span class="text-sm text-gray-500">Nomor Admin</span>
+                <span id="dropdownAdminNumber" class="text-sm font-semibold text-[#0a3d2e]">Nomor admin belum tersedia</span>
+              </div>
+            </div>
+            <div class="border-t border-gray-100 p-3">
+              <button type="button" onclick="logoutKePiya()" class="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
+                <i class="ri-logout-box-r-line text-lg"></i> Logout
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </header>
 
-    <!-- Main Body -->
-    <main class="flex-1 p-4 md:p-8 max-w-7xl w-full mx-auto space-y-8">
+    <!-- Main Body (100% FUNGSI ASLI JADWAL REMEDIAL) -->
+    <main class="flex-1 overflow-y-auto p-4 md:p-8 space-y-8 pb-12">
 
       <!-- Judul Halaman & Tombol Segarkan -->
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -203,7 +211,7 @@
           </p>
         </div>
         <button type="button" onclick="muatSemuaDataRemedial(true)" class="self-start md:self-auto px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-extrabold flex items-center gap-2 shadow-2xs transition-all">
-          <i class="ri-refresh-line text-sm text-[#169C53]"></i>
+          <i class="ri-refresh-line text-sm text-[#10C35D]"></i>
           <span>Segarkan Antrean</span>
         </button>
       </div>
@@ -212,7 +220,7 @@
       <div class="bg-white rounded-3xl p-6 md:p-7 border border-slate-200 shadow-2xs space-y-5">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-4">
           <div>
-            <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#169C53]">LANGKAH 1 &bull; ATUR JADWAL &amp; RUANG LAB</span>
+            <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#10C35D]">LANGKAH 1 &bull; ATUR JADWAL &amp; RUANG LAB</span>
             <h2 class="text-base md:text-lg font-extrabold text-slate-900 mt-0.5">Plotting Sesi Ujian Remedial (Lintas Kelas)</h2>
           </div>
           <div class="flex items-center gap-2">
@@ -225,18 +233,18 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
             <label class="flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-wider text-slate-600 mb-2">
-              <span class="w-5 h-5 rounded-full bg-[#169C53] text-white text-[11px] font-extrabold inline-flex items-center justify-center shrink-0">1</span>
+              <span class="w-5 h-5 rounded-full bg-[#10C35D] text-white text-[11px] font-extrabold inline-flex items-center justify-center shrink-0">1</span>
               <span>Tanggal Ujian *</span>
             </label>
-            <input type="date" id="remTanggalUjian" onchange="cekBentrokRealtimeRemedial()" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#169C53] outline-none" />
+            <input type="date" id="remTanggalUjian" onchange="cekBentrokRealtimeRemedial()" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#10C35D] outline-none" />
           </div>
 
           <div>
             <label class="flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-wider text-slate-600 mb-2">
-              <span class="w-5 h-5 rounded-full bg-[#169C53] text-white text-[11px] font-extrabold inline-flex items-center justify-center shrink-0">2</span>
+              <span class="w-5 h-5 rounded-full bg-[#10C35D] text-white text-[11px] font-extrabold inline-flex items-center justify-center shrink-0">2</span>
               <span>Sesi &amp; Waktu *</span>
             </label>
-            <select id="remSesiUjian" onchange="cekBentrokRealtimeRemedial()" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#169C53] outline-none bg-white">
+            <select id="remSesiUjian" onchange="cekBentrokRealtimeRemedial()" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#10C35D] outline-none bg-white">
               <option value="Sesi 1 (08.00 - 10.00 WITA)">Sesi 1 (08.00 - 10.00 WITA)</option>
               <option value="Sesi 2 (10.30 - 12.30 WITA)">Sesi 2 (10.30 - 12.30 WITA)</option>
               <option value="Sesi 3 (13.30 - 15.30 WITA)">Sesi 3 (13.30 - 15.30 WITA)</option>
@@ -246,10 +254,10 @@
 
           <div>
             <label class="flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-wider text-slate-600 mb-2">
-              <span class="w-5 h-5 rounded-full bg-[#169C53] text-white text-[11px] font-extrabold inline-flex items-center justify-center shrink-0">3</span>
+              <span class="w-5 h-5 rounded-full bg-[#10C35D] text-white text-[11px] font-extrabold inline-flex items-center justify-center shrink-0">3</span>
               <span>Ruang Lab Bahasa *</span>
             </label>
-            <select id="remRuangLab" onchange="cekBentrokRealtimeRemedial()" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#169C53] outline-none bg-white">
+            <select id="remRuangLab" onchange="cekBentrokRealtimeRemedial()" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:border-[#10C35D] outline-none bg-white">
               <option value="Lab Bahasa A">Lab Bahasa A (Kapasitas 25)</option>
               <option value="Lab Bahasa B">Lab Bahasa B (Kapasitas 25)</option>
             </select>
@@ -257,10 +265,10 @@
 
           <div>
             <label class="flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-wider text-slate-600 mb-2">
-              <span class="w-5 h-5 rounded-full bg-[#169C53] text-white text-[11px] font-extrabold inline-flex items-center justify-center shrink-0">4</span>
+              <span class="w-5 h-5 rounded-full bg-[#10C35D] text-white text-[11px] font-extrabold inline-flex items-center justify-center shrink-0">4</span>
               <span>Label Rombongan / Gelombang</span>
             </label>
-            <select id="remNamaRombongan" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-extrabold text-slate-800 focus:border-[#169C53] outline-none bg-white cursor-pointer">
+            <select id="remNamaRombongan" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-extrabold text-slate-800 focus:border-[#10C35D] outline-none bg-white cursor-pointer">
               <option value="REMEDIAL-1">REMEDIAL-1</option>
               <option value="REMEDIAL-2">REMEDIAL-2</option>
               <option value="REMEDIAL-3">REMEDIAL-3</option>
@@ -281,7 +289,7 @@
             </button>
           </div>
 
-          <button type="button" id="btnKunciSesiRemedial" onclick="kunciSesiRemedial()" class="px-6 py-3 rounded-xl bg-[#169C53] hover:bg-[#0E7A3F] text-white font-extrabold text-xs inline-flex items-center justify-center gap-2 shadow-sm transition-all">
+          <button type="button" id="btnKunciSesiRemedial" onclick="kunciSesiRemedial()" class="px-6 py-3 rounded-xl bg-[#10C35D] hover:bg-[#0B8A42] text-white font-extrabold text-xs inline-flex items-center justify-center gap-2 shadow-sm transition-all">
             <i class="ri-lock-2-line text-sm"></i>
             <span>Kunci Sesi Remedial</span>
           </button>
@@ -300,7 +308,7 @@
 
           <div class="relative w-full md:w-72">
             <i class="ri-search-line absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-            <input type="text" id="inputCariAntreanRemedial" onkeyup="filterAntreanRemedial()" placeholder="Cari NIM, Nama, Kelas, Prodi..." class="w-full pl-9 pr-4 py-2 rounded-full border border-slate-200 text-xs focus:border-[#169C53] outline-none" />
+            <input type="text" id="inputCariAntreanRemedial" onkeyup="filterAntreanRemedial()" placeholder="Cari NIM, Nama, Kelas, Prodi..." class="w-full pl-9 pr-4 py-2 rounded-full border border-slate-200 text-xs focus:border-[#10C35D] outline-none" />
           </div>
         </div>
 
@@ -309,7 +317,7 @@
             <thead>
               <tr class="bg-slate-50 text-slate-500 text-[11px] uppercase tracking-wider border-b border-slate-200">
                 <th class="px-4 py-3.5 w-12 text-center">
-                  <input type="checkbox" id="checkAllAntrean" onchange="toggleCheckAllAntrean(this)" class="w-4 h-4 accent-[#169C53] rounded cursor-pointer" />
+                  <input type="checkbox" id="checkAllAntrean" onchange="toggleCheckAllAntrean(this)" class="w-4 h-4 accent-[#10C35D] rounded cursor-pointer" />
                 </th>
                 <th class="px-4 py-3.5 font-bold w-12">NO</th>
                 <th class="px-4 py-3.5 font-bold">NIM</th>
@@ -333,7 +341,7 @@
       <div class="bg-white rounded-3xl p-6 md:p-7 border border-slate-200 shadow-2xs space-y-5">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
           <div>
-            <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#169C53]">JADWAL TERKUNCI &bull; TERHUBUNG KE HASIL TEST &amp; REKAPAN</span>
+            <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#10C35D]">JADWAL TERKUNCI &bull; TERHUBUNG KE HASIL TEST &amp; REKAPAN</span>
             <h2 class="text-base md:text-lg font-extrabold text-slate-900 mt-0.5">
               Log Sesi Remedial Terkunci (<span id="countTerkunciRemedial">0</span>)
             </h2>
@@ -373,7 +381,7 @@
     <div class="bg-white rounded-3xl max-w-3xl w-full p-6 md:p-8 shadow-2xl border border-slate-200 space-y-5 max-h-[88vh] flex flex-col">
       <div class="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
         <div>
-          <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#169C53]">PLOTTING MEJA UJIAN REMEDIAL</span>
+          <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#10C35D]">PLOTTING MEJA UJIAN REMEDIAL</span>
           <h3 id="modalJudulSesiRem" class="text-lg font-extrabold text-slate-900 mt-0.5">Rombongan Remedial</h3>
           <p id="modalSubSesiRem" class="text-xs text-slate-500 mt-0.5">-</p>
         </div>
@@ -398,7 +406,7 @@
       </div>
 
       <div class="pt-3 border-t border-slate-100 flex justify-end gap-2">
-        <button type="button" id="btnCetakPdfDariModalRem" class="px-5 py-2.5 rounded-xl bg-[#169C53] hover:bg-[#0E7A3F] text-white text-xs font-extrabold inline-flex items-center gap-2">
+        <button type="button" id="btnCetakPdfDariModalRem" class="px-5 py-2.5 rounded-xl bg-[#10C35D] hover:bg-[#0B8A42] text-white text-xs font-extrabold inline-flex items-center gap-2">
           <i class="ri-printer-line text-sm"></i>
           <span>Cetak PDF Berita Acara &amp; Absensi</span>
         </button>
