@@ -44,22 +44,22 @@
     </div>
 
     <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/dashboard" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
+      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/dashboard" data-sso-link class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
         <i class="ri-layout-grid-line text-lg"></i> Dashboard
       </a>
-      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/konten" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
+      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/konten" data-sso-link class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
         <i class="ri-file-text-line text-lg"></i> Manajemen Konten
       </a>
-      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/layanan" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
+      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/layanan" data-sso-link class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
         <i class="ri-briefcase-line text-lg"></i> Manajemen Layanan
       </a>
-      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/pembelajaran" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
+      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/pembelajaran" data-sso-link class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
         <i class="ri-graduation-cap-line text-lg"></i> Manajemen Pembelajaran
       </a>
-      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/pengaduan" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
+      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/pengaduan" data-sso-link class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
         <i class="ri-message-2-line text-lg"></i> Manajemen Pengaduan
       </a>
-      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/survei" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
+      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/survei" data-sso-link class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
         <i class="ri-emotion-happy-line text-lg"></i> Manajemen Survei
       </a>
 
@@ -130,7 +130,7 @@
         </div>
       </div>
 
-      <!-- PROFILE DROPDOWN -->
+      <!-- PROFILE DROPDOWN (SATU-SATUNYA DROPDOWN PROFIL, TIDAK DITIMPA SCRIPT LAMA) -->
       <div class="relative">
         <button
           type="button"
@@ -171,9 +171,9 @@
             </div>
           </div>
           <div class="border-t border-gray-100 p-3">
-            <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/login" class="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
+            <button type="button" onclick="logoutAdminGlobal()" class="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
               <i class="ri-logout-box-r-line text-lg"></i> Logout
-            </a>
+            </button>
           </div>
         </div>
       </div>
@@ -420,12 +420,38 @@
   <script src="./js/supabase-config.js"></script>
   <script src="./js/modul-jadwal.js"></script>
 
-  <!-- SINKRONISASI PROFIL HEADER & FILTER OTOMATIS: Kecualikan jadwal REMEDIAL dari Histori Jadwal Test -->
+  <!-- SINKRONISASI PROFIL SSO LINTAS DOMAIN & FILTER OTOMATIS -->
   <script>
+    function logoutAdminGlobal() {
+      localStorage.removeItem("adminUser");
+      localStorage.removeItem("user");
+      localStorage.removeItem("staffUser");
+      // Arahkan kembali ke halaman login milikmu (atau ubah ke login.html sesuai nama file login kamu)
+      window.location.href = "login.html";
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
       try {
-        const adminUser = JSON.parse(localStorage.getItem("adminUser") || "{}") || {};
-        const name = adminUser.fullName || "Admin UPA";
+        // 1. Tangkap parameter ?sso=... jika datang dari link Piya agar akun login tetap 1
+        const urlParams = new URLSearchParams(window.location.search);
+        const ssoParam = urlParams.get("sso");
+        if (ssoParam) {
+          try {
+            const decodedJson = decodeURIComponent(escape(atob(decodeURIComponent(ssoParam))));
+            const parsedSso = JSON.parse(decodedJson);
+            if (parsedSso && parsedSso.email) {
+              localStorage.setItem("adminUser", JSON.stringify(parsedSso));
+            }
+            window.history.replaceState({}, document.title, window.location.pathname);
+          } catch (err) {
+            console.warn("SSO decode dilewati:", err);
+          }
+        }
+
+        // 2. Baca profil aktif dan tampilkan di header (tanpa ditimpa admin-profil-global.js)
+        const rawAdmin = localStorage.getItem("adminUser");
+        const adminUser = JSON.parse(rawAdmin || "{}") || {};
+        const name = adminUser.fullName || adminUser.nama || "Admin UPA";
         const email = adminUser.email || "-";
         const initial = name.trim().charAt(0).toUpperCase() || "A";
         const role = adminUser.role
@@ -444,10 +470,20 @@
         document.getElementById("dropdownAdminEmail").textContent = email;
         document.getElementById("dropdownAdminRole").textContent = role;
         document.getElementById("dropdownAdminNumber").textContent = adminNumber;
+
+        // 3. Teruskan parameter ?sso=... ke semua link menu Piya agar saat balik ke dashboard Piya akunnya tetap sama
+        if (rawAdmin && adminUser.email) {
+          const encodedSso = encodeURIComponent(btoa(unescape(encodeURIComponent(rawAdmin))));
+          document.querySelectorAll("a[data-sso-link]").forEach(link => {
+            const baseHref = link.getAttribute("href").split("?")[0];
+            link.setAttribute("href", `${baseHref}?sso=${encodedSso}`);
+          });
+        }
       } catch (e) {
         console.error("Gagal membaca profil admin:", e);
       }
 
+      // 4. Filter baris jadwal remedial agar hanya tampil jadwal ujian reguler
       const tbody = document.getElementById("tabelHistoriJadwalBody");
       if (!tbody) return;
 
@@ -458,7 +494,7 @@
 
         rows.forEach(tr => {
           const cells = tr.querySelectorAll("td");
-          if (cells.length < 8) return; // Abaikan baris pesan kosong/loading
+          if (cells.length < 8) return;
 
           const jenisTes = (cells[1]?.textContent || "").toUpperCase();
           const status = (cells[7]?.textContent || "").toUpperCase();
@@ -486,6 +522,5 @@
       saringBarisRemedial();
     });
   </script>
-  <script src="./js/admin-profil-global.js"></script>
 </body>
 </html>

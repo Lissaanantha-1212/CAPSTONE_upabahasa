@@ -294,6 +294,7 @@
     const SALT_KEAMANAN_UPA = "UPA-BAHASA-POLNES-2026-SECURE-AUTH";
     const MAX_PERCOBAAN_LOGIN = 5;
     const DURASI_KUNCI_DETIK = 60;
+    const PIYA_DASHBOARD_URL = "https://upabahasa-polnes-l7qi.vercel.app/admin/dashboard";
 
     // 1. Helper Kriptografi SHA-256 Password
     async function hashPasswordSha256(plainText) {
@@ -407,8 +408,15 @@
       localStorage.removeItem("upa_login_lock_until");
     }
 
-    // 4. Simpan Sesi Aktif Secara Konsisten (Hanya setelah verifikasi login berhasil)
+    // 4. Simpan Sesi Aktif Secara Konsisten & Siapkan SSO Lintas Domain ke Dashboard Piya
     function simpanSesiAktif(userRecord, rememberMe = true, loginMethod = "manual") {
+      const labelRole =
+        userRecord.role === "kepala"
+          ? "Kepala UPA Bahasa"
+          : userRecord.role === "staff" || userRecord.role === "staf"
+          ? "Staf"
+          : userRecord.role || "Staf";
+
       const aktifUser = {
         id: userRecord.id,
         nama: userRecord.nama,
@@ -419,12 +427,35 @@
         login_method: loginMethod,
         login_at: new Date().toISOString()
       };
+
+      // Format standar adminUser yang dibaca oleh Dashboard Piya & Halaman Jadwal/Test/Rekapan
+      const adminUserSynced = {
+        id: userRecord.id,
+        fullName: userRecord.nama || userRecord.username || "Admin UPA",
+        username: userRecord.username || "",
+        email: userRecord.email || "-",
+        role: labelRole,
+        staffNumber: userRecord.staff_number ?? userRecord.nomor_admin ?? 1,
+        avatar_url: userRecord.avatar_url || ""
+      };
+
       localStorage.setItem("upa_active_staff", JSON.stringify(aktifUser));
+      localStorage.setItem("adminUser", JSON.stringify(adminUserSynced));
+
       if (!rememberMe) {
         sessionStorage.setItem("upa_session_only", "1");
       } else {
         sessionStorage.removeItem("upa_session_only");
       }
+
+      return adminUserSynced;
+    }
+
+    function arahkanKeDashboardPiya(adminUserSynced) {
+      const encodedSso = encodeURIComponent(
+        btoa(unescape(encodeURIComponent(JSON.stringify(adminUserSynced))))
+      );
+      window.location.href = `${PIYA_DASHBOARD_URL}?sso=${encodedSso}`;
     }
 
     // 5. Login dengan Google (Supabase Auth OAuth 2.0)
@@ -467,6 +498,7 @@
       // A. Jika user diarahkan balik setelah berhasil simpan password baru
       if (urlParams.get("reset") === "success") {
         localStorage.removeItem("upa_active_staff");
+        localStorage.removeItem("adminUser");
         sessionStorage.removeItem("upa_session_only");
         sessionStorage.removeItem("upa_oauth_google_intent");
         await window.supabaseClient.auth.signOut().catch(() => {});
@@ -485,6 +517,7 @@
         sessionStorage.getItem("upa_password_recovery_pending") === "1"
       ) {
         localStorage.removeItem("upa_active_staff");
+        localStorage.removeItem("adminUser");
         sessionStorage.removeItem("upa_oauth_google_intent");
         window.location.href = "reset-password.html" + window.location.search + window.location.hash;
         return;
@@ -495,6 +528,7 @@
       // C. Jika halaman login dibuka normal (klik Staff Login dari beranda), wajib bersihkan seluruh sisa sesi lama
       if (!hasGoogleIntent) {
         localStorage.removeItem("upa_active_staff");
+        localStorage.removeItem("adminUser");
         sessionStorage.removeItem("upa_session_only");
         await window.supabaseClient.auth.signOut().catch(() => {});
         return;
@@ -516,6 +550,7 @@
       if (!isGoogleIdentity) {
         await window.supabaseClient.auth.signOut().catch(() => {});
         localStorage.removeItem("upa_active_staff");
+        localStorage.removeItem("adminUser");
         sessionStorage.removeItem("upa_oauth_google_intent");
         return;
       }
@@ -544,6 +579,7 @@
         // Tolak akses jika email Google belum terdaftar di database user_app (termasuk saat database kosong)
         await window.supabaseClient.auth.signOut().catch(() => {});
         localStorage.removeItem("upa_active_staff");
+        localStorage.removeItem("adminUser");
         tampilkanAlertLogin(
           "error",
           `Akses ditolak: Email <b>${emailGoogle}</b> belum terdaftar di database sistem UPA Bahasa. Silakan klik <b>Register Now</b> untuk mendaftarkan akun terlebih dahulu.`
@@ -563,11 +599,11 @@
 
       staffData.avatar_url = staffData.avatar_url || avatarGoogle;
       resetKegagalanLogin();
-      simpanSesiAktif(staffData, true, "google");
+      const adminUserSynced = simpanSesiAktif(staffData, true, "google");
 
       tampilkanAlertLogin("sukses", `Verifikasi Google berhasil! Selamat datang, <b>${staffData.nama}</b>. Mengalihkan ke Dashboard...`);
       setTimeout(() => {
-        window.location.href = "dashboard.html";
+        arahkanKeDashboardPiya(adminUserSynced);
       }, 900);
     }
 
@@ -713,11 +749,11 @@
           .eq("id", userData.id);
 
         resetKegagalanLogin();
-        simpanSesiAktif(userData, rememberMe, "manual");
+        const adminUserSynced = simpanSesiAktif(userData, rememberMe, "manual");
 
         tampilkanAlertLogin("sukses", `Login Sukses! Selamat datang, <b>${userData.nama}</b>. Mengalihkan ke Dashboard...`);
         setTimeout(() => {
-          window.location.href = "dashboard.html";
+          arahkanKeDashboardPiya(adminUserSynced);
         }, 900);
       } catch (err) {
         tampilkanAlertLogin("error", "Terjadi kesalahan sistem: " + err.message);
@@ -772,6 +808,7 @@
       window.supabaseClient.auth.onAuthStateChange((event) => {
         if (event === "PASSWORD_RECOVERY") {
           localStorage.removeItem("upa_active_staff");
+          localStorage.removeItem("adminUser");
           sessionStorage.setItem("upa_password_recovery_pending", "1");
           window.location.href = "reset-password.html" + window.location.search + window.location.hash;
         }
