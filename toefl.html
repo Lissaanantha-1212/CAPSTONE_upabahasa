@@ -7,7 +7,7 @@
 
   <!-- Tangkap sesi dari Piya lebih dulu agar tidak terlempar ke login.html -->
   <script src="./js/admin-profil-global.js"></script>
-  
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -24,7 +24,7 @@
           colors: { polnes: { main: '#10C35D', dark: '#0B8A42', light: '#E8F8EF' } }
         }
       }
-    }
+    };
   </script>
 </head>
 <body class="bg-[#F7FAF8] font-sans text-slate-800 antialiased flex h-screen overflow-hidden">
@@ -120,8 +120,8 @@
 
   <!-- ==================== MAIN CONTENT ==================== -->
   <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
-    
-    <!-- TOP HEADER (SAMA PERSIS DENGAN JADWAL TEST) -->
+
+    <!-- TOP HEADER (SAMA PERSIS DENGAN JADWAL TEST & JADWAL REMEDIAL) -->
     <header class="h-16 bg-white shadow-sm flex items-center justify-between px-4 lg:px-8 z-40 relative shrink-0">
       <div class="flex items-center gap-3">
         <button type="button" onclick="document.getElementById('adminSidebar').classList.remove('-translate-x-full')" class="lg:hidden text-gray-600 hover:text-[#10C35D]" aria-label="Buka sidebar">
@@ -174,7 +174,7 @@
             </div>
           </div>
           <div class="border-t border-gray-100 p-3">
-            <button type="button" onclick="logoutKePiya()" class="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
+            <button type="button" onclick="if (typeof logoutKePiya === 'function') logoutKePiya();" class="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
               <i class="ri-logout-box-r-line text-lg"></i> Logout
             </button>
           </div>
@@ -183,17 +183,17 @@
     </header>
 
     <div class="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 pb-12">
-      
+
       <!-- Panel Upload -->
       <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-6">
         <div>
-          <h3 class="text-base font-bold text-slate-800">Modul 3: Upload Nilai TOEFL & Auto-Mapping Engine</h3>
+          <h3 class="text-base font-bold text-slate-800">Modul 3: Upload Nilai TOEFL &amp; Auto-Mapping Engine</h3>
           <p class="text-xs text-slate-500 mt-0.5">Validasi rentang jam, pencocokan jadwal (Tanggal, Lab, Sesi) dari database, dan pemetaan ID Meja peserta.</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="flex items-center gap-2 text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">
+            <label for="selectLabToefl" class="flex items-center gap-2 text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">
               <span class="w-5 h-5 rounded-full bg-polnes-main text-white inline-flex items-center justify-center text-[11px] font-extrabold shrink-0">1</span>
               <span>PILIH RUANG LAB UJIAN</span>
             </label>
@@ -203,9 +203,9 @@
             </select>
           </div>
           <div>
-            <label class="flex items-center gap-2 text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">
+            <label for="selectSesiToefl" class="flex items-center gap-2 text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">
               <span class="w-5 h-5 rounded-full bg-polnes-main text-white inline-flex items-center justify-center text-[11px] font-extrabold shrink-0">2</span>
-              <span>PILIH SESI & WAKTU</span>
+              <span>PILIH SESI &amp; WAKTU</span>
             </label>
             <select id="selectSesiToefl" onchange="cekUlangSinkronisasi()" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-[13px] font-semibold text-slate-700 outline-none focus:border-polnes-main">
               <option value="SESI 1 (08.00 - 10.00 WITA)">SESI 1 (08.00 - 10.00 WITA)</option>
@@ -219,7 +219,7 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
           <div class="border-2 border-dashed border-slate-200 p-5 rounded-2xl text-center hover:border-polnes-main transition-all bg-slate-50">
             <input type="file" id="fileSec1" accept=".xlsx, .xls" class="hidden" onchange="handleFileSection(1, this)">
-            <button onclick="document.getElementById('fileSec1').click()" class="w-full py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold shadow-sm flex items-center justify-center gap-2">
+            <button type="button" onclick="document.getElementById('fileSec1').click()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center justify-center gap-2 transition-colors">
               <i class="ri-upload-cloud-line"></i> Unggah Excel Sec. 1
             </button>
             <p id="labelSec1" class="text-[11px] text-slate-500 mt-2 truncate">Belum ada file dipilih</p>
@@ -227,7 +227,7 @@
 
           <div class="border-2 border-dashed border-slate-200 p-5 rounded-2xl text-center hover:border-purple-500 transition-all bg-slate-50">
             <input type="file" id="fileSec2" accept=".xlsx, .xls" class="hidden" onchange="handleFileSection(2, this)">
-            <button onclick="document.getElementById('fileSec2').click()" class="w-full py-2 bg-purple-600 text-white rounded-xl text-xs font-bold shadow-sm flex items-center justify-center gap-2">
+            <button type="button" onclick="document.getElementById('fileSec2').click()" class="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center justify-center gap-2 transition-colors">
               <i class="ri-upload-cloud-line"></i> Unggah Excel Sec. 2
             </button>
             <p id="labelSec2" class="text-[11px] text-slate-500 mt-2 truncate">Belum ada file dipilih</p>
@@ -235,7 +235,7 @@
 
           <div class="border-2 border-dashed border-slate-200 p-5 rounded-2xl text-center hover:border-amber-500 transition-all bg-slate-50">
             <input type="file" id="fileSec3" accept=".xlsx, .xls" class="hidden" onchange="handleFileSection(3, this)">
-            <button onclick="document.getElementById('fileSec3').click()" class="w-full py-2 bg-amber-600 text-white rounded-xl text-xs font-bold shadow-sm flex items-center justify-center gap-2">
+            <button type="button" onclick="document.getElementById('fileSec3').click()" class="w-full py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center justify-center gap-2 transition-colors">
               <i class="ri-upload-cloud-line"></i> Unggah Excel Sec. 3
             </button>
             <p id="labelSec3" class="text-[11px] text-slate-500 mt-2 truncate">Belum ada file dipilih</p>
@@ -258,7 +258,7 @@
           <h4 class="text-xs font-bold text-slate-700 uppercase">Target Kategori Rekapan Master</h4>
           <p class="text-[11px] text-slate-500">Pilih kategori tujuan agar nilai masuk ke kotak yang tepat di halaman Rekapan.</p>
         </div>
-        
+
         <div class="flex items-center gap-3 w-full sm:w-auto">
           <select id="selectKategoriTargetToefl" class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-polnes-main">
             <option value="TOEFL D3">TOEFL D3 (Semester 6)</option>
@@ -269,7 +269,7 @@
             <option value="REMEDIAL 2">REMEDIAL 2</option>
             <option value="REMEDIAL 3">REMEDIAL 3</option>
           </select>
-          <button id="btnSimpanToefl" onclick="simpanKeArsipMasterDariToefl()" class="px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-2 transition-all shrink-0">
+          <button type="button" id="btnSimpanToefl" onclick="simpanKeArsipMasterDariToefl()" class="px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-2 transition-all shrink-0">
             <i class="ri-save-line text-sm"></i> Simpan Permanen ke Database
           </button>
         </div>
@@ -281,7 +281,7 @@
           <h3 class="text-base font-bold text-slate-800">Pratinjau Hasil Sinkronisasi Nilai TOEFL</h3>
           <span id="badgeJumlahMhs" class="text-xs font-extrabold text-polnes-main bg-polnes-light px-3 py-1 rounded-lg">0 Peserta</span>
         </div>
-        
+
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
             <thead>
@@ -299,7 +299,7 @@
             </thead>
             <tbody id="tabelPreviewToefl" class="divide-y divide-slate-100 text-sm text-slate-700">
               <tr>
-                <td colspan="9" class="px-5 py-10 text-center text-slate-400 text-sm italic">Unggah 3 file Excel Section untuk mencocokkan jadwal & menampilkan peserta.</td>
+                <td colspan="9" class="px-5 py-10 text-center text-slate-400 text-sm italic">Unggah 3 file Excel Section untuk mencocokkan jadwal &amp; menampilkan peserta.</td>
               </tr>
             </tbody>
           </table>
@@ -337,7 +337,6 @@
       const matchNama = upperName.match(/(?:SECTION|SEC)[\s._-]*([123])\b/);
       if (matchNama) return parseInt(matchNama[1], 10);
 
-      // Cek juga di 5 baris teratas file Excel jika nama file sudah diubah
       if (Array.isArray(rows)) {
         for (let i = 0; i < Math.min(5, rows.length); i++) {
           const rowText = (rows[i] || []).map(c => String(c || "").toUpperCase()).join(" ");
@@ -353,14 +352,14 @@
 
     function resetSlotSection(secNum, inputEl) {
       if (inputEl) inputEl.value = "";
-      document.getElementById(`labelSec${secNum}`).innerText = "Belum ada file dipilih";
+      const labelEl = document.getElementById(`labelSec${secNum}`);
+      if (labelEl) labelEl.innerText = "Belum ada file dipilih";
       if (secNum === 1) fileSec1Info = { data: null, jam: "", tanggal: "" };
       if (secNum === 2) fileSec2Info = { data: null, jam: "", tanggal: "" };
       if (secNum === 3) fileSec3Info = { data: null, jam: "", tanggal: "" };
       resetPreview("Unggah 3 file Excel Section yang sesuai dan bertanggal sama untuk mencocokkan jadwal & menampilkan peserta.");
     }
 
-    // Hapus file unggahan & labelnya otomatis setelah hasil pencocokan muncul di tabel agar siap upload lagi
     function bersihkanSemuaInputUnggahan() {
       [1, 2, 3].forEach((secNum) => {
         const inputEl = document.getElementById(`fileSec${secNum}`);
@@ -398,12 +397,11 @@
     }
 
     function handleFileSection(secNum, input) {
-      const file = input.files[0];
+      const file = input && input.files ? input.files[0] : null;
       if (!file) return;
 
       const fileName = file.name;
 
-      // Validasi cepat dari nama file sebelum membaca isi
       const secDariNama = deteksiNomorSectionFile(fileName, null);
       if (secDariNama && secDariNama !== secNum) {
         alert(`DITOLAK: Tombol ini khusus untuk Excel Section ${secNum}, sedangkan file yang Anda pilih adalah Section ${secDariNama} (${fileName})!`);
@@ -417,7 +415,6 @@
       let fileTanggal = tglMatch ? tglMatch[1] : "";
       let fileJamStr = jamMatch ? jamMatch[jamMatch.length - 1].replace(/-/g, ':') : "";
 
-      // Validasi cepat tanggal dari nama file terhadap section lain yang sudah terunggah
       if (fileTanggal) {
         const cekTglNama = cekKesesuaianTanggalDenganSectionLain(secNum, fileTanggal);
         if (!cekTglNama.valid) {
@@ -434,7 +431,6 @@
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
 
-        // Validasi kedua dari isi header Excel (untuk berjaga-jaga jika nama file di-rename)
         const secDariIsi = deteksiNomorSectionFile(fileName, rows);
         if (secDariIsi && secDariIsi !== secNum) {
           alert(`DITOLAK: Tombol ini khusus untuk Excel Section ${secNum}, tetapi isi file "${fileName}" terdeteksi sebagai Section ${secDariIsi}!`);
@@ -451,7 +447,6 @@
           }
         }
 
-        // Validasi kedua tanggal setelah membaca isi Excel
         const cekTglIsi = cekKesesuaianTanggalDenganSectionLain(secNum, fileTanggal);
         if (!cekTglIsi.valid) {
           alert(cekTglIsi.pesan);
@@ -459,7 +454,8 @@
           return;
         }
 
-        document.getElementById(`labelSec${secNum}`).innerText = fileName;
+        const labelEl = document.getElementById(`labelSec${secNum}`);
+        if (labelEl) labelEl.innerText = fileName;
 
         if (secNum === 1) fileSec1Info = { data: rows, jam: fileJamStr, tanggal: fileTanggal };
         if (secNum === 2) fileSec2Info = { data: rows, jam: fileJamStr, tanggal: fileTanggal };
@@ -490,7 +486,7 @@
       for (let i = 0; i < rows.length; i++) {
         const r = rows[i];
         const studentColIdx = r.findIndex(c => /^STUDENT\s*0*(\d+)$/i.test(String(c).trim()));
-        
+
         if (studentColIdx !== -1) {
           const rawId = String(r[studentColIdx]).trim().toUpperCase().replace(/\s+/g, '');
           const numMatch = rawId.match(/^STUDENT0*(\d+)$/i);
@@ -532,7 +528,6 @@
       const selectedSesiKode = selectedSesiFull.split('(')[0].trim();
       const selectedLab = document.getElementById('selectLabToefl').value;
 
-      // Pastikan ketiga section memiliki tanggal yang sama persis
       const tgl1 = normalisasiTanggalISO(fileSec1Info.tanggal);
       const tgl2 = normalisasiTanggalISO(fileSec2Info.tanggal);
       const tgl3 = normalisasiTanggalISO(fileSec3Info.tanggal);
@@ -689,7 +684,7 @@
           const mappedNim = mhsDb ? String(mhsDb.nim || "").trim() : "";
           const mappedNama = mhsDb ? String(mhsDb.nama || mhsDb.nama_mahasiswa || "").trim().toUpperCase() : "";
           const mappedProdi = mhsDb ? String(mhsDb.prodi || mhsDb.program_studi || namaKelas).trim().toUpperCase() : namaKelas;
-          
+
           let idMejaLabel = s1.id;
           if (mhsDb && (mhsDb.id_meja || mhsDb.nomor_meja || mhsDb.no_meja || mhsDb.meja)) {
             const rawSeat = String(mhsDb.id_meja || mhsDb.nomor_meja || mhsDb.no_meja || mhsDb.meja).trim().toUpperCase();
@@ -720,7 +715,6 @@
         document.getElementById('badgeJumlahMhs').innerText = `${parsedPeserta.length} Peserta (Excel) / ${dbPeserta.length} Jadwal`;
         renderTabelPreview(parsedPeserta);
 
-        // Otomatis hilangkan file unggahan di 3 kotak atas setelah hasil pencocokan muncul di tabel
         bersihkanSemuaInputUnggahan();
 
       } catch (err) {
@@ -731,7 +725,7 @@
 
     function renderTabelPreview(list) {
       const tbody = document.getElementById('tabelPreviewToefl');
-      
+
       tbody.innerHTML = list.map((m, idx) => `
         <tr class="hover:bg-slate-50 transition-colors" id="row-${idx}">
           <td class="px-4 py-3 text-center font-mono text-xs border-r font-extrabold text-slate-700">${m.id_meja}</td>
@@ -745,9 +739,9 @@
           <td class="px-4 py-3 text-center text-xs border-r">${m.sec3}</td>
           <td class="px-4 py-3 text-center text-xs font-extrabold text-emerald-600 bg-emerald-50/40 border-r">${m.totalSkor}</td>
           <td class="px-4 py-3 text-center">
-             <button onclick="bindNimOtomatis(${idx}, '${m.id_meja}')" class="px-3 py-1.5 ${m.nim ? 'bg-slate-200 hover:bg-slate-300 text-slate-600' : 'bg-rose-500 hover:bg-rose-600 text-white shadow-sm'} text-[10px] font-bold rounded-lg flex items-center justify-center gap-1 mx-auto transition-all">
-                <i class="ri-link"></i> ${m.nim ? 'UBAH BIND' : 'BIND NIM'}
-             </button>
+            <button type="button" onclick="bindNimOtomatis(${idx}, '${m.id_meja}')" class="px-3 py-1.5 ${m.nim ? 'bg-slate-200 hover:bg-slate-300 text-slate-600' : 'bg-rose-500 hover:bg-rose-600 text-white shadow-sm'} text-[10px] font-bold rounded-lg flex items-center justify-center gap-1 mx-auto transition-all">
+              <i class="ri-link"></i> ${m.nim ? 'UBAH BIND' : 'BIND NIM'}
+            </button>
           </td>
         </tr>
       `).join('');
@@ -815,7 +809,8 @@
         return;
       }
 
-      if (!confirm(`Simpan permanen ${window.previewDataGlobal.length} data ke Rekapan Master kategori: ${kategoriPilihan}? (Jadwal di log akan dihapus otomatis)`)) {
+      const jumlahData = window.previewDataGlobal.length;
+      if (!confirm(`Simpan permanen ${jumlahData} data ke Rekapan Master kategori: ${kategoriPilihan}? (Jadwal di log akan dihapus otomatis)`)) {
         return;
       }
 
@@ -939,7 +934,7 @@
         }
 
         bersihkanSemuaInputUnggahan();
-        alert(`SUKSES! ${window.previewDataGlobal.length} nilai berhasil digabungkan ke Rekapan Master (${kategoriPilihan}) dan jadwal terkait telah dihapus dari log.`);
+        alert(`SUKSES! ${jumlahData} nilai berhasil digabungkan ke Rekapan Master (${kategoriPilihan}) dan jadwal terkait telah dihapus dari log.`);
         resetPreview("Data berhasil disimpan ke Rekapan Master dan log jadwal telah dibersihkan.");
 
       } catch (err) {
@@ -950,6 +945,5 @@
       }
     }
   </script>
-  <script src="./js/admin-profil-global.js"></script>
 </body>
 </html>
