@@ -26,16 +26,17 @@
 </head>
 <body class="bg-[#F7FAF8] font-sans text-slate-800 antialiased flex h-screen overflow-hidden">
 
-  <!-- ==================== SIDEBAR (SESUAI UPA ADMIN) ==================== -->
+  <!-- ==================== SIDEBAR (PLEK KETIPLEK UPA ADMIN) ==================== -->
   <aside id="adminSidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-[#0a3d2e] text-white flex flex-col flex-shrink-0 h-full transform -translate-x-full lg:translate-x-0 lg:static transition-transform duration-300 ease-in-out">
     <div class="flex items-center justify-between h-16 px-6 bg-[#082d22] shrink-0">
       <div class="flex items-center gap-3">
         <img
           src="./img/logo-polnes.png"
+          onerror="this.onerror=null; this.src='./img/polnes.png';"
           alt="Logo POLNES"
-          class="w-8 h-8 object-contain brightness-125 contrast-125"
+          class="w-8 h-8 object-contain"
         >
-        <span class="font-extrabold text-lg tracking-wide text-white font-sans">UPA ADMIN</span>
+        <span class="font-bold text-lg tracking-wide text-white">UPA ADMIN</span>
       </div>
       <button type="button" onclick="document.getElementById('adminSidebar').classList.add('-translate-x-full')" class="lg:hidden text-gray-400 hover:text-white" aria-label="Tutup sidebar">
         <i class="ri-close-line text-xl"></i>
@@ -117,7 +118,7 @@
   <!-- ==================== MAIN CONTENT ==================== -->
   <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
     
-    <!-- TOP HEADER (SESUAI UPA ADMIN) -->
+    <!-- TOP HEADER (PLEK KETIPLEK UPA ADMIN) -->
     <header class="h-16 bg-white shadow-sm flex items-center justify-between px-4 lg:px-8 z-40 relative shrink-0">
       <div class="flex items-center gap-3">
         <button type="button" onclick="document.getElementById('adminSidebar').classList.remove('-translate-x-full')" class="lg:hidden text-gray-600 hover:text-[#10C35D]" aria-label="Buka sidebar">
@@ -419,7 +420,7 @@
   <script src="./js/supabase-config.js"></script>
   <script src="./js/modul-jadwal.js"></script>
 
-  <!-- SINKRONISASI PROFIL HEADER & FILTER OTOMATIS -->
+  <!-- SINKRONISASI PROFIL HEADER & FILTER OTOMATIS: Kecualikan jadwal REMEDIAL dari Histori Jadwal Test -->
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       try {
