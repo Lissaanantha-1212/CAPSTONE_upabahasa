@@ -29,7 +29,7 @@
 </head>
 <body class="bg-[#F7FAF8] font-sans text-slate-800 antialiased flex h-screen overflow-hidden">
 
-  <!-- ==================== SIDEBAR (SAMA PERSIS DENGAN JADWAL TEST & JADWAL REMEDIAL) ==================== -->
+  <!-- ==================== SIDEBAR ==================== -->
   <aside id="adminSidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-[#0a3d2e] text-white flex flex-col flex-shrink-0 h-full transform -translate-x-full lg:translate-x-0 lg:static transition-transform duration-300 ease-in-out">
     <div class="flex items-center justify-between h-16 px-6 bg-[#082d22] shrink-0">
       <div class="flex items-center gap-3">
@@ -121,7 +121,7 @@
   <!-- ==================== MAIN CONTENT ==================== -->
   <div class="flex-1 flex flex-col h-screen overflow-hidden relative">
 
-    <!-- TOP HEADER (SAMA PERSIS DENGAN JADWAL TEST & JADWAL REMEDIAL) -->
+    <!-- TOP HEADER -->
     <header class="h-16 bg-white shadow-sm flex items-center justify-between px-4 lg:px-8 z-40 relative shrink-0">
       <div class="flex items-center gap-3">
         <button type="button" onclick="document.getElementById('adminSidebar').classList.remove('-translate-x-full')" class="lg:hidden text-gray-600 hover:text-[#10C35D]" aria-label="Buka sidebar">
@@ -271,6 +271,45 @@
   <script>
     window.sspectPreviewData = [];
 
+    function parseBarisSspect(rows) {
+      const parsed = [];
+      for (let i = 0; i < rows.length; i++) {
+        const r = Array.isArray(rows[i]) ? rows[i] : [];
+        let nimCell = "";
+        let namaCell = "";
+        let prodiCell = "";
+        let skorNum = NaN;
+
+        for (let c = 0; c < r.length; c++) {
+          const val = String(r[c] ?? "").trim();
+          if (!nimCell && /^\d{6,}$/.test(val)) {
+            nimCell = val;
+            namaCell = String(r[c + 1] ?? "").trim();
+            prodiCell = String(r[c + 2] ?? "").trim();
+
+            for (let k = r.length - 1; k > c; k--) {
+              const candidate = String(r[k] ?? "").trim().replace(",", ".");
+              if (candidate !== "" && !/^\d{6,}$/.test(candidate) && !isNaN(parseFloat(candidate))) {
+                skorNum = parseFloat(candidate);
+                break;
+              }
+            }
+            break;
+          }
+        }
+
+        if (nimCell && namaCell && !isNaN(skorNum)) {
+          parsed.push({
+            nim: nimCell,
+            nama: namaCell.toUpperCase(),
+            prodi: (prodiCell || "-").toUpperCase(),
+            skor: skorNum
+          });
+        }
+      }
+      return parsed;
+    }
+
     function handleFileSspect(input) {
       const file = input && input.files ? input.files[0] : null;
       if (!file) return;
@@ -281,38 +320,32 @@
       const reader = new FileReader();
       reader.onload = (e) => {
         try {
+          if (typeof XLSX === "undefined") {
+            throw new Error("Library XLSX belum termuat.");
+          }
           const data = new Uint8Array(e.target.result);
           const workbook = XLSX.read(data, { type: 'array' });
-          const sheet = workbook.Sheets[workbook.SheetNames[0]];
+          const firstSheetName = workbook.SheetNames && workbook.SheetNames[0];
+          if (!firstSheetName) {
+            throw new Error("Sheet Excel tidak ditemukan.");
+          }
+          const sheet = workbook.Sheets[firstSheetName];
           const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
 
-          const parsed = [];
-          for (let i = 0; i < rows.length; i++) {
-            const r = rows[i] || [];
-            const nimCell = String(r[1] || r[0] || "").trim();
-            const namaCell = String(r[2] || r[1] || "").trim();
-            const prodiCell = String(r[3] || "").trim();
-            const skorRaw = r[4] !== undefined && r[4] !== "" ? r[4] : r[r.length - 1];
-            const skorNum = parseFloat(String(skorRaw).replace(',', '.'));
-
-            if (/^\d{6,}$/.test(nimCell) && namaCell && !isNaN(skorNum)) {
-              parsed.push({
-                nim: nimCell,
-                nama: namaCell.toUpperCase(),
-                prodi: (prodiCell || "-").toUpperCase(),
-                skor: skorNum
-              });
-            }
-          }
-
+          const parsed = parseBarisSspect(rows);
           window.sspectPreviewData = parsed;
+
           const badgeEl = document.getElementById('badgeJumlahSspect');
           if (badgeEl) badgeEl.innerText = `${parsed.length} Peserta`;
+
           renderTabelSspect(parsed);
         } catch (err) {
           console.error(err);
           alert("Gagal membaca file Excel SSPECT: " + err.message);
         }
+      };
+      reader.onerror = () => {
+        alert("Gagal membaca file yang dipilih dari perangkat.");
       };
       reader.readAsArrayBuffer(file);
     }
@@ -352,7 +385,7 @@
     }
 
     async function simpanKeArsipMasterDariSspect() {
-      const list = window.sspectPreviewData || [];
+      const list = Array.isArray(window.sspectPreviewData) ? window.sspectPreviewData : [];
       if (list.length === 0) {
         alert("Belum ada data nilai SSPECT untuk disimpan.");
         return;
@@ -374,7 +407,7 @@
       }
 
       try {
-        const nimList = list.map(m => String(m.nim).trim());
+        const nimList = [...new Set(list.map(m => String(m.nim).trim()).filter(Boolean))];
         const { data: existingAll, error: errFetch } = await window.supabaseClient
           .from('arsip_master_rekapan')
           .select('*')
@@ -407,9 +440,11 @@
                     ? JSON.parse(oldRow.riwayat_json)
                     : oldRow.riwayat_json;
 
-                  for (const k of Object.keys(mergedRiwayat)) {
-                    if (parsedOld[k] !== undefined && parsedOld[k] !== null && String(parsedOld[k]).trim() !== '' && String(parsedOld[k]).trim() !== '-') {
-                      mergedRiwayat[k] = parsedOld[k];
+                  if (parsedOld && typeof parsedOld === 'object') {
+                    for (const k of Object.keys(mergedRiwayat)) {
+                      if (parsedOld[k] !== undefined && parsedOld[k] !== null && String(parsedOld[k]).trim() !== '' && String(parsedOld[k]).trim() !== '-') {
+                        mergedRiwayat[k] = parsedOld[k];
+                      }
                     }
                   }
                 } catch (_) {}
@@ -456,16 +491,23 @@
           if (errInsert) throw errInsert;
         }
 
+        const jumlahTersimpan = list.length;
         const inputEl = document.getElementById('fileSspectExcel');
         const labelEl = document.getElementById('labelFileSspect');
+        const badgeEl = document.getElementById('badgeJumlahSspect');
+        const tbodyEl = document.getElementById('tabelPreviewSspect');
+
         if (inputEl) inputEl.value = "";
         if (labelEl) labelEl.innerText = "Belum ada file dipilih";
         window.sspectPreviewData = [];
-        document.getElementById('badgeJumlahSspect').innerText = "0 Peserta";
-        document.getElementById('tabelPreviewSspect').innerHTML = `<tr><td colspan="5" class="px-5 py-10 text-center text-slate-400 text-sm italic">Data SSPECT berhasil disimpan ke Rekapan Master.</td></tr>`;
+        if (badgeEl) badgeEl.innerText = "0 Peserta";
+        if (tbodyEl) {
+          tbodyEl.innerHTML = `<tr><td colspan="5" class="px-5 py-10 text-center text-slate-400 text-sm italic">Data SSPECT berhasil disimpan ke Rekapan Master.</td></tr>`;
+        }
 
-        alert(`SUKSES! ${list.length} data nilai SSPECT berhasil disimpan ke Rekapan Master.`);
+        alert(`SUKSES! ${jumlahTersimpan} data nilai SSPECT berhasil disimpan ke Rekapan Master.`);
       } catch (err) {
+        console.error(err);
         alert("Gagal menyimpan nilai SSPECT ke Supabase: " + err.message);
       } finally {
         if (btnSimpan) {
