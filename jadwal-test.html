@@ -420,67 +420,12 @@
   <script src="./js/supabase-config.js"></script>
   <script src="./js/modul-jadwal.js"></script>
 
-  <!-- SINKRONISASI PROFIL DARI LOGIN PIYA & FILTER OTOMATIS -->
+  <!-- SINKRONISASI PROFIL GLOBAL DARI LOGIN PIYA -->
+  <script src="./js/admin-profil-global.js"></script>
+
+  <!-- FILTER OTOMATIS: Kecualikan jadwal REMEDIAL dari Histori Jadwal Test -->
   <script>
-    function logoutKePiya() {
-      localStorage.removeItem("upa_active_staff");
-      localStorage.removeItem("adminUser");
-      sessionStorage.removeItem("piya_active_admin");
-      window.location.href = "https://upabahasa-polnes-l7qi.vercel.app/admin/login";
-    }
-
     document.addEventListener("DOMContentLoaded", () => {
-      // 1. Hapus sisa sesi login lama (048 LISSAANANTHA) agar tidak nyangkut
-      localStorage.removeItem("upa_active_staff");
-
-      // 2. Tangkap profil terbaru yang dikirim dari dashboard Piya (?piya_user=...)
-      const urlParams = new URLSearchParams(window.location.search);
-      const piyaParam = urlParams.get("piya_user");
-      if (piyaParam) {
-        try {
-          const decoded = JSON.parse(
-            decodeURIComponent(escape(atob(decodeURIComponent(piyaParam))))
-          );
-          if (decoded && decoded.email) {
-            sessionStorage.setItem("piya_active_admin", JSON.stringify(decoded));
-            localStorage.setItem("adminUser", JSON.stringify(decoded));
-          }
-          window.history.replaceState({}, document.title, window.location.pathname);
-        } catch (e) {
-          console.error("Gagal membaca profil dari Piya:", e);
-        }
-      }
-
-      // 3. Tampilkan profil aktif dari Piya ke header & dropdown
-      try {
-        const rawAdmin =
-          sessionStorage.getItem("piya_active_admin") ||
-          localStorage.getItem("adminUser");
-        const adminUser = JSON.parse(rawAdmin || "{}") || {};
-        const name = adminUser.fullName || "Admin UPA";
-        const email = adminUser.email || "-";
-        const initial = name.trim().charAt(0).toUpperCase() || "A";
-        const role = adminUser.role
-          ? adminUser.role.charAt(0).toUpperCase() + adminUser.role.slice(1)
-          : "Administrator";
-        const staffNumber = adminUser.staffNumber;
-        const adminNumber =
-          staffNumber !== null && staffNumber !== undefined && staffNumber !== ""
-            ? `Admin ${staffNumber}`
-            : "Nomor admin belum tersedia";
-
-        document.getElementById("headerAdminInitial").textContent = initial;
-        document.getElementById("headerAdminName").textContent = name;
-        document.getElementById("dropdownAdminInitial").textContent = initial;
-        document.getElementById("dropdownAdminName").textContent = name;
-        document.getElementById("dropdownAdminEmail").textContent = email;
-        document.getElementById("dropdownAdminRole").textContent = role;
-        document.getElementById("dropdownAdminNumber").textContent = adminNumber;
-      } catch (e) {
-        console.error("Gagal menampilkan profil admin:", e);
-      }
-
-      // 4. Filter baris jadwal remedial agar tidak muncul di Histori Jadwal Test
       const tbody = document.getElementById("tabelHistoriJadwalBody");
       if (!tbody) return;
 
