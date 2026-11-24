@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Overview Dashboard - UPA Bahasa POLNES</title>
+  <title>Statistik &amp; Grafik - UPA Bahasa POLNES</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 
   <script src="https://cdn.tailwindcss.com"></script>
@@ -17,139 +17,202 @@
     tailwind.config = {
       theme: {
         extend: {
-          fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
-          colors: { polnes: { main: '#10C35D', dark: '#0B8A42', light: '#E8F8EF' } }
+          fontFamily: {
+            sans: ['Inter', 'Plus Jakarta Sans', 'sans-serif'],
+            jakarta: ['Plus Jakarta Sans', 'sans-serif']
+          },
+          colors: {
+            polnes: {
+              main: '#10C35D',
+              dark: '#0B8A42',
+              darker: '#0a3d2e',
+              light: '#E8F8EF'
+            }
+          }
         }
       }
     }
   </script>
 </head>
-<body class="bg-slate-50 font-sans text-slate-800 antialiased flex h-screen overflow-hidden">
+<body class="bg-[#F7FAF8] font-sans text-slate-800 antialiased flex h-screen overflow-hidden">
 
-  <!-- ==================== SIDEBAR KONSISTEN (SEMUA MENU AKTIF) ==================== -->
-  <aside class="w-[260px] bg-white border-r border-slate-200 flex flex-col flex-shrink-0 h-full overflow-y-auto z-20">
-    <div class="p-6 flex items-center gap-3 border-b border-slate-100 sticky top-0 bg-white z-10">
-      <img src="./img/polnes.png" alt="Logo Polnes" class="w-8 h-8 object-contain">
-      <span class="font-extrabold text-slate-900 tracking-wide text-sm">UPA BAHASA</span>
+  <!-- ==================== SIDEBAR 100% IDENTIK DENGAN PANEL ADMIN PIYA ==================== -->
+  <aside id="adminSidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-[#0a3d2e] text-white flex flex-col transform -translate-x-full transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 shrink-0">
+    <!-- Brand Header -->
+    <div class="flex items-center justify-between h-16 px-6 bg-[#082d22] shrink-0">
+      <div class="flex items-center gap-2">
+        <img src="./img/polnes.png" alt="Logo POLNES" class="w-8 h-8 object-contain">
+        <span class="font-bold text-lg tracking-wide">UPA ADMIN</span>
+      </div>
+
+      <button type="button" onclick="toggleMobileSidebar(false)" class="lg:hidden text-gray-400 hover:text-white" aria-label="Tutup sidebar">
+        <i class="ri-close-line text-xl"></i>
+      </button>
     </div>
-    
-    <div class="p-4 space-y-1 flex-1">
-      <!-- Dashboard (AKTIF) -->
-      <a href="index.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-polnes-light text-polnes-main font-bold transition-all text-[13px]">
-        <i class="ri-layout-grid-line text-lg text-polnes-main"></i> Dashboard
+
+    <!-- Navigasi Sidebar Lengkap (Sinkron dengan AdminLayout.jsx) -->
+    <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+      <!-- 1. Dashboard Utama Piya -->
+      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/dashboard" data-piya-link="https://upabahasa-polnes-l7qi.vercel.app/admin/dashboard" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
+        <i class="ri-dashboard-line text-[18px]"></i>
+        <span>Dashboard</span>
       </a>
-      
-      <div class="pt-4 pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider px-4">LAYANAN TEST</div>
-      
-      <!-- Dropdown Penjadwalan -->
+
+      <!-- 2. Statistik & Grafik (HALAMAN AKTIF INI) -->
+      <a href="dashboard.html" data-local-link="dashboard.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium bg-[#10C35D] text-white shadow-md transition-all duration-200">
+        <i class="ri-bar-chart-box-line text-[18px]"></i>
+        <span>Statistik &amp; Grafik</span>
+      </a>
+
+      <!-- 3. Manajemen Konten (Piya) -->
+      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/konten" data-piya-link="https://upabahasa-polnes-l7qi.vercel.app/admin/konten" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
+        <i class="ri-file-text-line text-[18px]"></i>
+        <span>Manajemen Konten</span>
+      </a>
+
+      <!-- 4. Manajemen Layanan (Piya) -->
+      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/layanan" data-piya-link="https://upabahasa-polnes-l7qi.vercel.app/admin/layanan" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
+        <i class="ri-briefcase-line text-[18px]"></i>
+        <span>Manajemen Layanan</span>
+      </a>
+
+      <!-- 5. Manajemen Pembelajaran (Piya) -->
+      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/pembelajaran" data-piya-link="https://upabahasa-polnes-l7qi.vercel.app/admin/pembelajaran" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
+        <i class="ri-graduation-cap-line text-[18px]"></i>
+        <span>Manajemen Pembelajaran</span>
+      </a>
+
+      <!-- 6. Manajemen Pengaduan (Piya) -->
+      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/pengaduan" data-piya-link="https://upabahasa-polnes-l7qi.vercel.app/admin/pengaduan" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
+        <i class="ri-message-2-line text-[18px]"></i>
+        <span>Manajemen Pengaduan</span>
+      </a>
+
+      <!-- 7. Manajemen Survei (Piya) -->
+      <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/survei" data-piya-link="https://upabahasa-polnes-l7qi.vercel.app/admin/survei" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
+        <i class="ri-emotion-happy-line text-[18px]"></i>
+        <span>Manajemen Survei</span>
+      </a>
+
+      <!-- 8. Penjadwalan (Dropdown) -->
       <div class="space-y-1">
-        <div onclick="document.getElementById('subPenjadwalan').classList.toggle('hidden'); document.getElementById('arrowPenjadwalan').classList.toggle('rotate-180')" class="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-slate-50 text-slate-600 font-medium text-[13px] cursor-pointer transition-all">
-          <div class="flex items-center gap-3"><i class="ri-calendar-line text-lg text-slate-500"></i> Penjadwalan</div>
-          <i id="arrowPenjadwalan" class="ri-arrow-down-s-line text-slate-400 text-lg transition-transform"></i>
-        </div>
-        <div id="subPenjadwalan" class="pl-7 space-y-1 pt-1 pb-1 hidden">
-          <a href="jadwal-test.html" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 transition-all font-medium text-[13px]">
-            <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div> Jadwal Test
+        <button type="button" onclick="toggleSubSidebar('subPenjadwalan', 'arrowPenjadwalan')" class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
+          <span class="flex items-center gap-3">
+            <i class="ri-calendar-line text-[18px]"></i>
+            <span>Penjadwalan</span>
+          </span>
+          <i id="arrowPenjadwalan" class="ri-arrow-down-s-line text-base transition-transform duration-200"></i>
+        </button>
+
+        <div id="subPenjadwalan" class="hidden pl-11 pr-2 space-y-1">
+          <a href="jadwal-test.html" data-local-link="jadwal-test.html" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-colors">
+            <span class="w-1.5 h-1.5 rounded-full bg-[#10C35D]"></span>
+            <span>Jadwal Test</span>
           </a>
-          <a href="jadwal-remedial.html" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 transition-all font-medium text-[13px]">
-            <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div> Jadwal Remedial
-          </a>
-          <a href="jadwal-kursus.html" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 transition-all font-medium text-[13px]">
-            <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div> Jadwal Kursus
+          <a href="jadwal-remedial.html" data-local-link="jadwal-remedial.html" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-colors">
+            <span class="w-1.5 h-1.5 rounded-full bg-[#10C35D]"></span>
+            <span>Jadwal Remedial</span>
           </a>
         </div>
       </div>
 
-      <!-- Dropdown Hasil Test -->
+      <!-- 9. Hasil Test (Dropdown) -->
       <div class="space-y-1">
-        <div onclick="document.getElementById('subHasilTest').classList.toggle('hidden'); document.getElementById('arrowHasilTest').classList.toggle('rotate-180')" class="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-slate-50 text-slate-600 font-medium text-[13px] cursor-pointer transition-all">
-          <div class="flex items-center gap-3"><i class="ri-file-upload-line text-lg text-slate-500"></i> Hasil Test</div>
-          <i id="arrowHasilTest" class="ri-arrow-down-s-line text-slate-400 text-lg transition-transform"></i>
-        </div>
-        <div id="subHasilTest" class="pl-7 space-y-1 pt-1 pb-1 hidden">
-          <a href="toefl.html" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 transition-all font-medium text-[13px]">
-            <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div> TOEFL
+        <button type="button" onclick="toggleSubSidebar('subHasilTest', 'arrowHasilTest')" class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
+          <span class="flex items-center gap-3">
+            <i class="ri-file-upload-line text-[18px]"></i>
+            <span>Hasil Test</span>
+          </span>
+          <i id="arrowHasilTest" class="ri-arrow-down-s-line text-base transition-transform duration-200"></i>
+        </button>
+
+        <div id="subHasilTest" class="hidden pl-11 pr-2 space-y-1">
+          <a href="toefl.html" data-local-link="toefl.html" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-colors">
+            <span class="w-1.5 h-1.5 rounded-full bg-[#10C35D]"></span>
+            <span>TOEFL</span>
           </a>
-          <a href="sspect.html" class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 transition-all font-medium text-[13px]">
-            <div class="w-1.5 h-1.5 rounded-full bg-slate-400"></div> SSPECT
+          <a href="sspect.html" data-local-link="sspect.html" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-colors">
+            <span class="w-1.5 h-1.5 rounded-full bg-[#10C35D]"></span>
+            <span>SSPECT</span>
           </a>
         </div>
       </div>
 
-      <a href="kalkulasi-score.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
-        <i class="ri-calculator-line text-lg text-slate-500"></i> Kalkulasi Score
+      <!-- 10. Rekapan -->
+      <a href="rekapan.html" data-local-link="rekapan.html" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
+        <i class="ri-folder-history-line text-[18px]"></i>
+        <span>Rekapan</span>
       </a>
-
-      <a href="rekapan.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
-        <i class="ri-folder-history-line text-lg text-slate-500"></i> Rekapan
-      </a>
-
-      <a href="pusat-informasi.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
-        <i class="ri-information-line text-lg text-slate-500"></i> Pusat Informasi
-      </a>
-
-      <div class="pt-4 pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider px-4">MANAJEMEN KONTEN</div>
-      <a href="konten-utama.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
-        <i class="ri-article-line text-lg text-slate-500"></i> Konten Utama
-      </a>
-      <a href="layanan-tambahan.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
-        <i class="ri-heart-pulse-line text-lg text-slate-500"></i> Layanan Tambahan
-      </a>
-      <a href="pembelajaran.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
-        <i class="ri-book-open-line text-lg text-slate-500"></i> Pembelajaran
-      </a>
-      <a href="pengaduan.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
-        <i class="ri-message-2-line text-lg text-slate-500"></i> Pengaduan
-      </a>
-      <a href="survei.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-all text-slate-600 font-medium text-[13px]">
-        <i class="ri-clipboard-line text-lg text-slate-500"></i> Survei
-      </a>
-    </div>
+    </nav>
   </aside>
 
   <!-- ==================== MAIN CONTENT ==================== -->
-  <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
+  <div class="flex-1 flex flex-col min-h-screen overflow-hidden relative">
     
-    <!-- Top Header Bersih -->
-    <header class="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between sticky top-0 z-10 shrink-0">
-      <div>
-        <p class="text-[10px] uppercase tracking-wider font-extrabold text-slate-400">DASHBOARD / OVERVIEW</p>
+    <!-- TOP HEADER IDENTIK DENGAN PANEL ADMIN PIYA -->
+    <header class="h-16 bg-white shadow-sm flex items-center justify-between px-4 lg:px-8 z-40 relative shrink-0">
+      <div class="flex items-center gap-3">
+        <button type="button" onclick="toggleMobileSidebar(true)" class="lg:hidden text-gray-600 hover:text-[#10C35D]" aria-label="Buka sidebar">
+          <i class="ri-menu-line text-2xl"></i>
+        </button>
+
+        <div>
+          <h2 class="text-lg font-semibold text-[#0a3d2e]">Panel Administrasi</h2>
+          <p class="text-xs text-gray-500 hidden sm:block">Selamat datang di Sistem Informasi UPA Bahasa</p>
+        </div>
       </div>
       
       <!-- PROFIL PENGGUNA & MENU DROPDOWN -->
       <div class="relative z-[99]" id="dropdownProfilWrapper">
-        <button onclick="toggleDropdownProfil(event)" class="w-10 h-10 rounded-full bg-[#169C53] text-white flex items-center justify-center font-extrabold text-xs shadow-md hover:bg-[#0E7A3F] transition-all focus:outline-none">
-          <span id="userAvatarText">LA</span>
+        <button type="button" onclick="toggleDropdownProfil(event)" class="flex items-center gap-2 sm:gap-3 rounded-xl px-2 py-1.5 hover:bg-[#F0F8F3] transition-colors focus:outline-none focus:ring-2 focus:ring-[#10C35D]">
+          <div class="w-10 h-10 rounded-full bg-[#10C35D] text-white flex items-center justify-center font-bold shadow-sm">
+            <span id="userAvatarText">A</span>
+          </div>
+
+          <div class="hidden sm:block text-left">
+            <p class="text-sm font-semibold text-[#0a3d2e]">Profile</p>
+            <p class="text-xs text-gray-500" id="headerNamaAdmin">Admin UPA</p>
+          </div>
+
+          <i class="ri-arrow-down-s-line text-gray-500 text-base"></i>
         </button>
 
-        <div id="menuDropdownProfil" class="hidden absolute right-0 mt-2 w-60 bg-white rounded-2xl shadow-2xl border border-slate-200 py-2 z-[999] text-xs">
-          <div class="px-4 py-3 border-b border-slate-100">
-            <div class="font-extrabold text-slate-900 text-sm" id="popupNamaUser">Lissa Anantha</div>
-            <div class="text-[11px] text-slate-400 font-mono mt-0.5" id="popupUsername">@admin</div>
+        <div id="menuDropdownProfil" class="hidden absolute right-0 top-full mt-3 w-72 max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-[999] text-xs">
+          <div class="px-5 py-4 bg-[#F0F8F3] border-b border-gray-100">
+            <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Akun Administrator</p>
+            <div class="flex items-center gap-3 mt-3">
+              <div class="w-12 h-12 rounded-full bg-[#10C35D] text-white flex items-center justify-center text-lg font-bold shrink-0">
+                <span id="popupAvatarInitial">A</span>
+              </div>
+              <div class="min-w-0">
+                <div class="font-semibold text-[#0a3d2e] text-sm truncate" id="popupNamaUser">Admin UPA</div>
+                <div class="text-xs text-gray-500 break-all" id="popupUsername">-</div>
+              </div>
+            </div>
           </div>
           
-          <button onclick="bukaModalUbahUsername()" class="w-full text-left px-4 py-3 text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 font-semibold transition-all">
-            <i class="ri-user-settings-line text-base text-[#169C53]"></i> Ubah Username
+          <button type="button" onclick="bukaModalUbahUsername()" class="w-full text-left px-5 py-3 text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 font-semibold transition-all">
+            <i class="ri-user-settings-line text-base text-[#10C35D]"></i> Ubah Username
           </button>
-          <button onclick="bukaModalUbahPassword()" class="w-full text-left px-4 py-3 text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 font-semibold transition-all">
-            <i class="ri-lock-password-line text-base text-[#169C53]"></i> Ubah Kata Sandi
+          <button type="button" onclick="bukaModalUbahPassword()" class="w-full text-left px-5 py-3 text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 font-semibold transition-all">
+            <i class="ri-lock-password-line text-base text-[#10C35D]"></i> Ubah Kata Sandi
           </button>
           
-          <div class="border-t border-slate-100 my-1"></div>
+          <div class="border-t border-gray-100 my-1"></div>
           
-          <button onclick="prosesLogoutUser()" class="w-full text-left px-4 py-3 text-rose-600 hover:bg-rose-50 flex items-center gap-2.5 font-extrabold transition-all">
-            <i class="ri-logout-box-line text-base"></i> Log Out
+          <button type="button" onclick="prosesLogoutUser()" class="w-full text-left px-5 py-3 text-red-600 hover:bg-red-50 flex items-center gap-2.5 font-semibold transition-all">
+            <i class="ri-logout-box-line text-base"></i> Logout
           </button>
         </div>
       </div>
     </header>
 
-    <div class="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 pb-12">
+    <main class="flex-1 overflow-y-auto p-4 lg:p-8 space-y-6 pb-12 font-jakarta">
       
       <!-- Judul Halaman + Filter Analisis Dinamis -->
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Overview Dashboard</h1>
+          <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Statistik &amp; Grafik Ujian</h1>
           <p class="text-xs text-slate-500 mt-1">Pantau antrean kelas, jadwal terkunci, dan analisis tren hasil ujian (Rekapan &amp; Jadwal) secara real-time.</p>
         </div>
 
@@ -167,11 +230,11 @@
         </div>
       </div>
 
-      <!-- 4 Kartu Statistik Operasional (TETAP DIPERTAHANKAN SESUAI ALUR ASLI) -->
+      <!-- 4 Kartu Statistik Operasional -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         
-        <!-- Card 1: Kelas Menunggu Jadwal (Belum Dijadwalkan) -->
-        <a href="jadwal-test.html" class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:border-rose-300 transition-all flex flex-col justify-between group">
+        <!-- Card 1: Kelas Menunggu Jadwal -->
+        <a href="jadwal-test.html" data-local-link="jadwal-test.html" class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:border-rose-300 transition-all flex flex-col justify-between group">
           <div class="flex items-start justify-between">
             <div class="w-11 h-11 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center text-xl">
               <i class="ri-timer-line"></i>
@@ -185,8 +248,8 @@
           </div>
         </a>
 
-        <!-- Card 2: Sesi Jadwal Terkunci (Sudah Dijadwalkan) -->
-        <a href="jadwal-test.html" class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:border-sky-300 transition-all flex flex-col justify-between group">
+        <!-- Card 2: Sesi Jadwal Terkunci -->
+        <a href="jadwal-test.html" data-local-link="jadwal-test.html" class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:border-sky-300 transition-all flex flex-col justify-between group">
           <div class="flex items-start justify-between">
             <div class="w-11 h-11 rounded-2xl bg-sky-50 text-sky-500 flex items-center justify-center text-xl">
               <i class="ri-calendar-check-line"></i>
@@ -201,7 +264,7 @@
         </a>
 
         <!-- Card 3: MHS Terjadwal (Aktif) -->
-        <a href="jadwal-test.html" class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:border-amber-300 transition-all flex flex-col justify-between group">
+        <a href="jadwal-test.html" data-local-link="jadwal-test.html" class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:border-amber-300 transition-all flex flex-col justify-between group">
           <div class="flex items-start justify-between">
             <div class="w-11 h-11 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center text-xl">
               <i class="ri-group-line"></i>
@@ -216,7 +279,7 @@
         </a>
 
         <!-- Card 4: Sesi Ujian Selesai Dinilai -->
-        <a href="rekapan.html" class="bg-polnes-main rounded-2xl p-6 shadow-sm border border-polnes-main hover:bg-polnes-dark transition-all flex flex-col justify-between relative overflow-hidden text-white">
+        <a href="rekapan.html" data-local-link="rekapan.html" class="bg-polnes-main rounded-2xl p-6 shadow-sm border border-polnes-main hover:bg-polnes-dark transition-all flex flex-col justify-between relative overflow-hidden text-white">
           <i class="ri-shield-check-fill text-[110px] text-white/15 absolute -right-3 -bottom-5 pointer-events-none"></i>
           <div class="flex items-start justify-between relative z-10">
             <div class="w-11 h-11 rounded-2xl bg-white/20 text-white flex items-center justify-center text-xl">
@@ -334,13 +397,66 @@
         </div>
       </div>
 
-    </div>
-  </main>
+    </main>
+  </div>
 
   <!-- SCRIPT SUPABASE & CHART -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./js/supabase-config.js"></script>
   <script>
+    function toggleMobileSidebar(open) {
+      const sb = document.getElementById('adminSidebar');
+      if (!sb) return;
+      if (open) sb.classList.remove('-translate-x-full');
+      else sb.classList.add('-translate-x-full');
+    }
+
+    function toggleSubSidebar(subId, arrowId) {
+      const sub = document.getElementById(subId);
+      const arrow = document.getElementById(arrowId);
+      if (sub) sub.classList.toggle('hidden');
+      if (arrow) arrow.classList.toggle('rotate-180');
+    }
+
+    // Pertahankan sesi ?piya_user=... saat pindah antar halaman lokal maupun kembali ke menu manajemen Piya
+    (function syncSesiSidebarLinks() {
+      const params = new URLSearchParams(window.location.search);
+      const piyaUserParam = params.get('piya_user');
+      if (piyaUserParam) {
+        sessionStorage.setItem('upa_piya_user_param', piyaUserParam);
+        try {
+          const decoded = JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(piyaUserParam)))));
+          if (decoded && decoded.fullName) {
+            const init = decoded.fullName.trim().charAt(0).toUpperCase() || 'A';
+            const elHeader = document.getElementById('headerNamaAdmin');
+            const elAvatar = document.getElementById('userAvatarText');
+            const elPopupAvatar = document.getElementById('popupAvatarInitial');
+            const elPopupNama = document.getElementById('popupNamaUser');
+            const elPopupEmail = document.getElementById('popupUsername');
+            if (elHeader) elHeader.textContent = decoded.fullName;
+            if (elAvatar) elAvatar.textContent = init;
+            if (elPopupAvatar) elPopupAvatar.textContent = init;
+            if (elPopupNama) elPopupNama.textContent = decoded.fullName;
+            if (elPopupEmail) elPopupEmail.textContent = decoded.email || '-';
+          }
+        } catch (e) {
+          console.warn('Gagal parsing piya_user:', e);
+        }
+      }
+
+      const activeParam = piyaUserParam || sessionStorage.getItem('upa_piya_user_param');
+      if (activeParam) {
+        document.querySelectorAll('[data-local-link]').forEach((a) => {
+          const base = a.getAttribute('data-local-link');
+          a.setAttribute('href', `${base}?piya_user=${encodeURIComponent(activeParam)}`);
+        });
+        document.querySelectorAll('[data-piya-link]').forEach((a) => {
+          const base = a.getAttribute('data-piya-link');
+          a.setAttribute('href', `${base}?piya_user=${encodeURIComponent(activeParam)}`);
+        });
+      }
+    })();
+
     const dashAnalisisState = {
       semuaRekapan: [],
       dataTersaring: [],
@@ -495,7 +611,6 @@
 
       try {
         if (window.supabaseClient) {
-          // 1. Cek Antrean Kelas & Mahasiswa Sudah Daftar Belum Dijadwalkan
           const antreanData = await fetchSemuaBarisTabel(window.supabaseClient, 'antrean_mahasiswa');
           if (antreanData.length > 0) {
             const unikKelas = new Set(antreanData.map(a => a.nama_kelas || a.kelas || a.id));
@@ -506,7 +621,6 @@
             }, 0);
           }
 
-          // 2. Cek Jadwal Terkunci & Total Mahasiswa Terjadwal dari jadwal_log
           const logData = await fetchSemuaBarisTabel(window.supabaseClient, 'jadwal_log');
           if (logData.length > 0) {
             jmlJadwalTerkunci = logData.length;
@@ -529,7 +643,6 @@
             });
           }
 
-          // 3. Tarik & Gabungkan Seluruh Data Rekapan
           const [rekapanMaster, rekapanTabel, hasilTesTabel, mhsTabel] = await Promise.all([
             fetchSemuaBarisTabel(window.supabaseClient, 'arsip_master_rekapan'),
             fetchSemuaBarisTabel(window.supabaseClient, 'Rekapan'),
@@ -630,7 +743,6 @@
             rec.remedial_3 = parseNum(h.remedial_3) ?? rec.remedial_3;
           });
 
-          // Batas Lulus: D4 = 430, D3 = 400
           dashAnalisisState.semuaRekapan = Array.from(mapByNim.values()).map(m => {
             const arrSkor = [m.remedial_3, m.remedial_2, m.remedial_1, m.skor_toefl].filter(v => v !== null && v > 0);
             const skorAkhir = arrSkor.length > 0 ? Math.max(...arrSkor) : null;
