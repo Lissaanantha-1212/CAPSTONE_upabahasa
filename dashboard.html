@@ -50,7 +50,7 @@
       </button>
     </div>
 
-    <!-- Navigasi Sidebar Lengkap (Sinkron dengan AdminLayout.jsx) -->
+    <!-- Navigasi Sidebar Lengkap -->
     <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
       <!-- 1. Dashboard Utama Piya -->
       <a href="https://upabahasa-polnes-l7qi.vercel.app/admin/dashboard" data-piya-link="https://upabahasa-polnes-l7qi.vercel.app/admin/dashboard" class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200">
@@ -149,7 +149,7 @@
   <!-- ==================== MAIN CONTENT ==================== -->
   <div class="flex-1 flex flex-col min-h-screen overflow-hidden relative">
     
-    <!-- TOP HEADER IDENTIK DENGAN PANEL ADMIN PIYA -->
+    <!-- TOP HEADER (Dibiarkan bersih agar admin-profil-global.js otomatis mengisi & mengikat tombol Profile) -->
     <header class="h-16 bg-white shadow-sm flex items-center justify-between px-4 lg:px-8 z-40 relative shrink-0">
       <div class="flex items-center gap-3">
         <button type="button" onclick="toggleMobileSidebar(true)" class="lg:hidden text-gray-600 hover:text-[#10C35D]" aria-label="Buka sidebar">
@@ -159,50 +159,6 @@
         <div>
           <h2 class="text-lg font-semibold text-[#0a3d2e]">Panel Administrasi</h2>
           <p class="text-xs text-gray-500 hidden sm:block">Selamat datang di Sistem Informasi UPA Bahasa</p>
-        </div>
-      </div>
-      
-      <!-- PROFIL PENGGUNA & MENU DROPDOWN -->
-      <div class="relative z-[99]" id="dropdownProfilWrapper">
-        <button type="button" onclick="toggleDropdownProfil(event)" class="flex items-center gap-2 sm:gap-3 rounded-xl px-2 py-1.5 hover:bg-[#F0F8F3] transition-colors focus:outline-none focus:ring-2 focus:ring-[#10C35D]">
-          <div class="w-10 h-10 rounded-full bg-[#10C35D] text-white flex items-center justify-center font-bold shadow-sm">
-            <span id="userAvatarText">A</span>
-          </div>
-
-          <div class="hidden sm:block text-left">
-            <p class="text-sm font-semibold text-[#0a3d2e]">Profile</p>
-            <p class="text-xs text-gray-500" id="headerNamaAdmin">Admin UPA</p>
-          </div>
-
-          <i class="ri-arrow-down-s-line text-gray-500 text-base"></i>
-        </button>
-
-        <div id="menuDropdownProfil" class="hidden absolute right-0 top-full mt-3 w-72 max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-[999] text-xs">
-          <div class="px-5 py-4 bg-[#F0F8F3] border-b border-gray-100">
-            <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Akun Administrator</p>
-            <div class="flex items-center gap-3 mt-3">
-              <div class="w-12 h-12 rounded-full bg-[#10C35D] text-white flex items-center justify-center text-lg font-bold shrink-0">
-                <span id="popupAvatarInitial">A</span>
-              </div>
-              <div class="min-w-0">
-                <div class="font-semibold text-[#0a3d2e] text-sm truncate" id="popupNamaUser">Admin UPA</div>
-                <div class="text-xs text-gray-500 break-all" id="popupUsername">-</div>
-              </div>
-            </div>
-          </div>
-          
-          <button type="button" onclick="bukaModalUbahUsername()" class="w-full text-left px-5 py-3 text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 font-semibold transition-all">
-            <i class="ri-user-settings-line text-base text-[#10C35D]"></i> Ubah Username
-          </button>
-          <button type="button" onclick="bukaModalUbahPassword()" class="w-full text-left px-5 py-3 text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 font-semibold transition-all">
-            <i class="ri-lock-password-line text-base text-[#10C35D]"></i> Ubah Kata Sandi
-          </button>
-          
-          <div class="border-t border-gray-100 my-1"></div>
-          
-          <button type="button" onclick="prosesLogoutUser()" class="w-full text-left px-5 py-3 text-red-600 hover:bg-red-50 flex items-center gap-2.5 font-semibold transition-all">
-            <i class="ri-logout-box-line text-base"></i> Logout
-          </button>
         </div>
       </div>
     </header>
@@ -424,24 +380,6 @@
       const piyaUserParam = params.get('piya_user');
       if (piyaUserParam) {
         sessionStorage.setItem('upa_piya_user_param', piyaUserParam);
-        try {
-          const decoded = JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(piyaUserParam)))));
-          if (decoded && decoded.fullName) {
-            const init = decoded.fullName.trim().charAt(0).toUpperCase() || 'A';
-            const elHeader = document.getElementById('headerNamaAdmin');
-            const elAvatar = document.getElementById('userAvatarText');
-            const elPopupAvatar = document.getElementById('popupAvatarInitial');
-            const elPopupNama = document.getElementById('popupNamaUser');
-            const elPopupEmail = document.getElementById('popupUsername');
-            if (elHeader) elHeader.textContent = decoded.fullName;
-            if (elAvatar) elAvatar.textContent = init;
-            if (elPopupAvatar) elPopupAvatar.textContent = init;
-            if (elPopupNama) elPopupNama.textContent = decoded.fullName;
-            if (elPopupEmail) elPopupEmail.textContent = decoded.email || '-';
-          }
-        } catch (e) {
-          console.warn('Gagal parsing piya_user:', e);
-        }
       }
 
       const activeParam = piyaUserParam || sessionStorage.getItem('upa_piya_user_param');
