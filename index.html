@@ -69,8 +69,8 @@
 
     <!-- Main Navigation Bar -->
     <div class="max-w-7xl mx-auto px-4 md:px-10 lg:px-16 h-20 flex items-center justify-between relative">
-      <!-- Logo & Brand -->
-      <a href="index.html" class="flex items-center gap-3">
+      <!-- Logo & Brand (Kembali ke Beranda Web Utama Piya) -->
+      <a href="https://upabahasa-polnes-l7qi.vercel.app/" class="flex items-center gap-3">
         <img src="./img/polnes.png" onerror="this.style.display='none'; document.getElementById('fallbackLogo').classList.remove('hidden')" alt="Logo POLNES" class="w-11 h-11 object-contain">
         <div id="fallbackLogo" class="hidden w-11 h-11 rounded-xl bg-[#169C53] text-white flex items-center justify-center font-extrabold text-sm shadow-xs">
           UP
@@ -81,25 +81,27 @@
         </div>
       </a>
 
-      <!-- Navigasi Tengah Desktop -->
+      <!-- Navigasi Tengah Desktop (Menu lain direct ke link Piya, Layanan aktif di sini) -->
       <nav class="hidden lg:flex items-center gap-1 text-xs font-semibold text-slate-600">
-        <a href="index.html" class="relative px-3.5 py-2.5 text-[#169C53] font-bold">
+        <a href="https://upabahasa-polnes-l7qi.vercel.app/" class="relative px-3.5 py-2.5 hover:text-[#169C53] transition-colors">
           <span data-i18n="nav_beranda">BERANDA</span>
-          <span class="absolute bottom-0 left-3 right-3 h-0.5 bg-[#169C53] rounded-full"></span>
         </a>
 
-        <span class="relative px-3.5 py-2.5 text-slate-500 cursor-default" data-i18n="nav_tentang">TENTANG</span>
+        <a href="https://upabahasa-polnes-l7qi.vercel.app/tentang" class="relative px-3.5 py-2.5 hover:text-[#169C53] transition-colors" data-i18n="nav_tentang">TENTANG</a>
 
-        <!-- DROPDOWN LAYANAN -> DIRECT KE layanan-tes.html -->
+        <a href="https://upabahasa-polnes-l7qi.vercel.app/galeri" class="relative px-3.5 py-2.5 hover:text-[#169C53] transition-colors" data-i18n="nav_galeri">GALERI</a>
+
+        <!-- DROPDOWN LAYANAN -->
         <div class="relative" id="wrapMenuLayanan">
-          <button type="button" onclick="toggleMegaMenu(event)" class="relative px-3.5 py-2.5 hover:text-[#169C53] transition-colors flex items-center gap-1">
+          <button type="button" onclick="toggleMegaMenu(event)" class="relative px-3.5 py-2.5 text-[#169C53] font-bold transition-colors flex items-center gap-1">
             <span data-i18n="nav_layanan">Layanan</span>
             <i class="ri-arrow-down-s-line text-sm"></i>
+            <span class="absolute bottom-0 left-3 right-3 h-0.5 bg-[#169C53] rounded-full"></span>
           </button>
 
           <!-- Isi Mega Menu Layanan -->
           <div id="menuLayanan" class="hidden mega-menu-enter absolute left-1/2 -translate-x-1/2 mt-3 w-[680px] bg-white rounded-3xl shadow-2xl border border-slate-200/80 p-7 grid grid-cols-12 gap-6 z-50">
-            <!-- Kolom Kiri: Layanan Tes (Mengarah ke layanan-tes.html) -->
+            <!-- Kolom Kiri: Layanan Tes (Direct ke layanan-tes.html) -->
             <div class="col-span-6 space-y-4 border-r border-slate-100 pr-5">
               <div class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 pb-2 border-b border-slate-100" data-i18n="mm_layanan_tes">
                 LAYANAN TES
@@ -161,45 +163,45 @@
               </a>
             </div>
 
-            <!-- Kolom Kanan: Layanan Non-Tes -->
+            <!-- Kolom Kanan: Layanan Non-Tes (Direct ke link Piya) -->
             <div class="col-span-6 space-y-4">
               <div class="flex items-center justify-between pb-2 border-b border-slate-100">
                 <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400" data-i18n="mm_layanan_nontes">LAYANAN NON-TES</span>
-                <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[10px] font-bold" data-i18n="mm_segera_hadir">Segera Hadir</span>
+                <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-[#169C53] text-[10px] font-bold" data-i18n="mm_daftar_kursus">Daftar Kursus</span>
               </div>
 
-              <div class="space-y-3 select-none">
-                <div class="p-3.5 rounded-2xl bg-slate-50/80 border border-slate-100">
+              <div class="space-y-3">
+                <a href="https://upabahasa-polnes-l7qi.vercel.app/layanan/kursus-inggris" class="block p-3.5 rounded-2xl bg-slate-50/80 hover:bg-emerald-50/80 border border-slate-100 hover:border-emerald-200 transition-all">
                   <div class="font-extrabold text-slate-800 text-xs" data-i18n="mm_nontes_1">1. Kursus Bahasa Inggris</div>
                   <div class="text-[11px] text-slate-400 mt-0.5" data-i18n="mm_nontes_1_sub">Informasi, Jadwal & Pendaftaran Kursus</div>
-                </div>
-                <div class="p-3.5 rounded-2xl bg-slate-50/80 border border-slate-100">
+                </a>
+                <a href="https://upabahasa-polnes-l7qi.vercel.app/layanan/kursus-mandarin" class="block p-3.5 rounded-2xl bg-slate-50/80 hover:bg-emerald-50/80 border border-slate-100 hover:border-emerald-200 transition-all">
                   <div class="font-extrabold text-slate-800 text-xs" data-i18n="mm_nontes_2">2. Kursus Bahasa Mandarin</div>
                   <div class="text-[11px] text-slate-400 mt-0.5" data-i18n="mm_nontes_2_sub">Informasi, Jadwal & Pendaftaran Kursus</div>
-                </div>
-                <div class="p-3.5 rounded-2xl bg-slate-50/80 border border-slate-100">
+                </a>
+                <a href="https://upabahasa-polnes-l7qi.vercel.app/layanan/jsst" class="block p-3.5 rounded-2xl bg-slate-50/80 hover:bg-emerald-50/80 border border-slate-100 hover:border-emerald-200 transition-all">
                   <div class="font-extrabold text-slate-800 text-xs" data-i18n="mm_nontes_3">3. Job Seeking Skills Training (JSST)</div>
                   <div class="text-[11px] text-slate-400 mt-0.5" data-i18n="mm_nontes_3_sub">Informasi & Pendaftaran JSST</div>
-                </div>
+                </a>
               </div>
             </div>
           </div>
         </div>
 
-        <span class="relative px-3.5 py-2.5 text-slate-500 cursor-default flex items-center gap-1">
+        <a href="https://upabahasa-polnes-l7qi.vercel.app/informasi" class="relative px-3.5 py-2.5 hover:text-[#169C53] transition-colors flex items-center gap-1">
           <span data-i18n="nav_informasi">Informasi</span>
           <i class="ri-arrow-down-s-line text-sm"></i>
-        </span>
+        </a>
 
-        <span class="relative px-3.5 py-2.5 text-slate-500 cursor-default flex items-center gap-1">
+        <a href="https://upabahasa-polnes-l7qi.vercel.app/pembelajaran" class="relative px-3.5 py-2.5 hover:text-[#169C53] transition-colors flex items-center gap-1">
           <span data-i18n="nav_pembelajaran">Pembelajaran</span>
           <i class="ri-arrow-down-s-line text-sm"></i>
-        </span>
+        </a>
 
-        <span class="relative px-3.5 py-2.5 text-slate-500 cursor-default flex items-center gap-1">
+        <a href="https://upabahasa-polnes-l7qi.vercel.app/layanan-pengguna" class="relative px-3.5 py-2.5 hover:text-[#169C53] transition-colors flex items-center gap-1">
           <span data-i18n="nav_pengguna">Layanan Pengguna</span>
           <i class="ri-arrow-down-s-line text-sm"></i>
-        </span>
+        </a>
       </nav>
 
       <!-- Tombol Login Staff & Hamburger Mobile -->
@@ -217,95 +219,144 @@
 
     <!-- Navigasi Mobile -->
     <div id="mobileNav" class="hidden lg:hidden bg-white border-t border-slate-100 px-6 py-4 space-y-2 text-xs font-bold text-slate-700">
-      <a href="index.html" class="block py-2 text-[#169C53]" data-i18n="nav_beranda">BERANDA</a>
-      <a href="layanan-tes.html?tab=toefl" class="block py-2">Layanan Tes: TOEFL Prediction</a>
-      <a href="layanan-tes.html?tab=sspect" class="block py-2">Layanan Tes: SSPECT</a>
-      <a href="layanan-tes.html?tab=toeic" class="block py-2">Layanan Tes: TOEIC</a>
+      <a href="https://upabahasa-polnes-l7qi.vercel.app/" class="block py-2" data-i18n="nav_beranda">BERANDA</a>
+      <a href="https://upabahasa-polnes-l7qi.vercel.app/tentang" class="block py-2" data-i18n="nav_tentang">TENTANG</a>
+      <a href="layanan-tes.html?tab=toefl" class="block py-2 text-[#169C53]">Layanan Tes: TOEFL Prediction</a>
+      <a href="layanan-tes.html?tab=sspect" class="block py-2 text-[#169C53]">Layanan Tes: SSPECT</a>
+      <a href="layanan-tes.html?tab=toeic" class="block py-2 text-[#169C53]">Layanan Tes: TOEIC</a>
+      <a href="https://upabahasa-polnes-l7qi.vercel.app/layanan/kursus-inggris" class="block py-2">Daftar Kursus Bahasa</a>
+      <a href="https://upabahasa-polnes-l7qi.vercel.app/informasi" class="block py-2" data-i18n="nav_informasi">Informasi</a>
+      <a href="https://upabahasa-polnes-l7qi.vercel.app/pembelajaran" class="block py-2" data-i18n="nav_pembelajaran">Pembelajaran</a>
+      <a href="https://upabahasa-polnes-l7qi.vercel.app/layanan-pengguna" class="block py-2" data-i18n="nav_pengguna">Layanan Pengguna</a>
     </div>
   </header>
 
-  <!-- ==================== HERO & KARTU LAYANAN TES ==================== -->
+  <!-- ==================== HERO & PILIHAN LAYANAN ==================== -->
   <main class="flex-1 flex flex-col">
-    <div class="bg-[#0B4628] text-white py-24 sm:py-32 px-4 md:px-10 lg:px-16 relative overflow-hidden">
+    <div class="bg-[#0B4628] text-white py-20 sm:py-24 px-4 md:px-10 lg:px-16 relative overflow-hidden">
       <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,#169C5333,transparent_60%)] pointer-events-none"></div>
-      <div class="max-w-4xl mx-auto text-center space-y-6 relative z-10">
+      <div class="max-w-4xl mx-auto text-center space-y-5 relative z-10">
         <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white text-[#0B4628] text-[11px] font-extrabold uppercase tracking-wider shadow-sm">
           <span class="w-2 h-2 rounded-full bg-[#169C53]"></span>
-          <span>UPA BAHASA POLNES</span>
+          <span>PORTAL LAYANAN UPA BAHASA POLNES</span>
         </div>
 
-        <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-[1.12]" data-i18n="hero_heading">
-          Mengembangkan Kompetensi Bahasa untuk Masa Depan
+        <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight leading-[1.12]" data-i18n="hero_heading">
+          Pilihan Layanan Tes &amp; Pengembangan Bahasa
         </h1>
 
         <p class="text-sm sm:text-base text-emerald-100/90 max-w-2xl mx-auto leading-relaxed font-normal" data-i18n="hero_subheading">
-          Pusat layanan dan pengembangan bahasa di Politeknik Negeri Samarinda yang mendukung peningkatan kemampuan bahasa mahasiswa dan sivitas akademika.
+          Akses langsung layanan pengujian TOEFL Prediction, SSPECT, dan TOEIC, atau lanjut ke pendaftaran kursus di portal utama UPA Bahasa Politeknik Negeri Samarinda.
         </p>
 
-        <div class="pt-4 flex flex-wrap items-center justify-center gap-3.5">
-          <a href="layanan-tes.html?tab=toefl" class="px-7 py-3.5 rounded-full bg-[#169C53] hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm shadow-lg transition-all flex items-center gap-2">
-            <span data-i18n="hero_cta_primary">Jelajahi Layanan Tes</span>
-            <i class="ri-arrow-right-line"></i>
+        <div class="pt-3 flex flex-wrap items-center justify-center gap-3.5">
+          <a href="#pilihan-layanan" class="px-7 py-3.5 rounded-full bg-[#169C53] hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm shadow-lg transition-all flex items-center gap-2">
+            <span data-i18n="hero_cta_primary">Pilih Layanan</span>
+            <i class="ri-arrow-down-line"></i>
           </a>
 
-          <a href="login.html" class="px-7 py-3.5 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/25 font-bold text-xs sm:text-sm transition-all flex items-center gap-2">
-            <i class="ri-shield-user-line"></i>
-            <span data-i18n="btn_login_staff">Login Staff</span>
+          <a href="https://upabahasa-polnes-l7qi.vercel.app/" class="px-7 py-3.5 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/25 font-bold text-xs sm:text-sm transition-all flex items-center gap-2">
+            <i class="ri-external-link-line"></i>
+            <span data-i18n="hero_cta_secondary">Kembali ke Web Utama</span>
           </a>
         </div>
       </div>
     </div>
 
-    <!-- 3 Kartu Pintas ke File layanan-tes.html -->
-    <div class="max-w-7xl w-full mx-auto px-4 md:px-10 lg:px-16 py-16 space-y-10">
-      <div class="text-center max-w-2xl mx-auto space-y-2">
-        <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#169C53]" data-i18n="home_sec_badge">LAYANAN TES UNGGULAN</span>
-        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900" data-i18n="home_sec_title">Program Pengujian & Sertifikasi Bahasa</h2>
-        <p class="text-xs sm:text-sm text-slate-500" data-i18n="home_sec_desc">Pilih layanan pengujian sesuai kebutuhan akademik maupun persiapan karier internasional Anda.</p>
+    <!-- Bagian Pilihan Layanan Tes & Daftar Kursus -->
+    <div id="pilihan-layanan" class="max-w-7xl w-full mx-auto px-4 md:px-10 lg:px-16 py-16 space-y-12">
+      <!-- Layanan Tes -->
+      <div class="space-y-6">
+        <div class="text-center max-w-2xl mx-auto space-y-2">
+          <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#169C53]" data-i18n="home_sec_badge">LAYANAN TES &amp; SERTIFIKASI</span>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900" data-i18n="home_sec_title">Pilih Layanan Pengujian Bahasa</h2>
+          <p class="text-xs sm:text-sm text-slate-500" data-i18n="home_sec_desc">Klik kartu layanan di bawah ini untuk membuka halaman jadwal, pendaftaran remedial, cek skor, atau pengumuman.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <a href="layanan-tes.html?tab=toefl" class="group bg-white rounded-3xl p-7 border border-slate-200 hover:border-[#169C53] shadow-2xs hover:shadow-xl transition-all space-y-4 block">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-50 group-hover:bg-[#169C53] text-[#169C53] group-hover:text-white flex items-center justify-center text-xl transition-colors">
+              <i class="ri-file-list-3-line"></i>
+            </div>
+            <h3 class="text-lg font-extrabold text-slate-900">TOEFL Prediction</h3>
+            <p class="text-xs text-slate-500 leading-relaxed" data-i18n="card_toefl_desc">
+              Tes standar kelulusan mahasiswa D3 &amp; D4 Politeknik Negeri Samarinda lengkap dengan jadwal kelas, daftar peserta per sesi, pendaftaran remedial, dan cek skor online.
+            </p>
+            <div class="pt-2 text-xs font-extrabold text-[#169C53] flex items-center gap-1">
+              <span data-i18n="card_open_btn">Buka Halaman TOEFL</span>
+              <i class="ri-arrow-right-line group-hover:translate-x-1 transition-transform"></i>
+            </div>
+          </a>
+
+          <a href="layanan-tes.html?tab=sspect" class="group bg-white rounded-3xl p-7 border border-slate-200 hover:border-[#169C53] shadow-2xs hover:shadow-xl transition-all space-y-4 block">
+            <div class="w-12 h-12 rounded-2xl bg-sky-50 group-hover:bg-[#169C53] text-sky-600 group-hover:text-white flex items-center justify-center text-xl transition-colors">
+              <i class="ri-computer-line"></i>
+            </div>
+            <h3 class="text-lg font-extrabold text-slate-900">SSPECT Test</h3>
+            <p class="text-xs text-slate-500 leading-relaxed" data-i18n="card_sspect_desc">
+              Pemetaan kemampuan bahasa Inggris bagi mahasiswa semester awal lengkap dengan jadwal kelas dan pencarian nama peserta ujian.
+            </p>
+            <div class="pt-2 text-xs font-extrabold text-[#169C53] flex items-center gap-1">
+              <span data-i18n="card_open_sspect">Lihat Jadwal &amp; Peserta SSPECT</span>
+              <i class="ri-arrow-right-line group-hover:translate-x-1 transition-transform"></i>
+            </div>
+          </a>
+
+          <a href="layanan-tes.html?tab=toeic" class="group bg-white rounded-3xl p-7 border border-slate-200 hover:border-[#169C53] shadow-2xs hover:shadow-xl transition-all space-y-4 block">
+            <div class="w-12 h-12 rounded-2xl bg-amber-50 group-hover:bg-[#169C53] text-amber-600 group-hover:text-white flex items-center justify-center text-xl transition-colors">
+              <i class="ri-global-line"></i>
+            </div>
+            <h3 class="text-lg font-extrabold text-slate-900">TOEIC Certification</h3>
+            <p class="text-xs text-slate-500 leading-relaxed" data-i18n="card_toeic_desc">
+              Sertifikasi kemampuan bahasa Inggris komunikasi kerja internasional beserta pengumuman daftar peserta wajib &amp; hasil tes dari pusat.
+            </p>
+            <div class="pt-2 text-xs font-extrabold text-[#169C53] flex items-center gap-1">
+              <span data-i18n="card_open_toeic">Informasi &amp; Pengumuman TOEIC</span>
+              <i class="ri-arrow-right-line group-hover:translate-x-1 transition-transform"></i>
+            </div>
+          </a>
+        </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <a href="layanan-tes.html?tab=toefl" class="group bg-white rounded-3xl p-7 border border-slate-200 hover:border-[#169C53] shadow-2xs hover:shadow-xl transition-all space-y-4 block">
-          <div class="w-12 h-12 rounded-2xl bg-emerald-50 group-hover:bg-[#169C53] text-[#169C53] group-hover:text-white flex items-center justify-center text-xl transition-colors">
-            <i class="ri-file-list-3-line"></i>
+      <!-- Layanan Non-Tes / Daftar Kursus (Direct ke Link Piya) -->
+      <div class="bg-white rounded-3xl p-7 md:p-9 border border-slate-200 shadow-2xs space-y-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+          <div>
+            <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#169C53]" data-i18n="course_sec_badge">LAYANAN NON-TES</span>
+            <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-0.5" data-i18n="course_sec_title">Daftar Kursus &amp; Pelatihan Bahasa</h2>
+            <p class="text-xs text-slate-500 mt-1" data-i18n="course_sec_desc">Klik pilihan program kursus di bawah ini untuk diarahkan langsung ke halaman pendaftaran kursus.</p>
           </div>
-          <h3 class="text-lg font-extrabold text-slate-900">TOEFL Prediction</h3>
-          <p class="text-xs text-slate-500 leading-relaxed" data-i18n="card_toefl_desc">
-            Tes standar kelulusan mahasiswa D3 & D4 Politeknik Negeri Samarinda lengkap dengan jadwal kelas, daftar peserta per sesi, pendaftaran remedial, dan cek skor online.
-          </p>
-          <div class="pt-2 text-xs font-extrabold text-[#169C53] flex items-center gap-1">
-            <span data-i18n="card_open_btn">Buka Halaman TOEFL</span>
-            <i class="ri-arrow-right-line group-hover:translate-x-1 transition-transform"></i>
-          </div>
-        </a>
+          <a href="https://upabahasa-polnes-l7qi.vercel.app/layanan/kursus-inggris" class="self-start md:self-auto px-5 py-2.5 rounded-full bg-[#169C53] hover:bg-[#0E7A3F] text-white text-xs font-extrabold inline-flex items-center gap-2 transition-all">
+            <span data-i18n="btn_daftar_kursus">Daftar Kursus</span>
+            <i class="ri-external-link-line"></i>
+          </a>
+        </div>
 
-        <a href="layanan-tes.html?tab=sspect" class="group bg-white rounded-3xl p-7 border border-slate-200 hover:border-[#169C53] shadow-2xs hover:shadow-xl transition-all space-y-4 block">
-          <div class="w-12 h-12 rounded-2xl bg-sky-50 group-hover:bg-[#169C53] text-sky-600 group-hover:text-white flex items-center justify-center text-xl transition-colors">
-            <i class="ri-computer-line"></i>
-          </div>
-          <h3 class="text-lg font-extrabold text-slate-900">SSPECT Test</h3>
-          <p class="text-xs text-slate-500 leading-relaxed" data-i18n="card_sspect_desc">
-            Pemetaan kemampuan bahasa Inggris bagi mahasiswa semester awal lengkap dengan jadwal kelas dan pencarian nama peserta ujian.
-          </p>
-          <div class="pt-2 text-xs font-extrabold text-[#169C53] flex items-center gap-1">
-            <span data-i18n="card_open_sspect">Lihat Jadwal & Peserta SSPECT</span>
-            <i class="ri-arrow-right-line group-hover:translate-x-1 transition-transform"></i>
-          </div>
-        </a>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <a href="https://upabahasa-polnes-l7qi.vercel.app/layanan/kursus-inggris" class="group p-5 rounded-2xl bg-slate-50 hover:bg-emerald-50/70 border border-slate-200/70 hover:border-emerald-200 transition-all space-y-2">
+            <div class="font-extrabold text-slate-900 group-hover:text-[#169C53] text-sm flex items-center justify-between">
+              <span data-i18n="mm_nontes_1">1. Kursus Bahasa Inggris</span>
+              <i class="ri-external-link-line text-slate-400 group-hover:text-[#169C53]"></i>
+            </div>
+            <p class="text-xs text-slate-500" data-i18n="mm_nontes_1_sub">Informasi, Jadwal &amp; Pendaftaran Kursus</p>
+          </a>
 
-        <a href="layanan-tes.html?tab=toeic" class="group bg-white rounded-3xl p-7 border border-slate-200 hover:border-[#169C53] shadow-2xs hover:shadow-xl transition-all space-y-4 block">
-          <div class="w-12 h-12 rounded-2xl bg-amber-50 group-hover:bg-[#169C53] text-amber-600 group-hover:text-white flex items-center justify-center text-xl transition-colors">
-            <i class="ri-global-line"></i>
-          </div>
-          <h3 class="text-lg font-extrabold text-slate-900">TOEIC Certification</h3>
-          <p class="text-xs text-slate-500 leading-relaxed" data-i18n="card_toeic_desc">
-            Sertifikasi kemampuan bahasa Inggris komunikasi kerja internasional beserta pengumuman daftar peserta wajib & hasil tes dari pusat.
-          </p>
-          <div class="pt-2 text-xs font-extrabold text-[#169C53] flex items-center gap-1">
-            <span data-i18n="card_open_toeic">Informasi & Pengumuman TOEIC</span>
-            <i class="ri-arrow-right-line group-hover:translate-x-1 transition-transform"></i>
-          </div>
-        </a>
+          <a href="https://upabahasa-polnes-l7qi.vercel.app/layanan/kursus-mandarin" class="group p-5 rounded-2xl bg-slate-50 hover:bg-emerald-50/70 border border-slate-200/70 hover:border-emerald-200 transition-all space-y-2">
+            <div class="font-extrabold text-slate-900 group-hover:text-[#169C53] text-sm flex items-center justify-between">
+              <span data-i18n="mm_nontes_2">2. Kursus Bahasa Mandarin</span>
+              <i class="ri-external-link-line text-slate-400 group-hover:text-[#169C53]"></i>
+            </div>
+            <p class="text-xs text-slate-500" data-i18n="mm_nontes_2_sub">Informasi, Jadwal &amp; Pendaftaran Kursus</p>
+          </a>
+
+          <a href="https://upabahasa-polnes-l7qi.vercel.app/layanan/jsst" class="group p-5 rounded-2xl bg-slate-50 hover:bg-emerald-50/70 border border-slate-200/70 hover:border-emerald-200 transition-all space-y-2">
+            <div class="font-extrabold text-slate-900 group-hover:text-[#169C53] text-sm flex items-center justify-between">
+              <span data-i18n="mm_nontes_3">3. Job Seeking Skills Training (JSST)</span>
+              <i class="ri-external-link-line text-slate-400 group-hover:text-[#169C53]"></i>
+            </div>
+            <p class="text-xs text-slate-500" data-i18n="mm_nontes_3_sub">Informasi &amp; Pendaftaran JSST</p>
+          </a>
+        </div>
       </div>
     </div>
   </main>
@@ -314,11 +365,12 @@
   <footer class="bg-white border-t border-slate-200 py-8 px-4 md:px-10 lg:px-16 mt-auto">
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500 font-medium">
       <div data-i18n="footer_copyright">© 2026 UPA Bahasa • Politeknik Negeri Samarinda. Hak cipta dilindungi.</div>
-      <div class="flex items-center gap-6">
-        <a href="index.html" class="hover:text-[#169C53]" data-i18n="nav_beranda">Beranda</a>
+      <div class="flex flex-wrap items-center gap-6">
+        <a href="https://upabahasa-polnes-l7qi.vercel.app/" class="hover:text-[#169C53]" data-i18n="nav_beranda">Beranda</a>
         <a href="layanan-tes.html?tab=toefl" class="hover:text-[#169C53]">TOEFL Prediction</a>
         <a href="layanan-tes.html?tab=sspect" class="hover:text-[#169C53]">SSPECT</a>
         <a href="layanan-tes.html?tab=toeic" class="hover:text-[#169C53]">TOEIC</a>
+        <a href="https://upabahasa-polnes-l7qi.vercel.app/layanan/kursus-inggris" class="hover:text-[#169C53]" data-i18n="btn_daftar_kursus">Daftar Kursus</a>
       </div>
     </div>
   </footer>
@@ -330,6 +382,7 @@
         brand_subtitle: "POLITEKNIK NEGERI SAMARINDA",
         nav_beranda: "BERANDA",
         nav_tentang: "TENTANG",
+        nav_galeri: "GALERI",
         nav_layanan: "Layanan",
         nav_informasi: "Informasi",
         nav_pembelajaran: "Pembelajaran",
@@ -344,25 +397,30 @@
         mm_sspect_sub: "Jadwal & Daftar Peserta Tes SSPECT",
         mm_toeic_sub: "Informasi TOEIC & Pengumuman Berita",
         mm_layanan_nontes: "LAYANAN NON-TES",
-        mm_segera_hadir: "Segera Hadir",
+        mm_daftar_kursus: "Daftar Kursus",
         mm_nontes_1: "1. Kursus Bahasa Inggris",
         mm_nontes_1_sub: "Informasi, Jadwal & Pendaftaran Kursus",
         mm_nontes_2: "2. Kursus Bahasa Mandarin",
         mm_nontes_2_sub: "Informasi, Jadwal & Pendaftaran Kursus",
         mm_nontes_3: "3. Job Seeking Skills Training (JSST)",
         mm_nontes_3_sub: "Informasi & Pendaftaran JSST",
-        hero_heading: "Mengembangkan Kompetensi Bahasa untuk Masa Depan",
-        hero_subheading: "Pusat layanan dan pengembangan bahasa di Politeknik Negeri Samarinda yang mendukung peningkatan kemampuan bahasa mahasiswa dan sivitas akademika.",
-        hero_cta_primary: "Jelajahi Layanan Tes",
-        home_sec_badge: "LAYANAN TES UNGGULAN",
-        home_sec_title: "Program Pengujian & Sertifikasi Bahasa",
-        home_sec_desc: "Pilih layanan pengujian sesuai kebutuhan akademik maupun persiapan karier internasional Anda.",
+        hero_heading: "Pilihan Layanan Tes & Pengembangan Bahasa",
+        hero_subheading: "Akses langsung layanan pengujian TOEFL Prediction, SSPECT, dan TOEIC, atau lanjut ke pendaftaran kursus di portal utama UPA Bahasa Politeknik Negeri Samarinda.",
+        hero_cta_primary: "Pilih Layanan",
+        hero_cta_secondary: "Kembali ke Web Utama",
+        home_sec_badge: "LAYANAN TES & SERTIFIKASI",
+        home_sec_title: "Pilih Layanan Pengujian Bahasa",
+        home_sec_desc: "Klik kartu layanan di bawah ini untuk membuka halaman jadwal, pendaftaran remedial, cek skor, atau pengumuman.",
         card_toefl_desc: "Tes standar kelulusan mahasiswa D3 & D4 Politeknik Negeri Samarinda lengkap dengan jadwal kelas, daftar peserta per sesi, pendaftaran remedial, dan cek skor online.",
         card_open_btn: "Buka Halaman TOEFL",
         card_sspect_desc: "Pemetaan kemampuan bahasa Inggris bagi mahasiswa semester awal lengkap dengan jadwal kelas dan pencarian nama peserta ujian.",
         card_open_sspect: "Lihat Jadwal & Peserta SSPECT",
         card_toeic_desc: "Sertifikasi kemampuan bahasa Inggris komunikasi kerja internasional beserta pengumuman daftar peserta wajib & hasil tes dari pusat.",
         card_open_toeic: "Informasi & Pengumuman TOEIC",
+        course_sec_badge: "LAYANAN NON-TES",
+        course_sec_title: "Daftar Kursus & Pelatihan Bahasa",
+        course_sec_desc: "Klik pilihan program kursus di bawah ini untuk diarahkan langsung ke halaman pendaftaran kursus.",
+        btn_daftar_kursus: "Daftar Kursus",
         footer_copyright: "© 2026 UPA Bahasa • Politeknik Negeri Samarinda. Hak cipta dilindungi."
       },
       en: {
@@ -370,6 +428,7 @@
         brand_subtitle: "STATE POLYTECHNIC OF SAMARINDA",
         nav_beranda: "HOME",
         nav_tentang: "ABOUT",
+        nav_galeri: "GALLERY",
         nav_layanan: "Services",
         nav_informasi: "Information",
         nav_pembelajaran: "Learning",
@@ -384,25 +443,30 @@
         mm_sspect_sub: "SSPECT Test Schedule & Participant Roster",
         mm_toeic_sub: "TOEIC Info & Official News Announcements",
         mm_layanan_nontes: "NON-TESTING SERVICES",
-        mm_segera_hadir: "Coming Soon",
+        mm_daftar_kursus: "Course Registration",
         mm_nontes_1: "1. English Language Course",
         mm_nontes_1_sub: "Course Information, Schedule & Registration",
         mm_nontes_2: "2. Mandarin Language Course",
         mm_nontes_2_sub: "Course Information, Schedule & Registration",
         mm_nontes_3: "3. Job Seeking Skills Training (JSST)",
         mm_nontes_3_sub: "JSST Information & Registration",
-        hero_heading: "Developing Language Competence for the Future",
-        hero_subheading: "Language service and development center at State Polytechnic of Samarinda supporting the enhancement of language proficiency for students and academic staff.",
-        hero_cta_primary: "Explore Testing Services",
-        home_sec_badge: "FEATURED TESTING SERVICES",
-        home_sec_title: "Language Testing & Certification Programs",
-        home_sec_desc: "Choose a testing service tailored to your academic requirements and international career preparation.",
+        hero_heading: "Language Testing & Development Services",
+        hero_subheading: "Direct access to TOEFL Prediction, SSPECT, and TOEIC testing services, or proceed to course registration on the main UPA Bahasa portal.",
+        hero_cta_primary: "Choose Service",
+        hero_cta_secondary: "Back to Main Site",
+        home_sec_badge: "TESTING & CERTIFICATION SERVICES",
+        home_sec_title: "Select Language Testing Service",
+        home_sec_desc: "Click a service card below to open schedules, remedial registration, score checking, or announcements.",
         card_toefl_desc: "Graduation standard English proficiency test for D3 & D4 students at State Polytechnic of Samarinda complete with class schedules, participant rosters, remedial registration, and online score checking.",
         card_open_btn: "Open TOEFL Page",
         card_sspect_desc: "English proficiency mapping for first-year students complete with class schedules and participant search.",
         card_open_sspect: "View SSPECT Schedule & Roster",
         card_toeic_desc: "International workplace English communication certification along with mandatory participant rosters and official test results from headquarters.",
         card_open_toeic: "TOEIC Information & Announcements",
+        course_sec_badge: "NON-TESTING SERVICES",
+        course_sec_title: "Course & Language Training Registration",
+        course_sec_desc: "Click a course program below to go directly to the course registration page.",
+        btn_daftar_kursus: "Register Course",
         footer_copyright: "© 2026 UPA Bahasa • State Polytechnic of Samarinda. All rights reserved."
       }
     };
