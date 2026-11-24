@@ -7,7 +7,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 
   <script src="https://cdn.tailwindcss.com"></script>
@@ -15,12 +15,15 @@
     tailwind.config = {
       theme: {
         extend: {
-          fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+          fontFamily: {
+            sans: ['Inter', 'Plus Jakarta Sans', 'sans-serif'],
+            jakarta: ['Plus Jakarta Sans', 'sans-serif']
+          },
           colors: {
             polnes: {
               main: '#10C35D',
               dark: '#0DAA50',
-              darker: '#0A3D2E',
+              darker: '#0a3d2e',
               light: '#E8F8EF'
             }
           }
@@ -43,65 +46,56 @@
 </head>
 <body class="bg-slate-50 font-sans text-slate-800 antialiased flex flex-col min-h-screen">
 
-  <!-- ==================== HEADER & NAVBAR (IDENTIK DENGAN WEB UTAMA) ==================== -->
+  <!-- ==================== HEADER & NAVBAR (100% IDENTIK DENGAN WEB UTAMA) ==================== -->
   <header class="bg-white border-b border-gray-100 sticky top-0 z-50">
     <!-- Top Info Bar -->
-    <div class="bg-[#10C35D] text-white text-[11px] py-2 px-4 md:px-10 lg:px-16">
-      <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-1.5">
-        <div class="flex flex-wrap items-center justify-center sm:justify-start gap-4 md:gap-6 font-medium">
-          <span class="flex items-center gap-1.5">
-            <i class="ri-map-pin-line text-white/90"></i>
-            <span data-i18n="top_address">Jl. Cipto Mangunkusumo, Samarinda Seberang</span>
-          </span>
-          <span class="hidden md:flex items-center gap-1.5">
-            <i class="ri-mail-line text-white/90"></i>
-            <span>upabahasa@polnes.ac.id</span>
-          </span>
-          <span class="hidden sm:flex items-center gap-1.5">
-            <i class="ri-phone-line text-white/90"></i>
-            <span>(0541) 743584</span>
-          </span>
+    <div class="bg-[#10C35D] text-white text-xs py-2.5 px-4 md:px-10 lg:px-16">
+      <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
+        <div class="flex flex-wrap items-center justify-center sm:justify-start gap-6 md:gap-8 font-normal">
+          <span data-i18n="top_address">Jl. Cipto Mangunkusumo, Samarinda Seberang</span>
+          <span class="hidden md:inline">upabahasa@polnes.ac.id</span>
+          <span class="hidden sm:inline">(0541) 743584</span>
         </div>
 
         <!-- Pengalih Bahasa ID | EN -->
-        <div class="flex items-center gap-2 text-[11px] tracking-wider select-none">
-          <button type="button" id="btnLangId" onclick="handleSwitchLang('id')" class="font-extrabold text-white transition-all">ID</button>
-          <span class="text-white/50">|</span>
-          <button type="button" id="btnLangEn" onclick="handleSwitchLang('en')" class="font-medium text-white/75 hover:text-white transition-all">EN</button>
+        <div class="flex items-center gap-2.5 text-xs tracking-wide select-none">
+          <button type="button" id="btnLangId" onclick="handleSwitchLang('id')" class="font-bold text-white transition-all">ID</button>
+          <span class="text-white/40">|</span>
+          <button type="button" id="btnLangEn" onclick="handleSwitchLang('en')" class="font-normal text-white/80 hover:text-white transition-all">EN</button>
         </div>
       </div>
     </div>
 
     <!-- Main Navigation Bar -->
-    <div class="max-w-7xl mx-auto px-4 md:px-10 lg:px-16 h-20 flex items-center justify-between relative">
+    <div class="max-w-7xl mx-auto px-4 md:px-10 lg:px-16 h-[76px] flex items-center justify-between relative">
       <!-- Logo & Brand (Kembali ke Beranda Web Utama) -->
-      <a href="https://upabahasa-polnes-l7qi.vercel.app/" class="flex items-center gap-3">
-        <img src="./img/polnes.png" onerror="this.style.display='none'; document.getElementById('fallbackLogoHeader').classList.remove('hidden')" alt="Logo POLNES" class="w-11 h-11 object-contain">
-        <div id="fallbackLogoHeader" class="hidden w-11 h-11 rounded-xl bg-[#10C35D] text-white flex items-center justify-center font-extrabold text-sm">
+      <a href="https://upabahasa-polnes-l7qi.vercel.app/" class="flex items-center gap-3.5">
+        <img src="./img/polnes.png" onerror="this.style.display='none'; document.getElementById('fallbackLogoHeader').classList.remove('hidden')" alt="Logo POLNES" class="w-12 h-12 object-contain">
+        <div id="fallbackLogoHeader" class="hidden w-12 h-12 rounded-xl bg-[#10C35D] text-white flex items-center justify-center font-extrabold text-sm">
           UP
         </div>
         <div>
-          <div class="font-extrabold text-[#0A3D2E] text-base tracking-tight leading-tight">UPA BAHASA</div>
-          <div class="text-[10px] font-bold text-[#10C35D] uppercase tracking-wider" data-i18n="brand_subtitle">POLITEKNIK NEGERI SAMARINDA</div>
+          <div class="font-extrabold text-[#0a3d2e] text-lg tracking-tight leading-none">UPA BAHASA</div>
+          <div class="text-[11px] font-medium text-[#10C35D] uppercase tracking-wider mt-1" data-i18n="brand_subtitle">POLITEKNIK NEGERI SAMARINDA</div>
         </div>
       </a>
 
       <!-- Navigasi Rata Kanan Desktop -->
-      <nav id="desktopNavbar" class="hidden lg:flex items-center gap-1 text-xs font-semibold text-gray-700">
-        <a href="https://upabahasa-polnes-l7qi.vercel.app/" class="relative px-3.5 py-2.5 hover:text-[#10C35D] transition-colors">
+      <nav id="desktopNavbar" class="hidden lg:flex items-center gap-6 text-sm font-medium text-gray-700">
+        <a href="https://upabahasa-polnes-l7qi.vercel.app/" class="py-2 hover:text-[#10C35D] transition-colors">
           <span data-i18n="nav_beranda">BERANDA</span>
         </a>
 
-        <a href="https://upabahasa-polnes-l7qi.vercel.app/tentang" class="relative px-3.5 py-2.5 hover:text-[#10C35D] transition-colors" data-i18n="nav_tentang">TENTANG</a>
+        <a href="https://upabahasa-polnes-l7qi.vercel.app/tentang" class="py-2 hover:text-[#10C35D] transition-colors" data-i18n="nav_tentang">TENTANG</a>
 
-        <a href="https://upabahasa-polnes-l7qi.vercel.app/galeri" class="relative px-3.5 py-2.5 hover:text-[#10C35D] transition-colors">GALERI</a>
+        <a href="https://upabahasa-polnes-l7qi.vercel.app/galeri" class="py-2 hover:text-[#10C35D] transition-colors">GALERI</a>
 
-        <!-- 1. DROPDOWN LAYANAN -->
+        <!-- 1. DROPDOWN LAYANAN (AKTIF) -->
         <div class="relative nav-dropdown-wrap">
-          <button type="button" onclick="openNavDropdown('menuLayanan', event)" id="navLayanan" class="relative px-3.5 py-2.5 text-[#10C35D] font-bold transition-colors flex items-center gap-1">
+          <button type="button" onclick="openNavDropdown('menuLayanan', event)" id="navLayanan" class="relative py-2 text-[#10C35D] font-medium transition-colors flex items-center gap-1">
             <span data-i18n="nav_layanan">Layanan</span>
-            <i class="ri-arrow-down-s-line text-sm transition-transform"></i>
-            <span class="nav-indicator absolute bottom-0 left-3 right-3 h-0.5 bg-[#10C35D] rounded-full"></span>
+            <i class="ri-arrow-down-s-line text-base"></i>
+            <span class="nav-indicator absolute bottom-0 left-0 right-0 h-[2px] bg-[#10C35D]"></span>
           </button>
 
           <div id="menuLayanan" class="nav-dropdown-menu hidden mega-menu-enter absolute left-0 mt-3 w-64 bg-white rounded-xl shadow-xl border border-gray-100 py-3 px-2 z-50">
@@ -109,13 +103,13 @@
               LAYANAN TES
             </div>
             <div class="space-y-0.5 mt-1">
-              <button type="button" onclick="bukaTabLayanan('toefl'); closeAllNavDropdowns()" class="w-full text-left block px-3 py-2 rounded-lg text-xs font-medium text-gray-700 hover:bg-emerald-50 hover:text-[#10C35D] transition-colors">
+              <button type="button" onclick="bukaTabLayanan('toefl'); closeAllNavDropdowns()" class="w-full text-left block px-3 py-2 rounded-lg text-sm font-normal text-gray-700 hover:bg-emerald-50 hover:text-[#10C35D] transition-colors">
                 TOEFL Prediction
               </button>
-              <button type="button" onclick="bukaTabLayanan('sspect'); closeAllNavDropdowns()" class="w-full text-left block px-3 py-2 rounded-lg text-xs font-medium text-gray-700 hover:bg-emerald-50 hover:text-[#10C35D] transition-colors">
+              <button type="button" onclick="bukaTabLayanan('sspect'); closeAllNavDropdowns()" class="w-full text-left block px-3 py-2 rounded-lg text-sm font-normal text-gray-700 hover:bg-emerald-50 hover:text-[#10C35D] transition-colors">
                 SSPECT
               </button>
-              <button type="button" onclick="bukaTabLayanan('toeic'); closeAllNavDropdowns()" class="w-full text-left block px-3 py-2 rounded-lg text-xs font-medium text-gray-700 hover:bg-emerald-50 hover:text-[#10C35D] transition-colors">
+              <button type="button" onclick="bukaTabLayanan('toeic'); closeAllNavDropdowns()" class="w-full text-left block px-3 py-2 rounded-lg text-sm font-normal text-gray-700 hover:bg-emerald-50 hover:text-[#10C35D] transition-colors">
                 TOEIC
               </button>
             </div>
@@ -126,13 +120,13 @@
               LAYANAN NON-TES
             </div>
             <div class="space-y-0.5 mt-1">
-              <a href="https://upabahasa-polnes-l7qi.vercel.app/layanan/kursus-inggris" class="block px-3 py-2 rounded-lg text-xs font-medium text-gray-700 hover:bg-emerald-50 hover:text-[#10C35D] transition-colors">
+              <a href="https://upabahasa-polnes-l7qi.vercel.app/layanan/kursus-inggris" class="block px-3 py-2 rounded-lg text-sm font-normal text-gray-700 hover:bg-emerald-50 hover:text-[#10C35D] transition-colors">
                 Kursus Bahasa Inggris
               </a>
-              <a href="https://upabahasa-polnes-l7qi.vercel.app/layanan/kursus-mandarin" class="block px-3 py-2 rounded-lg text-xs font-medium text-gray-700 hover:bg-emerald-50 hover:text-[#10C35D] transition-colors">
+              <a href="https://upabahasa-polnes-l7qi.vercel.app/layanan/kursus-mandarin" class="block px-3 py-2 rounded-lg text-sm font-normal text-gray-700 hover:bg-emerald-50 hover:text-[#10C35D] transition-colors">
                 Kursus Bahasa Mandarin
               </a>
-              <a href="https://upabahasa-polnes-l7qi.vercel.app/layanan/jsst" class="block px-3 py-2 rounded-lg text-xs font-medium text-gray-700 hover:bg-emerald-50 hover:text-[#10C35D] transition-colors">
+              <a href="https://upabahasa-polnes-l7qi.vercel.app/layanan/jsst" class="block px-3 py-2 rounded-lg text-sm font-normal text-gray-700 hover:bg-emerald-50 hover:text-[#10C35D] transition-colors">
                 Job Seeking Skills Training
               </a>
             </div>
@@ -141,19 +135,19 @@
 
         <!-- 2. DROPDOWN INFORMASI -->
         <div class="relative nav-dropdown-wrap">
-          <button type="button" onclick="openNavDropdown('menuInformasi', event)" class="relative px-3.5 py-2.5 hover:text-[#10C35D] transition-colors flex items-center gap-1">
+          <button type="button" onclick="openNavDropdown('menuInformasi', event)" class="py-2 hover:text-[#10C35D] transition-colors flex items-center gap-1">
             <span data-i18n="nav_informasi">Informasi</span>
-            <i class="ri-arrow-down-s-line text-sm"></i>
+            <i class="ri-arrow-down-s-line text-base"></i>
           </button>
 
           <div id="menuInformasi" class="nav-dropdown-menu hidden mega-menu-enter absolute left-0 mt-3 w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-2.5 px-2 z-50 space-y-0.5">
-            <a href="https://upabahasa-polnes-l7qi.vercel.app/informasi/berita" class="block px-3.5 py-2.5 rounded-lg text-xs font-medium text-gray-700 hover:bg-emerald-50 hover:text-[#10C35D] transition-colors">
+            <a href="https://upabahasa-polnes-l7qi.vercel.app/informasi/berita" class="block px-3.5 py-2.5 rounded-lg text-sm font-normal text-gray-700 hover:bg-emerald-50 hover:text-[#10C35D] transition-colors">
               Berita
             </a>
-            <a href="https://upabahasa-polnes-l7qi.vercel.app/informasi/pengumuman" class="block px-3.5 py-2.5 rounded-lg text-xs font-medium text-gray-700 hover:bg-emerald-50 hover:text-[#10C35D] transition-colors">
+            <a href="https://upabahasa-polnes-l7qi.vercel.app/informasi/pengumuman" class="block px-3.5 py-2.5 rounded-lg text-sm font-normal text-gray-700 hover:bg-emerald-50 hover:text-[#10C35D] transition-colors">
               Pengumuman
             </a>
-            <a href="https://upabahasa-polnes-l7qi.vercel.app/informasi/faq" class="block px-3.5 py-2.5 rounded-lg text-xs font-medium text-gray-700 hover:bg-emerald-50 hover:text-[#10C35D] transition-colors">
+            <a href="https://upabahasa-polnes-l7qi.vercel.app/informasi/faq" class="block px-3.5 py-2.5 rounded-lg text-sm font-normal text-gray-700 hover:bg-emerald-50 hover:text-[#10C35D] transition-colors">
               FAQ
             </a>
           </div>
@@ -161,19 +155,19 @@
 
         <!-- 3. DROPDOWN PEMBELAJARAN -->
         <div class="relative nav-dropdown-wrap">
-          <button type="button" onclick="openNavDropdown('menuPembelajaran', event)" class="relative px-3.5 py-2.5 hover:text-[#10C35D] transition-colors flex items-center gap-1">
+          <button type="button" onclick="openNavDropdown('menuPembelajaran', event)" class="py-2 hover:text-[#10C35D] transition-colors flex items-center gap-1">
             <span data-i18n="nav_pembelajaran">Pembelajaran</span>
-            <i class="ri-arrow-down-s-line text-sm"></i>
+            <i class="ri-arrow-down-s-line text-base"></i>
           </button>
 
           <div id="menuPembelajaran" class="nav-dropdown-menu hidden mega-menu-enter absolute left-0 mt-3 w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-2.5 px-2 z-50 space-y-0.5">
-            <a href="https://upabahasa-polnes-l7qi.vercel.app/pembelajaran/e-book" class="block px-3.5 py-2.5 rounded-lg text-xs font-medium text-gray-700 hover:bg-emerald-50 hover:text-[#10C35D] transition-colors">
+            <a href="https://upabahasa-polnes-l7qi.vercel.app/pembelajaran/e-book" class="block px-3.5 py-2.5 rounded-lg text-sm font-normal text-gray-700 hover:bg-emerald-50 hover:text-[#10C35D] transition-colors">
               E-Book
             </a>
-            <a href="https://upabahasa-polnes-l7qi.vercel.app/pembelajaran/kuis" class="block px-3.5 py-2.5 rounded-lg text-xs font-medium text-gray-700 hover:bg-emerald-50 hover:text-[#10C35D] transition-colors">
+            <a href="https://upabahasa-polnes-l7qi.vercel.app/pembelajaran/kuis" class="block px-3.5 py-2.5 rounded-lg text-sm font-normal text-gray-700 hover:bg-emerald-50 hover:text-[#10C35D] transition-colors">
               Kuis / Latihan Soal
             </a>
-            <a href="https://upabahasa-polnes-l7qi.vercel.app/pembelajaran/publikasi" class="block px-3.5 py-2.5 rounded-lg text-xs font-medium text-gray-700 hover:bg-emerald-50 hover:text-[#10C35D] transition-colors">
+            <a href="https://upabahasa-polnes-l7qi.vercel.app/pembelajaran/publikasi" class="block px-3.5 py-2.5 rounded-lg text-sm font-normal text-gray-700 hover:bg-emerald-50 hover:text-[#10C35D] transition-colors">
               Publikasi
             </a>
           </div>
@@ -181,19 +175,19 @@
 
         <!-- 4. DROPDOWN LAYANAN PENGGUNA -->
         <div class="relative nav-dropdown-wrap">
-          <button type="button" onclick="openNavDropdown('menuLayananPengguna', event)" class="relative px-3.5 py-2.5 hover:text-[#10C35D] transition-colors flex items-center gap-1">
+          <button type="button" onclick="openNavDropdown('menuLayananPengguna', event)" class="py-2 hover:text-[#10C35D] transition-colors flex items-center gap-1">
             <span data-i18n="nav_pengguna">Layanan Pengguna</span>
-            <i class="ri-arrow-down-s-line text-sm"></i>
+            <i class="ri-arrow-down-s-line text-base"></i>
           </button>
 
           <div id="menuLayananPengguna" class="nav-dropdown-menu hidden mega-menu-enter absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-xl border border-gray-100 py-2.5 px-2 z-50 space-y-0.5">
-            <a href="https://upabahasa-polnes-l7qi.vercel.app/layanan-pengguna/pengaduan" class="block px-3.5 py-2.5 rounded-lg text-xs font-medium text-gray-700 hover:bg-emerald-50 hover:text-[#10C35D] transition-colors">
+            <a href="https://upabahasa-polnes-l7qi.vercel.app/layanan-pengguna/pengaduan" class="block px-3.5 py-2.5 rounded-lg text-sm font-normal text-gray-700 hover:bg-emerald-50 hover:text-[#10C35D] transition-colors">
               Pengaduan
             </a>
-            <a href="https://upabahasa-polnes-l7qi.vercel.app/layanan-pengguna/tracking" class="block px-3.5 py-2.5 rounded-lg text-xs font-medium text-gray-700 hover:bg-emerald-50 hover:text-[#10C35D] transition-colors">
+            <a href="https://upabahasa-polnes-l7qi.vercel.app/layanan-pengguna/tracking" class="block px-3.5 py-2.5 rounded-lg text-sm font-normal text-gray-700 hover:bg-emerald-50 hover:text-[#10C35D] transition-colors">
               Tracking Pengaduan
             </a>
-            <a href="https://upabahasa-polnes-l7qi.vercel.app/layanan-pengguna/survei" class="block px-3.5 py-2.5 rounded-lg text-xs font-medium text-gray-700 hover:bg-emerald-50 hover:text-[#10C35D] transition-colors">
+            <a href="https://upabahasa-polnes-l7qi.vercel.app/layanan-pengguna/survei" class="block px-3.5 py-2.5 rounded-lg text-sm font-normal text-gray-700 hover:bg-emerald-50 hover:text-[#10C35D] transition-colors">
               Survei Kepuasan
             </a>
           </div>
@@ -250,12 +244,12 @@
   </header>
 
   <!-- ==================== TAB SWITCHER CEPAT LAYANAN TES ==================== -->
-  <div class="bg-white border-b border-gray-100">
+  <div class="bg-white border-b border-gray-100 font-jakarta">
     <div class="max-w-7xl mx-auto px-4 md:px-10 lg:px-16 py-3 flex flex-wrap items-center justify-between gap-3">
       <div class="flex items-center gap-2 text-xs font-bold text-gray-500">
         <a href="https://upabahasa-polnes-l7qi.vercel.app/" class="hover:text-[#10C35D]" data-i18n="nav_beranda">Beranda</a>
         <i class="ri-arrow-right-s-line text-gray-400"></i>
-        <span class="text-[#0A3D2E]" data-i18n="nav_layanan">Layanan</span>
+        <span class="text-[#0a3d2e]" data-i18n="nav_layanan">Layanan</span>
       </div>
 
       <!-- Tombol Pindah Cepat Antar Layanan Tes -->
@@ -274,7 +268,7 @@
   </div>
 
   <!-- ==================== SECTION 1: LAYANAN TOEFL PREDICTION ==================== -->
-  <section id="viewToefl" class="flex-1 pb-16">
+  <section id="viewToefl" class="flex-1 pb-16 font-jakarta">
     <div class="max-w-7xl mx-auto px-4 md:px-10 lg:px-16 pt-8 space-y-10">
 
       <!-- Sub-Navigasi Kapsul TOEFL -->
@@ -504,7 +498,7 @@
   </section>
 
   <!-- ==================== SECTION 2: LAYANAN SSPECT ==================== -->
-  <section id="viewSspect" class="hidden flex-1 pb-16">
+  <section id="viewSspect" class="hidden flex-1 pb-16 font-jakarta">
     <div class="max-w-7xl mx-auto px-4 md:px-10 lg:px-16 pt-8 space-y-8">
       
       <!-- TABEL 1 SSPECT: JADWAL UJIAN PER KELAS -->
@@ -614,7 +608,7 @@
   </section>
 
   <!-- ==================== SECTION 3: LAYANAN TOEIC ==================== -->
-  <section id="viewToeic" class="hidden flex-1 pb-16">
+  <section id="viewToeic" class="hidden flex-1 pb-16 font-jakarta">
     <div class="max-w-7xl mx-auto px-4 md:px-10 lg:px-16 pt-8 space-y-10">
       
       <!-- Bagian Atas: Informasi Umum TOEIC -->
@@ -690,7 +684,7 @@
   </section>
 
   <!-- ==================== SECTION 4: HALAMAN BACA DETAIL PENGUMUMAN TOEIC ==================== -->
-  <section id="viewToeicDetail" class="hidden flex-1 pb-16">
+  <section id="viewToeicDetail" class="hidden flex-1 pb-16 font-jakarta">
     <div class="max-w-4xl mx-auto px-4 md:px-10 pt-8 space-y-6">
       
       <button type="button" onclick="bukaTabLayanan('toeic')" class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-extrabold shadow-2xs transition-all">
@@ -744,7 +738,7 @@
   </section>
 
   <!-- ==================== FOOTER ==================== -->
-  <footer class="bg-white border-t border-gray-100 py-8 px-4 md:px-10 lg:px-16 mt-auto">
+  <footer class="bg-white border-t border-gray-100 py-8 px-4 md:px-10 lg:px-16 mt-auto font-jakarta">
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500 font-medium">
       <div data-i18n="footer_copyright">© 2026 UPA Bahasa • Politeknik Negeri Samarinda. Hak cipta dilindungi.</div>
       <div class="flex items-center gap-6">
@@ -791,11 +785,11 @@
       const btnEn = document.getElementById('btnLangEn');
       if (btnId && btnEn) {
         btnId.className = lang === 'id'
-          ? 'font-extrabold text-white transition-all'
-          : 'font-medium text-white/75 hover:text-white transition-all';
+          ? 'font-bold text-white transition-all'
+          : 'font-normal text-white/80 hover:text-white transition-all';
         btnEn.className = lang === 'en'
-          ? 'font-extrabold text-white transition-all'
-          : 'font-medium text-white/75 hover:text-white transition-all';
+          ? 'font-bold text-white transition-all'
+          : 'font-normal text-white/80 hover:text-white transition-all';
       }
     }
 
@@ -805,11 +799,11 @@
       const btnEn = document.getElementById('btnLangEn');
       if (btnId && btnEn) {
         btnId.className = savedLang === 'id'
-          ? 'font-extrabold text-white transition-all'
-          : 'font-medium text-white/75 hover:text-white transition-all';
+          ? 'font-bold text-white transition-all'
+          : 'font-normal text-white/80 hover:text-white transition-all';
         btnEn.className = savedLang === 'en'
-          ? 'font-extrabold text-white transition-all'
-          : 'font-medium text-white/75 hover:text-white transition-all';
+          ? 'font-bold text-white transition-all'
+          : 'font-normal text-white/80 hover:text-white transition-all';
       }
     });
   </script>
